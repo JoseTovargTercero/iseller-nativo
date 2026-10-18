@@ -26,14 +26,7 @@ namespace Iseller.Pos.App
 
         private void CampoRecibido_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
         {
-            double recibido;
-            if (!double.TryParse(CampoRecibido.Text.Replace(",", "."), NumberStyles.Float,
-                                 CultureInfo.InvariantCulture, out recibido))
-            {
-                Cambio(0);
-                return;
-            }
-            Cambio(recibido);
+            Cambio(Core.Utilidades.Numero.ADouble(CampoRecibido.Text));
         }
 
         private void Cambio(double recibido)

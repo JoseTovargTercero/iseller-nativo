@@ -1,6 +1,7 @@
 <Window x:Class="Iseller.Pos.App.VentanaCaja"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:app="clr-namespace:Iseller.Pos.App"
         Width="480" SizeToContent="Height" MaxHeight="720"
         ResizeMode="NoResize" WindowStartupLocation="CenterOwner"
         Icon="Assets/logo1-inv-compact-128.png"
@@ -24,15 +25,15 @@
                         </Grid.ColumnDefinitions>
                         <StackPanel Grid.Column="0" Margin="0,0,8,0">
                             <TextBlock Text="Bolívares (Bs)" Style="{StaticResource MutedText}" Margin="0,0,0,4" />
-                            <TextBox x:Name="AperturaBs" Padding="10,8" />
+                            <TextBox x:Name="AperturaBs" Padding="10,8" app:Numerico.Decimales="True" />
                         </StackPanel>
                         <StackPanel Grid.Column="1" Margin="0,0,8,0">
                             <TextBlock Text="Dólares (USD)" Style="{StaticResource MutedText}" Margin="0,0,0,4" />
-                            <TextBox x:Name="AperturaUsd" Padding="10,8" />
+                            <TextBox x:Name="AperturaUsd" Padding="10,8" app:Numerico.Decimales="True" />
                         </StackPanel>
                         <StackPanel Grid.Column="2">
                             <TextBlock Text="Pesos (COP)" Style="{StaticResource MutedText}" Margin="0,0,0,4" />
-                            <TextBox x:Name="AperturaPesos" Padding="10,8" />
+                            <TextBox x:Name="AperturaPesos" Padding="10,8" app:Numerico.Decimales="True" />
                         </StackPanel>
                     </Grid>
                 </StackPanel>
@@ -48,15 +49,15 @@
                         </Grid.ColumnDefinitions>
                         <StackPanel Grid.Column="0" Margin="0,0,8,0">
                             <TextBlock Text="Bolívares" Style="{StaticResource MutedText}" Margin="0,0,0,4" />
-                            <TextBox x:Name="CierreBs" Padding="10,8" />
+                            <TextBox x:Name="CierreBs" Padding="10,8" app:Numerico.Decimales="True" />
                         </StackPanel>
                         <StackPanel Grid.Column="1" Margin="0,0,8,0">
                             <TextBlock Text="Dólares" Style="{StaticResource MutedText}" Margin="0,0,0,4" />
-                            <TextBox x:Name="CierreUsd" Padding="10,8" />
+                            <TextBox x:Name="CierreUsd" Padding="10,8" app:Numerico.Decimales="True" />
                         </StackPanel>
                         <StackPanel Grid.Column="2">
                             <TextBlock Text="Pesos" Style="{StaticResource MutedText}" Margin="0,0,0,4" />
-                            <TextBox x:Name="CierrePesos" Padding="10,8" />
+                            <TextBox x:Name="CierrePesos" Padding="10,8" app:Numerico.Decimales="True" />
                         </StackPanel>
                     </Grid>
 
@@ -72,19 +73,19 @@
                         </Grid.ColumnDefinitions>
                         <StackPanel Grid.Row="0" Grid.Column="0" Margin="0,0,8,8">
                             <TextBlock Text="Punto de venta" Style="{StaticResource MutedText}" Margin="0,0,0,4" />
-                            <TextBox x:Name="CierrePunto" Padding="10,8" />
+                            <TextBox x:Name="CierrePunto" Padding="10,8" app:Numerico.Decimales="True" />
                         </StackPanel>
                         <StackPanel Grid.Row="0" Grid.Column="1" Margin="0,0,0,8">
                             <TextBlock Text="BioPago" Style="{StaticResource MutedText}" Margin="0,0,0,4" />
-                            <TextBox x:Name="CierreBioPago" Padding="10,8" />
+                            <TextBox x:Name="CierreBioPago" Padding="10,8" app:Numerico.Decimales="True" />
                         </StackPanel>
                         <StackPanel Grid.Row="1" Grid.Column="0" Margin="0,0,8,0">
                             <TextBlock Text="Pago móvil" Style="{StaticResource MutedText}" Margin="0,0,0,4" />
-                            <TextBox x:Name="CierrePagoMovil" Padding="10,8" />
+                            <TextBox x:Name="CierrePagoMovil" Padding="10,8" app:Numerico.Decimales="True" />
                         </StackPanel>
                         <StackPanel Grid.Row="1" Grid.Column="1">
                             <TextBlock Text="Transferencia" Style="{StaticResource MutedText}" Margin="0,0,0,4" />
-                            <TextBox x:Name="CierreTransferencia" Padding="10,8" />
+                            <TextBox x:Name="CierreTransferencia" Padding="10,8" app:Numerico.Decimales="True" />
                         </StackPanel>
                     </Grid>
 
@@ -97,15 +98,15 @@
                         </Grid.ColumnDefinitions>
                         <StackPanel Grid.Column="0" Margin="0,0,8,0">
                             <TextBlock Text="Bs" Style="{StaticResource MutedText}" Margin="0,0,0,4" />
-                            <TextBox x:Name="CierreFondoBs" Padding="10,8" />
+                            <TextBox x:Name="CierreFondoBs" Padding="10,8" app:Numerico.Decimales="True" />
                         </StackPanel>
                         <StackPanel Grid.Column="1" Margin="0,0,8,0">
                             <TextBlock Text="USD" Style="{StaticResource MutedText}" Margin="0,0,0,4" />
-                            <TextBox x:Name="CierreFondoUsd" Padding="10,8" />
+                            <TextBox x:Name="CierreFondoUsd" Padding="10,8" app:Numerico.Decimales="True" />
                         </StackPanel>
                         <StackPanel Grid.Column="2">
                             <TextBlock Text="Pesos" Style="{StaticResource MutedText}" Margin="0,0,0,4" />
-                            <TextBox x:Name="CierreFondoPesos" Padding="10,8" />
+                            <TextBox x:Name="CierreFondoPesos" Padding="10,8" app:Numerico.Decimales="True" />
                         </StackPanel>
                     </Grid>
                 </StackPanel>

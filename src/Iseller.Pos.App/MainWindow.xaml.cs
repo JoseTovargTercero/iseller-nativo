@@ -284,6 +284,11 @@ namespace Iseller.Pos.App
                 Aviso("Sincroniza el catálogo antes de vender.");
                 return;
             }
+            if (cantidad <= 0)
+            {
+                Aviso("La cantidad debe ser mayor a cero.");
+                return;
+            }
 
             _carrito.Agregar(producto, _calculadora, cantidad);
             PersistirCarrito();
@@ -298,7 +303,7 @@ namespace Iseller.Pos.App
             var vista = (sender as FrameworkElement)?.DataContext as ProductoVista;
             if (vista != null)
             {
-                Agregar(vista.Modelo, 1);
+                Agregar(vista.Modelo, Core.Utilidades.Numero.ADouble(vista.CantidadTexto));
             }
         }
 
@@ -307,7 +312,7 @@ namespace Iseller.Pos.App
             var vista = TablaResultados.SelectedItem as ProductoVista;
             if (vista != null)
             {
-                Agregar(vista.Modelo, 1);
+                Agregar(vista.Modelo, Core.Utilidades.Numero.ADouble(vista.CantidadTexto));
             }
         }
 

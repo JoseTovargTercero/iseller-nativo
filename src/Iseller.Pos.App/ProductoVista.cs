@@ -23,6 +23,9 @@ namespace Iseller.Pos.App
         public string PrecioPeso { get; set; }
         public string Foto { get; set; }
 
+        /// <summary>Cantidad a agregar (texto del campo en la fila; por defecto 1).</summary>
+        public string CantidadTexto { get; set; }
+
         /// <summary>Producto original, para agregarlo al carrito.</summary>
         public Core.Modelos.Producto Modelo { get; set; }
 
@@ -61,6 +64,7 @@ namespace Iseller.Pos.App
                 EsCombo = p.EsCombo == 1,
                 Modelo = p,
                 Foto = p.Foto,
+                CantidadTexto = "1",
                 PrecioDolar = "$" + Numero(precios.PrecioVentaDolar),
                 PrecioBs = Numero(precios.PrecioVentaBs) + " Bs",
                 PrecioPeso = Numero(precios.PrecioVentaPeso) + " Cop",

@@ -61,6 +61,9 @@ PLAN.md                 Plan por fases, contratos y decisiones
   sirve la vieja. Sin conexión se usan las que ya están en disco.
 - **Búsqueda:** por nombre (sin acentos) o por código de barras cuando el término es solo
   dígitos; un número dentro del nombre ya no arrastra códigos.
+- **Campos numéricos:** montos de apertura/cierre de caja, cantidad recibida (cambio) y cantidad
+  del carrito solo aceptan dígitos y **un** punto decimal. Se bloquean letras, comas, signos,
+  espacios y el segundo punto, tanto al teclear como al pegar.
 - Login: los campos de usuario y contraseña comparten plantilla (mismo alto y radio). La entrada
   sin conexión es automática: si el servidor no responde, se valida la contraseña contra el
   acceso guardado de ese usuario (hasta 2 días).

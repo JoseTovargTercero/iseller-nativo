@@ -81,16 +81,7 @@ namespace Iseller.Pos.App
 
         private static double Numero(string texto)
         {
-            if (string.IsNullOrWhiteSpace(texto))
-            {
-                return 0;
-            }
-
-            double valor;
-            string limpio = texto.Trim().Replace(",", ".");
-            return double.TryParse(limpio, NumberStyles.Float, CultureInfo.InvariantCulture, out valor)
-                ? valor
-                : 0;
+            return Core.Utilidades.Numero.ADouble(texto);
         }
     }
 }
