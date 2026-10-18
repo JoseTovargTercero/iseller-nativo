@@ -101,6 +101,50 @@ namespace Iseller.Pos.Core.Datos
             });
         }
 
+        /// <summary>La venta llegó al servidor: sale de la cola de pendientes.</summary>
+        public void MarcarEnviada(string idPedido, DateTimeOffset cuando)
+        {
+            using (var conexion = BasePos.Abrir(_ruta))
+            using (var cmd = conexion.CreateCommand())
+            {
+                cmd.CommandText =
+                    "UPDATE ventas SET estado = @estado, enviada_en = @cuando, ultimo_error = NULL " +
+                    "WHERE id_pedido = @id";
+                cmd.Parameters.AddWithValue("@estado", EstadoVenta.Enviada);
+                cmd.Parameters.AddWithValue("@cuando", cuando.ToString("o"));
+                cmd.Parameters.AddWithValue("@id", idPedido);
+                cmd.ExecuteNonQuery();
+            }
+        }
+
+        /// <summary>Fallo al enviar: sigue pendiente, con el motivo y un intento más.</summary>
+        public void RegistrarFallo(string idPedido, string error)
+        {
+            using (var conexion = BasePos.Abrir(_ruta))
+            using (var cmd = conexion.CreateCommand())
+            {
+                cmd.CommandText =
+                    "UPDATE ventas SET intentos = intentos + 1, ultimo_error = @error " +
+                    "WHERE id_pedido = @id AND estado = @estado";
+                cmd.Parameters.AddWithValue("@error", (object)error ?? DBNull.Value);
+                cmd.Parameters.AddWithValue("@id", idPedido);
+                cmd.Parameters.AddWithValue("@estado", EstadoVenta.Pendiente);
+                cmd.ExecuteNonQuery();
+            }
+        }
+
+        public List<Venta> Enviadas(DateTimeOffset desde, DateTimeOffset hasta)
+        {
+            return Consultar(
+                "WHERE estado = @estado AND enviada_en >= @desde AND enviada_en <= @hasta ORDER BY enviada_en DESC",
+                cmd =>
+                {
+                    cmd.Parameters.AddWithValue("@estado", EstadoVenta.Enviada);
+                    cmd.Parameters.AddWithValue("@desde", desde.ToString("o"));
+                    cmd.Parameters.AddWithValue("@hasta", hasta.ToString("o"));
+                });
+        }
+
         private List<Venta> Consultar(string filtro, Action<SQLiteCommand> parametros)
         {
             var ventas = new List<Venta>();

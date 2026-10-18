@@ -20,6 +20,8 @@
                 BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,0,0,1">
             <Grid Margin="20,0">
                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                    <Image Source="Assets/logo1-inv-compact-128.png" Width="30" Height="30"
+                           Margin="0,0,10,0" RenderOptions.BitmapScalingMode="HighQuality" />
                     <TextBlock Text="iSELLER" FontSize="16" FontWeight="Bold"
                                Foreground="{StaticResource MintBrush}" />
                     <TextBlock Text="POS" FontSize="16" FontWeight="Bold" Margin="6,0,0,0" />
@@ -51,33 +53,59 @@
         <TabControl Grid.Row="2" Margin="20,16,20,12">
             <TabItem Header="Venta">
                 <Grid Margin="0,16,0,0">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="5*" />
-                        <ColumnDefinition Width="6*" />
-                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
 
-                    <!-- Buscador -->
+                    <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,12">
+                        <Button Content="SINCRONIZAR CATÁLOGO" Style="{StaticResource PrimaryButton}"
+                                Click="Sincronizar_Click" />
+                        <Button Content="ENVIAR PENDIENTES" Style="{StaticResource SecondaryButton}"
+                                Margin="10,0,0,0" Click="Enviar_Click" />
+                        <Button Content="VERIFICAR CONEXIÓN" Style="{StaticResource SecondaryButton}"
+                                Margin="10,0,0,0" Click="Verificar_Click" />
+                    </StackPanel>
+
+                    <Grid Grid.Row="1">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="5*" />
+                            <ColumnDefinition Width="6*" />
+                        </Grid.ColumnDefinitions>
+
+                        <!-- Buscador -->
                     <Grid Grid.Column="0" Margin="0,0,16,0">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="*" />
                         </Grid.RowDefinitions>
 
-                        <TextBox x:Name="CampoBusqueda" Padding="12,10" FontSize="15"
-                                 TextChanged="CampoBusqueda_TextChanged"
-                                 KeyDown="CampoBusqueda_KeyDown" />
+                        <StackPanel>
+                            <TextBlock Text="Buscar producto o escanear código (Enter agrega)"
+                                       Style="{StaticResource MutedText}" Margin="2,0,0,6" />
+                            <TextBox x:Name="CampoBusqueda" Padding="12,10" FontSize="15"
+                                     TextChanged="CampoBusqueda_TextChanged"
+                                     KeyDown="CampoBusqueda_KeyDown" />
+                        </StackPanel>
 
                         <Border Grid.Row="1" Style="{StaticResource Card}" Padding="0" Margin="0,12,0,0">
                             <DataGrid x:Name="TablaResultados" AutoGenerateColumns="False"
                                       IsReadOnly="True" BorderThickness="0" Background="Transparent"
                                       RowHeight="34" MouseDoubleClick="TablaResultados_MouseDoubleClick">
                                 <DataGrid.Columns>
-                                    <DataGridTextColumn Header="Producto" Binding="{Binding Nombre}" Width="*" />
-                                    <DataGridTextColumn Header="Stock" Binding="{Binding Stock}" Width="70" />
-                                    <DataGridTextColumn Header="Dólares" Binding="{Binding PrecioDolar}" Width="90" />
-                                    <DataGridTextColumn Header="Bolívares" Binding="{Binding PrecioBs}" Width="110" />
-                                    <DataGridTextColumn Header="Pesos" Binding="{Binding PrecioPeso}" Width="110" />
-                                    <DataGridTemplateColumn Header="" Width="90">
+                                    <DataGridTemplateColumn Header="PRODUCTO" Width="*">
+                                        <DataGridTemplateColumn.CellTemplate>
+                                            <DataTemplate>
+                                                <TextBlock Text="{Binding Nombre}" TextTrimming="CharacterEllipsis"
+                                                           ToolTip="{Binding Nombre}" VerticalAlignment="Center" />
+                                            </DataTemplate>
+                                        </DataGridTemplateColumn.CellTemplate>
+                                    </DataGridTemplateColumn>
+                                    <DataGridTextColumn Header="STOCK" Binding="{Binding Stock}" Width="62" />
+                                    <DataGridTextColumn Header="DÓLARES" Binding="{Binding PrecioDolar}" Width="82" />
+                                    <DataGridTextColumn Header="BOLÍVARES" Binding="{Binding PrecioBs}" Width="106" />
+                                    <DataGridTextColumn Header="PESOS" Binding="{Binding PrecioPeso}" Width="106" />
+                                    <DataGridTemplateColumn Header="" Width="92">
                                         <DataGridTemplateColumn.CellTemplate>
                                             <DataTemplate>
                                                 <Button Content="AGREGAR" Style="{StaticResource PrimaryButton}"
@@ -99,31 +127,48 @@
                         </Grid.RowDefinitions>
 
                         <Border Grid.Row="0" Style="{StaticResource Card}" Padding="0">
-                            <DataGrid x:Name="TablaCarrito" AutoGenerateColumns="False" IsReadOnly="True"
-                                      BorderThickness="0" Background="Transparent" RowHeight="36">
-                                <DataGrid.Columns>
-                                    <DataGridTextColumn Header="Cant." Binding="{Binding Cantidad}" Width="60" />
-                                    <DataGridTextColumn Header="Producto" Binding="{Binding Nombre}" Width="*" />
-                                    <DataGridTextColumn Header="Pesos" Binding="{Binding Peso}" Width="110" />
-                                    <DataGridTextColumn Header="Bs" Binding="{Binding Bolivares}" Width="120" />
-                                    <DataGridTextColumn Header="Dólares" Binding="{Binding Dolares}" Width="100" />
-                                    <DataGridTemplateColumn Header="Acciones" Width="190">
-                                        <DataGridTemplateColumn.CellTemplate>
-                                            <DataTemplate>
-                                                <StackPanel Orientation="Horizontal">
-                                                    <Button Content="+" Style="{StaticResource BaseButton}"
-                                                            Padding="10,2" Click="Sumar_Click" />
-                                                    <Button Content="-" Style="{StaticResource BaseButton}"
-                                                            Padding="10,2" Margin="4,0,0,0" Click="Restar_Click" />
-                                                    <Button Content="Quitar" Style="{StaticResource DangerButton}"
-                                                            Padding="8,2" FontSize="10" Margin="4,0,0,0"
-                                                            Click="Quitar_Click" />
-                                                </StackPanel>
-                                            </DataTemplate>
-                                        </DataGridTemplateColumn.CellTemplate>
-                                    </DataGridTemplateColumn>
-                                </DataGrid.Columns>
-                            </DataGrid>
+                            <Grid>
+                                <DataGrid x:Name="TablaCarrito" AutoGenerateColumns="False" IsReadOnly="True"
+                                          BorderThickness="0" Background="Transparent" RowHeight="40">
+                                    <DataGrid.Columns>
+                                        <DataGridTextColumn Header="CANT." Binding="{Binding Cantidad}" Width="60" />
+                                        <DataGridTemplateColumn Header="PRODUCTO" Width="*">
+                                            <DataGridTemplateColumn.CellTemplate>
+                                                <DataTemplate>
+                                                    <TextBlock Text="{Binding Nombre}" TextTrimming="CharacterEllipsis"
+                                                               ToolTip="{Binding Nombre}" VerticalAlignment="Center" />
+                                                </DataTemplate>
+                                            </DataGridTemplateColumn.CellTemplate>
+                                        </DataGridTemplateColumn>
+                                        <DataGridTextColumn Header="PESO" Binding="{Binding Peso}" Width="118" />
+                                        <DataGridTextColumn Header="BS" Binding="{Binding Bolivares}" Width="130" />
+                                        <DataGridTextColumn Header="DÓLARES" Binding="{Binding Dolares}" Width="100" />
+                                        <DataGridTemplateColumn Header="ACCIONES" Width="185">
+                                            <DataGridTemplateColumn.CellTemplate>
+                                                <DataTemplate>
+                                                    <StackPanel Orientation="Horizontal">
+                                                        <Button Content="+" Style="{StaticResource MiniOutlineSuccess}"
+                                                                Click="Sumar_Click" />
+                                                        <Button Content="−" Style="{StaticResource MiniOutlineMuted}"
+                                                                Margin="5,0,0,0" Click="Restar_Click" />
+                                                        <Button Content="Quitar" Style="{StaticResource MiniOutlineDanger}"
+                                                                Margin="5,0,0,0" Click="Quitar_Click" />
+                                                    </StackPanel>
+                                                </DataTemplate>
+                                            </DataGridTemplateColumn.CellTemplate>
+                                        </DataGridTemplateColumn>
+                                    </DataGrid.Columns>
+                                </DataGrid>
+
+                                <StackPanel x:Name="CarritoVacio" VerticalAlignment="Center"
+                                            HorizontalAlignment="Center">
+                                    <TextBlock Text="Aún no hay productos en el carrito" FontSize="16"
+                                               FontWeight="SemiBold" HorizontalAlignment="Center" />
+                                    <TextBlock Text="Agrega (B) productos para comenzar"
+                                               Style="{StaticResource MutedText}" Margin="0,8,0,0"
+                                               HorizontalAlignment="Center" />
+                                </StackPanel>
+                            </Grid>
                         </Border>
 
                         <TextBlock Grid.Row="1" x:Name="TextoTotales" FontSize="16" FontWeight="Bold"
@@ -144,6 +189,7 @@
                                     Padding="16,10" Margin="0,0,10,10" Click="Destruir_Click" />
                         </WrapPanel>
                     </Grid>
+                    </Grid>
                 </Grid>
             </TabItem>
 
@@ -156,12 +202,14 @@
                         <DataGrid x:Name="TablaPendientes" AutoGenerateColumns="False" IsReadOnly="True"
                                   BorderThickness="0" Background="Transparent" RowHeight="34">
                             <DataGrid.Columns>
-                                <DataGridTextColumn Header="Fecha" Binding="{Binding Fecha}" Width="120" />
-                                <DataGridTextColumn Header="Tipo" Binding="{Binding Tipo}" Width="110" />
-                                <DataGridTextColumn Header="Método" Binding="{Binding Metodo}" Width="140" />
-                                <DataGridTextColumn Header="Pesos" Binding="{Binding Pesos}" Width="130" />
-                                <DataGridTextColumn Header="Bolívares" Binding="{Binding Bolivares}" Width="150" />
-                                <DataGridTextColumn Header="Dólares" Binding="{Binding Dolares}" Width="120" />
+                                <DataGridTextColumn Header="FECHA" Binding="{Binding Fecha}" Width="110" />
+                                <DataGridTextColumn Header="TIPO" Binding="{Binding Tipo}" Width="90" />
+                                <DataGridTextColumn Header="MÉTODO" Binding="{Binding Metodo}" Width="120" />
+                                <DataGridTextColumn Header="PESOS" Binding="{Binding Pesos}" Width="112" />
+                                <DataGridTextColumn Header="BOLÍVARES" Binding="{Binding Bolivares}" Width="132" />
+                                <DataGridTextColumn Header="DÓLARES" Binding="{Binding Dolares}" Width="100" />
+                                <DataGridTextColumn Header="ESTADO" Binding="{Binding Estado}" Width="110" />
+                                <DataGridTextColumn Header="DETALLE" Binding="{Binding Detalle}" Width="*" />
                             </DataGrid.Columns>
                         </DataGrid>
                     </Border>

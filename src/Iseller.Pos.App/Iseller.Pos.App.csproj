@@ -12,4 +12,7 @@
   <ItemGroup>
     <Reference Include="System.Net.Http" />
   </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Assets\logo1-inv-compact-128.png" />
+  </ItemGroup>
 </Project>

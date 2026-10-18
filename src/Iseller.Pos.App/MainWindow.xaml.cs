@@ -9,6 +9,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Threading;
 using Iseller.Pos.Core.Api;
 using Iseller.Pos.Core.Auth;
 using Iseller.Pos.Core.Carrito;
@@ -41,7 +42,12 @@ namespace Iseller.Pos.App
         private CalculadoraPrecios _calculadora;
         private Tasas _tasas;
         private bool _sincronizando;
+        private bool _enviando;
         private DateTime _ultimaTeclaCodigo = DateTime.MinValue;
+        private readonly DispatcherTimer _relojEnvio = new DispatcherTimer
+        {
+            Interval = TimeSpan.FromSeconds(60),
+        };
 
         public MainWindow(AppConfig config, SesionLocal sesion)
         {
@@ -58,6 +64,14 @@ namespace Iseller.Pos.App
             BotonCredito.Visibility = TienePermiso(11) ? Visibility.Visible : Visibility.Collapsed;
             BotonDescuento.Visibility = TienePermiso(12) ? Visibility.Visible : Visibility.Collapsed;
 
+            _relojEnvio.Tick += (s, e) =>
+            {
+                if (_ventasRepo.ContarPendientes() > 0)
+                {
+                    _ = EnviarPendientesAsync();
+                }
+            };
+
             Loaded += MainWindow_Loaded;
         }
 
@@ -73,7 +87,9 @@ namespace Iseller.Pos.App
             RefrescarPendientes();
             CampoBusqueda.Focus();
 
+            await EnviarPendientesAsync();
             await SincronizarAsync();
+            _relojEnvio.Start();
         }
 
         // ── Catálogo ───────────────────────────────────────────────────────────────
@@ -194,12 +210,16 @@ namespace Iseller.Pos.App
             if (_carrito.Vacio)
             {
                 TextoTotales.Text = "Carrito vacío";
+                TablaCarrito.Visibility = Visibility.Collapsed;
+                CarritoVacio.Visibility = Visibility.Visible;
             }
             else
             {
                 TextoTotales.Text = "TOTAL:   " + _carrito.TotalPeso.ToString("N0", Formato) + " Cop    " +
                                     _carrito.TotalBs.ToString("N2", Formato) + " Bs    $" +
                                     _carrito.TotalUsd.ToString("N2", Formato);
+                TablaCarrito.Visibility = Visibility.Visible;
+                CarritoVacio.Visibility = Visibility.Collapsed;
             }
 
             TextoCatalogo.Text = _ventasRepo.ContarPendientes() + " por enviar";
@@ -392,6 +412,7 @@ namespace Iseller.Pos.App
             _carritoRepo.Vaciar();
             RefrescarCarrito();
             RefrescarPendientes();
+            _ = EnviarPendientesAsync();
 
             if (_sesion.Configuracion.Tickets == 1)
             {
@@ -644,6 +665,104 @@ namespace Iseller.Pos.App
         }
 
         // ── Sincronización y auxiliares ────────────────────────────────────────────
+
+        private async void Enviar_Click(object sender, RoutedEventArgs e)
+        {
+            await EnviarPendientesAsync();
+        }
+
+        private async void Sincronizar_Click(object sender, RoutedEventArgs e)
+        {
+            await SincronizarAsync();
+        }
+
+        private async void Verificar_Click(object sender, RoutedEventArgs e)
+        {
+            PuntoConexion.Fill = (Brush)FindResource("WarningBrush");
+            TextoEstadoConexion.Text = "Comprobando…";
+            try
+            {
+                using (var api = new PosApiClient(_config.ApiBaseUrl, _config.ApiKey))
+                {
+                    var hora = await api.HeartbeatAsync(_sesion.Token);
+                    Conexion(hora.HasValue, hora.HasValue ? "En línea" : "Sin conexión (o sesión vencida)");
+                }
+            }
+            catch (Exception)
+            {
+                Conexion(false, "Sin conexión");
+            }
+        }
+
+        /// <summary>Sube las ventas pendientes y las marca según la respuesta por venta.</summary>
+        private async Task EnviarPendientesAsync()
+        {
+            if (_enviando)
+            {
+                return;
+            }
+
+            var pendientes = _ventasRepo.Pendientes();
+            if (pendientes.Count == 0)
+            {
+                return;
+            }
+
+            _enviando = true;
+            PuntoConexion.Fill = (Brush)FindResource("WarningBrush");
+            TextoEstadoConexion.Text = "Enviando " + pendientes.Count + " venta(s)…";
+
+            try
+            {
+                using (var api = new PosApiClient(_config.ApiBaseUrl, _config.ApiKey))
+                {
+                    var resultado = await api.EnviarVentasAsync(_sesion.Token, pendientes);
+                    if (!resultado.Ok)
+                    {
+                        Conexion(false, resultado.Error ?? "No se pudieron enviar las ventas");
+                        return;
+                    }
+
+                    int enviadas = 0;
+                    int errores = 0;
+                    foreach (var r in resultado.Resultados)
+                    {
+                        if (r.Ok)
+                        {
+                            _ventasRepo.MarcarEnviada(r.IdPedido, DateTimeOffset.Now);
+                            enviadas++;
+                        }
+                        else
+                        {
+                            _ventasRepo.RegistrarFallo(r.IdPedido, r.Error);
+                            errores++;
+                        }
+                    }
+
+                    Conexion(true, "En línea");
+                    RefrescarPendientes();
+
+                    if (enviadas > 0)
+                    {
+                        Aviso(enviadas + " venta(s) sincronizada(s)" +
+                              (errores > 0 ? ", " + errores + " con error." : "."));
+                        await SincronizarAsync(); // el stock cambió: refresca el catálogo
+                    }
+                    else if (errores > 0)
+                    {
+                        Aviso("No se pudieron enviar " + errores + " venta(s). Revisa el detalle en No guardados.");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Conexion(false, "Sin conexión · " + ex.Message);
+            }
+            finally
+            {
+                _enviando = false;
+            }
+        }
 
         private async Task SincronizarAsync()
         {

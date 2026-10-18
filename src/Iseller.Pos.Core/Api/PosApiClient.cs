@@ -40,6 +40,28 @@ namespace Iseller.Pos.Core.Api
         public ConfiguracionNegocio Configuracion { get; set; }
     }
 
+    public sealed class ResultadoVentaEnvio
+    {
+        public string IdPedido { get; set; }
+        public bool Ok { get; set; }
+        public int OrdenId { get; set; }
+        public bool Duplicada { get; set; }
+        public string Error { get; set; }
+    }
+
+    public sealed class ResultadoEnvio
+    {
+        public bool Ok { get; set; }
+        public string Error { get; set; }
+        public DateTimeOffset ServidorEn { get; set; }
+        public List<ResultadoVentaEnvio> Resultados { get; set; }
+
+        public ResultadoEnvio()
+        {
+            Resultados = new List<ResultadoVentaEnvio>();
+        }
+    }
+
     /// <summary>Cliente de los endpoints api/pos_*.php (X-Api-Key + Bearer).</summary>
     public sealed class PosApiClient : IDisposable
     {
@@ -223,6 +245,76 @@ namespace Iseller.Pos.Core.Api
                 }
                 return ADtoTasas(dto.Tasas, dto.ServidorEn);
             }
+        }
+
+        /// <summary>Envía un lote de ventas pendientes. El servidor es idempotente por id_pedido.</summary>
+        public async Task<ResultadoEnvio> EnviarVentasAsync(string token, IList<Venta> ventas)
+        {
+            var resultado = new ResultadoEnvio();
+            if (ventas == null || ventas.Count == 0)
+            {
+                resultado.Ok = true;
+                return resultado;
+            }
+
+            var lote = new JArray();
+            foreach (var venta in ventas)
+            {
+                lote.Add(new JObject
+                {
+                    ["id_pedido"] = venta.IdPedido,
+                    ["fecha_local"] = venta.FechaLocal.ToString("o"),
+                    ["metodo_pago"] = venta.MetodoPago,
+                    ["despacho"] = venta.Despacho,
+                    ["total_usd"] = venta.TotalUsd,
+                    ["total_bs"] = venta.TotalBs,
+                    ["total_cop"] = venta.TotalCop,
+                    ["cliente"] = new JObject
+                    {
+                        ["cedula"] = venta.ClienteCedula ?? "",
+                        ["nombre"] = venta.ClienteNombre ?? "",
+                        ["telefono"] = venta.ClienteTelefono ?? "",
+                    },
+                    ["usuario_id"] = venta.UsuarioId,
+                    ["tasas"] = string.IsNullOrWhiteSpace(venta.TasasJson) ? new JObject() : JObject.Parse(venta.TasasJson),
+                    ["productos"] = string.IsNullOrWhiteSpace(venta.ProductosJson) ? new JArray() : JArray.Parse(venta.ProductosJson),
+                });
+            }
+
+            var cuerpo = new JObject
+            {
+                ["lote_id"] = Guid.NewGuid().ToString(),
+                ["ventas"] = lote,
+            };
+
+            using (var respuesta = await EnviarAsync("pos_ventas.php", HttpMethod.Post, cuerpo, token))
+            {
+                string texto = await respuesta.Content.ReadAsStringAsync();
+                var dto = Deserializar<EnvioDto>(texto);
+                if (dto == null)
+                {
+                    resultado.Error = "Respuesta inválida del servidor";
+                    return resultado;
+                }
+
+                resultado.Ok = dto.Ok;
+                resultado.Error = dto.Error;
+                resultado.ServidorEn = dto.ServidorEn;
+
+                foreach (var r in dto.Resultados ?? new List<ResultadoDto>())
+                {
+                    resultado.Resultados.Add(new ResultadoVentaEnvio
+                    {
+                        IdPedido = r.IdPedido,
+                        Ok = r.Ok,
+                        OrdenId = r.OrdenId,
+                        Duplicada = r.Duplicada,
+                        Error = r.Error,
+                    });
+                }
+            }
+
+            return resultado;
         }
 
         /// <summary>Comprueba internet y que el token siga vivo. Null si falló.</summary>
@@ -409,6 +501,23 @@ namespace Iseller.Pos.Core.Api
         {
             [JsonProperty("ok")] public bool Ok { get; set; }
             [JsonProperty("servidor_en")] public DateTimeOffset ServidorEn { get; set; }
+        }
+
+        private sealed class EnvioDto
+        {
+            [JsonProperty("ok")] public bool Ok { get; set; }
+            [JsonProperty("error")] public string Error { get; set; }
+            [JsonProperty("servidor_en")] public DateTimeOffset ServidorEn { get; set; }
+            [JsonProperty("resultados")] public List<ResultadoDto> Resultados { get; set; }
+        }
+
+        private sealed class ResultadoDto
+        {
+            [JsonProperty("id_pedido")] public string IdPedido { get; set; }
+            [JsonProperty("ok")] public bool Ok { get; set; }
+            [JsonProperty("orden_id")] public int OrdenId { get; set; }
+            [JsonProperty("duplicada")] public bool Duplicada { get; set; }
+            [JsonProperty("error")] public string Error { get; set; }
         }
     }
 }

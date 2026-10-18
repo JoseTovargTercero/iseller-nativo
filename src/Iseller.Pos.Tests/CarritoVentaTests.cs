@@ -342,6 +342,35 @@ namespace Iseller.Pos.Tests
             Assert.Single(repo.Pendientes());
             Assert.Equal(99, repo.Obtener("uuid-repetido").TotalUsd, 6);
         }
+
+        [Fact]
+        public void Pasa_de_pendiente_a_enviada_y_registra_fallos()
+        {
+            var repo = new VentasRepositorio(_ruta);
+            repo.Guardar(new Venta
+            {
+                IdPedido = "uuid-sync",
+                MetodoPago = "option4",
+                Despacho = 1,
+                CreadaEn = DateTimeOffset.Now,
+            });
+
+            Assert.Equal(1, repo.ContarPendientes());
+
+            repo.RegistrarFallo("uuid-sync", "sin red");
+            var pendiente = repo.Obtener("uuid-sync");
+            Assert.Equal(EstadoVenta.Pendiente, pendiente.Estado);
+            Assert.Equal(1, pendiente.Intentos);
+            Assert.Equal("sin red", pendiente.UltimoError);
+
+            repo.MarcarEnviada("uuid-sync", DateTimeOffset.Now);
+            var enviada = repo.Obtener("uuid-sync");
+            Assert.Equal(EstadoVenta.Enviada, enviada.Estado);
+            Assert.Null(enviada.UltimoError);
+            Assert.NotNull(enviada.EnviadaEn);
+            Assert.Equal(0, repo.ContarPendientes());
+            Assert.Single(repo.Enviadas(DateTimeOffset.Now.AddDays(-1), DateTimeOffset.Now.AddDays(1)));
+        }
     }
 
     public class TicketEscPosTests

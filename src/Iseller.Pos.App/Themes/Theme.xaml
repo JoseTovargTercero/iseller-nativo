@@ -312,8 +312,8 @@
         <Setter Property="CanUserResizeRows" Value="False" />
         <Setter Property="SelectionMode" Value="Single" />
         <Setter Property="SelectionUnit" Value="FullRow" />
-        <Setter Property="RowHeight" Value="36" />
-        <Setter Property="ColumnHeaderHeight" Value="34" />
+        <Setter Property="RowHeight" Value="40" />
+        <Setter Property="ColumnHeaderHeight" Value="36" />
     </Style>
 
     <Style TargetType="{x:Type DataGridColumnHeader}">
@@ -321,14 +321,13 @@
         <Setter Property="Foreground" Value="{StaticResource MutedBrush}" />
         <Setter Property="FontSize" Value="11" />
         <Setter Property="FontWeight" Value="SemiBold" />
-        <Setter Property="Padding" Value="8,6" />
+        <Setter Property="Padding" Value="10,8" />
         <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}" />
         <Setter Property="BorderThickness" Value="0,0,0,1" />
         <Setter Property="HorizontalContentAlignment" Value="Left" />
     </Style>
 
     <Style TargetType="{x:Type DataGridRow}">
-        <Setter Property="Background" Value="Transparent" />
         <Setter Property="Foreground" Value="{StaticResource TextBrush}" />
         <Style.Triggers>
             <Trigger Property="IsMouseOver" Value="True">
@@ -343,9 +342,40 @@
 
     <Style TargetType="{x:Type DataGridCell}">
         <Setter Property="BorderThickness" Value="0" />
-        <Setter Property="Padding" Value="8,4" />
+        <Setter Property="Padding" Value="10,7" />
         <Setter Property="VerticalContentAlignment" Value="Center" />
         <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+    </Style>
+
+    <!-- Botones pequeños de acción, equivalentes a los btn-outline-* del POS web. -->
+    <Style x:Key="MiniOutlineSuccess" TargetType="{x:Type Button}" BasedOn="{StaticResource BaseButton}">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderBrush" Value="#4D2DD4A0" />
+        <Setter Property="Foreground" Value="{StaticResource MintBrush}" />
+        <Setter Property="Padding" Value="9,2" />
+        <Setter Property="FontSize" Value="11" />
+        <Setter Property="MinWidth" Value="28" />
+        <Setter Property="MinHeight" Value="26" />
+    </Style>
+
+    <Style x:Key="MiniOutlineMuted" TargetType="{x:Type Button}" BasedOn="{StaticResource BaseButton}">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}" />
+        <Setter Property="Foreground" Value="{StaticResource MutedBrush}" />
+        <Setter Property="Padding" Value="9,2" />
+        <Setter Property="FontSize" Value="11" />
+        <Setter Property="MinWidth" Value="28" />
+        <Setter Property="MinHeight" Value="26" />
+    </Style>
+
+    <Style x:Key="MiniOutlineDanger" TargetType="{x:Type Button}" BasedOn="{StaticResource BaseButton}">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderBrush" Value="#4DEF5A6F" />
+        <Setter Property="Foreground" Value="{StaticResource DangerBrush}" />
+        <Setter Property="Padding" Value="9,2" />
+        <Setter Property="FontSize" Value="11" />
+        <Setter Property="MinWidth" Value="28" />
+        <Setter Property="MinHeight" Value="26" />
     </Style>
 
 </ResourceDictionary>

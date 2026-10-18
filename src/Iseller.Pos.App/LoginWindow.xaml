@@ -13,13 +13,19 @@
 
         <StackPanel Grid.Row="0">
             <StackPanel Orientation="Horizontal">
-                <TextBlock Text="iSELLER" FontSize="22" FontWeight="Bold"
-                           Foreground="{StaticResource MintBrush}" />
-                <TextBlock Text="POS" FontSize="22" FontWeight="Bold" Margin="6,0,0,0" />
+                <Image Source="Assets/logo1-inv-compact-128.png" Width="52" Height="52"
+                       Margin="0,0,14,0" RenderOptions.BitmapScalingMode="HighQuality" />
+                <StackPanel VerticalAlignment="Center">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="iSELLER" FontSize="22" FontWeight="Bold"
+                                   Foreground="{StaticResource MintBrush}" />
+                        <TextBlock Text="POS" FontSize="22" FontWeight="Bold" Margin="6,0,0,0" />
+                    </StackPanel>
+                    <TextBlock Text="Acceso a la caja" Style="{StaticResource MutedText}" Margin="0,2,0,0" />
+                </StackPanel>
             </StackPanel>
-            <TextBlock Text="Acceso a la caja" Style="{StaticResource MutedText}" Margin="0,4,0,28" />
 
-            <TextBlock Text="Usuario" Style="{StaticResource MutedText}" Margin="0,0,0,4" />
+            <TextBlock Text="Usuario" Style="{StaticResource MutedText}" Margin="0,18,0,4" />
             <TextBox x:Name="CampoUsuario" Padding="12,9" FontSize="15" />
 
             <TextBlock Text="Contraseña" Style="{StaticResource MutedText}" Margin="0,16,0,4" />

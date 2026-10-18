@@ -196,24 +196,28 @@ Notas de alcance:
 
 ### Fase 3 — Sincronización (~3 semanas)
 
+**Estado: implementada.** Lote idempotente, envío automático al guardar, reintento cada 60 s y
+al abrir la app, y refresco de catálogo/stock tras sincronizar. Falta la pestaña "Enviados".
+
 **Objetivo:** subir ventas pendientes sin duplicar y bajar catálogo/stock actualizado.
 
 **App**
-- Outbox: al guardar, intenta enviar; si falla, backoff exponencial (30 s → 30 min) y
-  reintento al recuperar conexión y al abrir la app.
+- Outbox: al guardar, intenta enviar; si falla, reintenta cada 60 s y al abrir la app.
 - Envío en lote con `id_pedido`; procesa la respuesta por venta.
 - La venta solo pasa a `enviada` cuando el servidor confirma esa venta.
 - Refresco de catálogo/tasas tras sincronizar.
-- Pantalla "No guardados" y "Enviados" equivalentes a las pestañas actuales.
+- Pantalla "No guardados" con estado, intentos y último error por venta.
 
-**Backend**
+**Backend** — ✅ implementado
 - `POST /api/pos_ventas.php` (lote). Por cada venta: insertar orden + artículos + stock en una
-  transacción, devolver `{id_pedido, ok, orden_id, error}`.
-- Confiar en `uniq_orden_id_pedido` para el reintento; el error 1062 significa "ya estaba".
-- **Quitar** la validación de "venta idéntica" por total+fecha+cliente de `accion_carta.php`:
-  hoy colapsa dos ventas legítimas iguales en una y responde `status: true`.
-- Validar suma de líneas contra `total_usd`/`total_bs`/`total_cop` con tolerancia de 0.01.
-- Devolver hora del servidor para compensar relojes desfasados.
+  transacción, devolver `{id_pedido, ok, orden_id, duplicada, error}`.
+- Idempotente por `uniq_orden_id_pedido`; el error 1062 se trata como "ya estaba".
+- La sucursal y el usuario salen del token, no del cuerpo.
+- La fecha de la venta es la de la caja (`fecha_local`), no la de sincronización.
+- Las líneas se validan contra los totales enviados; si no cuadran se acepta y se devuelve
+  `advertencias` (no se bloquea una venta real).
+- El stock se descuenta y se devuelve `faltantes` cuando la venta dejó el producto bajo cero
+  (se guarda en 0, igual que el POS web).
 
 **Aceptación**
 - Simular 30 ventas offline, reconectar y ver exactamente 30 órdenes en MySQL.
@@ -221,6 +225,14 @@ Notas de alcance:
   no se duplica.
 - Dos ventas idénticas el mismo día y misma caja generan dos órdenes.
 - El stock local queda igual al del servidor tras sincronizar.
+
+Verificado el 18/10/2026:
+- Envío manual del mismo lote dos veces → la segunda responde `duplicada: true` con el mismo
+  `orden_id`, y queda **una sola** orden y **un solo** artículo.
+- Venta real hecha en la app (2 productos, cliente, Punto) → sincronizada automáticamente al
+  abrir: orden 28 en MySQL con `$4,84 / 4.848,00 Bs / 20.200 Cop`, 2 artículos y stock de
+  Harina Pan 34,5 → 32,5.
+- Repositorio: `MarcarEnviada` / `RegistrarFallo` cubiertos por test (39/39).
 
 ---
 

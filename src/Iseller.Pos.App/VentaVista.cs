@@ -62,5 +62,22 @@ namespace Iseller.Pos.App
         {
             get { return Venta.TotalCop.ToString("N0", Formato) + " Cop"; }
         }
+
+        public string Estado
+        {
+            get
+            {
+                if (Venta.Estado == EstadoVenta.Enviada)
+                {
+                    return "Enviada";
+                }
+                return Venta.Intentos > 0 ? "Reintentando (" + Venta.Intentos + ")" : "Pendiente";
+            }
+        }
+
+        public string Detalle
+        {
+            get { return Venta.UltimoError ?? ""; }
+        }
     }
 }
