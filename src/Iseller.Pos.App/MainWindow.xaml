@@ -1,0 +1,85 @@
+<Window x:Class="Iseller.Pos.App.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="iSeller POS" Height="800" Width="1280"
+        MinHeight="600" MinWidth="1024"
+        WindowStartupLocation="CenterScreen">
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="56" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <!-- Cabecera -->
+        <Border Grid.Row="0" Background="{StaticResource CardBrush}"
+                BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,0,0,1">
+            <Grid Margin="20,0">
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                    <TextBlock Text="iSELLER" FontSize="16" FontWeight="Bold"
+                               Foreground="{StaticResource MintBrush}" />
+                    <TextBlock Text="POS" FontSize="16" FontWeight="Bold" Margin="6,0,0,0" />
+                </StackPanel>
+
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right"
+                            VerticalAlignment="Center">
+                    <Ellipse Width="8" Height="8" Fill="{StaticResource WarningBrush}"
+                             Margin="0,0,8,0" />
+                    <TextBlock Text="Sin conexión" Style="{StaticResource MutedText}" />
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="220" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+
+            <!-- Barra lateral -->
+            <Border Grid.Column="0" Background="{StaticResource CardBrush}"
+                    BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,0,1,0"
+                    Padding="16">
+                <StackPanel>
+                    <TextBlock Text="SUCURSAL" Style="{StaticResource MutedText}" />
+                    <TextBlock Text="Sin configurar" Margin="0,4,0,20" FontWeight="SemiBold" />
+
+                    <TextBlock Text="CARRITO ACTIVO" Foreground="{StaticResource MintBrush}"
+                               FontWeight="SemiBold" Margin="0,0,0,10" />
+                    <TextBlock Text="No guardados" Style="{StaticResource MutedText}" Margin="0,0,0,10" />
+                    <TextBlock Text="Reservados" Style="{StaticResource MutedText}" Margin="0,0,0,10" />
+                    <TextBlock Text="Enviados" Style="{StaticResource MutedText}" />
+                </StackPanel>
+            </Border>
+
+            <!-- Contenido -->
+            <Grid Grid.Column="1" Margin="24">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+
+                <TextBlock Grid.Row="0" Text="Ventas" Style="{StaticResource PageTitle}" />
+
+                <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,16,0,16">
+                    <TextBox Width="360" Padding="12,9" FontSize="14" />
+                    <Button Content="(B) BÚSQUEDA" Style="{StaticResource PrimaryButton}"
+                            Margin="10,0,0,0" />
+                    <Button Content="CALCULAR CAMBIO" Style="{StaticResource SecondaryButton}"
+                            Margin="10,0,0,0" />
+                </StackPanel>
+
+                <Border Grid.Row="2" Style="{StaticResource Card}">
+                    <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+                        <TextBlock Text="Esqueleto del POS nativo" FontSize="16"
+                                   FontWeight="SemiBold" HorizontalAlignment="Center" />
+                        <TextBlock Text="Fase 0: solución, tema y cálculo de precios portado."
+                                   Style="{StaticResource MutedText}" Margin="0,8,0,0"
+                                   HorizontalAlignment="Center" />
+                    </StackPanel>
+                </Border>
+            </Grid>
+        </Grid>
+    </Grid>
+</Window>

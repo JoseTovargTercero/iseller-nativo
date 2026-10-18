@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net48</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <RootNamespace>Iseller.Pos.App</RootNamespace>
+    <AssemblyName>IsellerPos</AssemblyName>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Iseller.Pos.Core\Iseller.Pos.Core.csproj" />
+  </ItemGroup>
+</Project>

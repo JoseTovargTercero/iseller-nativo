@@ -1,0 +1,33 @@
+## Visual Studio / .NET
+.vs/
+bin/
+obj/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+.vscode/
+
+## Paquetes
+packages/
+*.nupkg
+
+## Artefactos de publicacion
+publish/
+dist/
+*.msi
+*.exe
+*.pdb
+*.dll
+*.config
+
+## Base de datos local (datos reales de caja)
+*.db
+*.db-shm
+*.db-wal
+*.sqlite
+
+## Logs y temporales
+logs/
+*.log
+TestResults/

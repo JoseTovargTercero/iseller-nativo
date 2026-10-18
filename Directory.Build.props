@@ -1,0 +1,11 @@
+<Project>
+  <PropertyGroup>
+    <LangVersion>7.3</LangVersion>
+    <Deterministic>true</Deterministic>
+    <Product>iSeller POS</Product>
+    <Company>iSeller</Company>
+    <Copyright>iSeller</Copyright>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <GenerateBindingRedirectsOutputType>true</GenerateBindingRedirectsOutputType>
+  </PropertyGroup>
+</Project>
