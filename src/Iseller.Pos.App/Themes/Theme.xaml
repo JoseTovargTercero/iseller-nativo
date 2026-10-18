@@ -8,21 +8,21 @@
     <SolidColorBrush x:Key="BgBrush" Color="#FF1A1E24" />
     <SolidColorBrush x:Key="CardBrush" Color="#FF181B22" />
     <SolidColorBrush x:Key="BorderBrush" Color="#FF2E353E" />
-    <SolidColorBrush x:Key="MintBrush" Color="#FF2DD4A0" />
-    <SolidColorBrush x:Key="MintDimBrush" Color="#1F2DD4A0" />
+    <SolidColorBrush x:Key="MintBrush" Color="#FF00C0C4" />
+    <SolidColorBrush x:Key="MintDimBrush" Color="#1F00C0C4" />
     <SolidColorBrush x:Key="TextBrush" Color="#FFE8EDF2" />
     <SolidColorBrush x:Key="MutedBrush" Color="#FF8892A0" />
     <SolidColorBrush x:Key="DangerBrush" Color="#FFEF5A6F" />
     <SolidColorBrush x:Key="InfoBrush" Color="#FF5B9CF5" />
     <SolidColorBrush x:Key="WarningBrush" Color="#FFF5B45B" />
     <SolidColorBrush x:Key="SurfaceBrush" Color="#0FFFFFFF" />
-    <SolidColorBrush x:Key="SuccessDimBrush" Color="#1F2DD4A0" />
+    <SolidColorBrush x:Key="SuccessDimBrush" Color="#1F00C0C4" />
     <SolidColorBrush x:Key="DangerDimBrush" Color="#26EF5A6F" />
     <SolidColorBrush x:Key="InfoDimBrush" Color="#265B9CF5" />
 
     <LinearGradientBrush x:Key="MintGradientBrush" StartPoint="0,0" EndPoint="1,1">
-        <GradientStop Color="#FF2DD4A0" Offset="0" />
-        <GradientStop Color="#FF25B88A" Offset="1" />
+        <GradientStop Color="#FF00C0C4" Offset="0" />
+        <GradientStop Color="#FF00A3A8" Offset="1" />
     </LinearGradientBrush>
 
     <!-- ===================== Ventana y texto ===================== -->
@@ -158,6 +158,37 @@
         </Setter>
     </Style>
 
+    <!-- El PasswordBox no hereda la plantilla del TextBox: se replica para que ambos se vean igual. -->
+    <Style TargetType="{x:Type PasswordBox}">
+        <Setter Property="Background" Value="{StaticResource BgBrush}" />
+        <Setter Property="Foreground" Value="{StaticResource TextBrush}" />
+        <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="Padding" Value="10,7" />
+        <Setter Property="FontSize" Value="13" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type PasswordBox}">
+                    <Border x:Name="Bd" Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="8">
+                        <ScrollViewer x:Name="PART_ContentHost" Margin="{TemplateBinding Padding}"
+                                      VerticalAlignment="Center" />
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsKeyboardFocused" Value="True">
+                            <Setter TargetName="Bd" Property="BorderBrush" Value="{StaticResource MintBrush}" />
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter TargetName="Bd" Property="Opacity" Value="0.5" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
     <!--
         ComboBox con plantilla propia: la nativa ignora el fondo oscuro y deja
         el cuadro blanco con el texto invisible.
@@ -234,10 +265,10 @@
                                 </Border>
                                 <ControlTemplate.Triggers>
                                     <Trigger Property="IsHighlighted" Value="True">
-                                        <Setter TargetName="Bd" Property="Background" Value="#1F2DD4A0" />
+                                        <Setter TargetName="Bd" Property="Background" Value="#1F00C0C4" />
                                     </Trigger>
                                     <Trigger Property="IsSelected" Value="True">
-                                        <Setter TargetName="Bd" Property="Background" Value="#332DD4A0" />
+                                        <Setter TargetName="Bd" Property="Background" Value="#3300C0C4" />
                                     </Trigger>
                                 </ControlTemplate.Triggers>
                             </ControlTemplate>
@@ -331,10 +362,10 @@
         <Setter Property="Foreground" Value="{StaticResource TextBrush}" />
         <Style.Triggers>
             <Trigger Property="IsMouseOver" Value="True">
-                <Setter Property="Background" Value="#0A2DD4A0" />
+                <Setter Property="Background" Value="#0A00C0C4" />
             </Trigger>
             <Trigger Property="IsSelected" Value="True">
-                <Setter Property="Background" Value="#1F2DD4A0" />
+                <Setter Property="Background" Value="#1F00C0C4" />
                 <Setter Property="Foreground" Value="{StaticResource TextBrush}" />
             </Trigger>
         </Style.Triggers>
@@ -350,7 +381,7 @@
     <!-- Botones pequeños de acción, equivalentes a los btn-outline-* del POS web. -->
     <Style x:Key="MiniOutlineSuccess" TargetType="{x:Type Button}" BasedOn="{StaticResource BaseButton}">
         <Setter Property="Background" Value="Transparent" />
-        <Setter Property="BorderBrush" Value="#4D2DD4A0" />
+        <Setter Property="BorderBrush" Value="#4D00C0C4" />
         <Setter Property="Foreground" Value="{StaticResource MintBrush}" />
         <Setter Property="Padding" Value="9,2" />
         <Setter Property="FontSize" Value="11" />

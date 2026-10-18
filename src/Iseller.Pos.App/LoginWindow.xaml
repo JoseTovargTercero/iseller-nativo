@@ -30,9 +30,6 @@
 
             <TextBlock Text="Contraseña" Style="{StaticResource MutedText}" Margin="0,16,0,4" />
             <PasswordBox x:Name="CampoClave" Padding="12,9" FontSize="15"
-                         Background="{StaticResource BgBrush}"
-                         Foreground="{StaticResource TextBrush}"
-                         BorderBrush="{StaticResource BorderBrush}"
                          KeyDown="CampoClave_KeyDown" />
 
             <StackPanel x:Name="PanelSucursal" Visibility="Collapsed" Margin="0,16,0,0">
@@ -43,10 +40,6 @@
 
             <Button x:Name="BotonEntrar" Content="ENTRAR" Style="{StaticResource PrimaryButton}"
                     Margin="0,26,0,0" Padding="14,11" Click="BotonEntrar_Click" />
-
-            <Button x:Name="BotonOffline" Content="ENTRAR SIN CONEXIÓN"
-                    Style="{StaticResource SecondaryButton}" Margin="0,10,0,0" Padding="14,11"
-                    Visibility="Collapsed" Click="BotonOffline_Click" />
 
             <TextBlock x:Name="TextoEstado" Style="{StaticResource MutedText}" Margin="0,14,0,0"
                        TextWrapping="Wrap" />

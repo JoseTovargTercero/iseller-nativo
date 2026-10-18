@@ -31,9 +31,8 @@ namespace Iseller.Pos.App
                 CampoUsuario.Text = sesionGuardada.Usuario;
                 if (ReglaSesion.PuedeEntrarOffline(sesionGuardada, DateTimeOffset.Now))
                 {
-                    BotonOffline.Visibility = Visibility.Visible;
                     Estado("Sesión guardada de " + sesionGuardada.Nombre +
-                           ". Puedes entrar sin conexión hasta el " +
+                           ". Si no hay conexión, entrarás con tu contraseña hasta el " +
                            sesionGuardada.UltimoLoginValidoEn.Add(ReglaSesion.LimiteOffline)
                                .ToLocalTime().ToString("dd/MM HH:mm") + ".");
                 }
@@ -108,8 +107,16 @@ namespace Iseller.Pos.App
             }
             catch (Exception ex)
             {
-                Estado("No se pudo conectar con el servidor. " + ex.Message +
-                       "  (Con una sesión guardada puedes usar \"Entrar sin conexión\".)");
+                // Sin conexión: se intenta entrar con la sesión guardada (fallback automático).
+                string motivo;
+                if (IntentarEntradaOffline(usuario, clave, out motivo))
+                {
+                    Sesion = _sesionGuardada;
+                    DialogResult = true;
+                    return;
+                }
+
+                Estado("No se pudo conectar con el servidor. " + motivo);
             }
             finally
             {
@@ -117,34 +124,37 @@ namespace Iseller.Pos.App
             }
         }
 
-        private void BotonOffline_Click(object sender, RoutedEventArgs e)
+        /// <summary>
+        /// Entrada sin conexión: valida la clave contra el hash local guardado.
+        /// Se usa solo cuando falla el login online.
+        /// </summary>
+        private bool IntentarEntradaOffline(string usuario, string clave, out string motivo)
         {
+            motivo = "";
+
             if (_sesionGuardada == null)
             {
-                return;
+                motivo = "No hay una sesión guardada en este equipo.";
+                return false;
             }
-
-            if (!string.Equals(CampoUsuario.Text.Trim(), _sesionGuardada.Usuario, StringComparison.OrdinalIgnoreCase))
+            if (!string.Equals(usuario, _sesionGuardada.Usuario, StringComparison.OrdinalIgnoreCase))
             {
-                Estado("La sesión guardada es de otro usuario. Entra con internet para cambiarla.");
-                return;
+                motivo = "La sesión guardada es de otro usuario.";
+                return false;
             }
-
             if (!ReglaSesion.PuedeEntrarOffline(_sesionGuardada, DateTimeOffset.Now))
             {
-                Estado("Pasaron más de 2 días sin conectar. Necesitas internet para volver a entrar.");
-                return;
+                motivo = "La sesión guardada venció (más de 2 días sin conectar).";
+                return false;
             }
-
-            if (!ClaveLocal.Verificar(CampoClave.Password, _sesionGuardada.ClaveSal,
+            if (!ClaveLocal.Verificar(clave, _sesionGuardada.ClaveSal,
                                       _sesionGuardada.ClaveHash, _sesionGuardada.ClaveIteraciones))
             {
-                Estado("Contraseña incorrecta.");
-                return;
+                motivo = "La contraseña no coincide con la sesión guardada.";
+                return false;
             }
 
-            Sesion = _sesionGuardada;
-            DialogResult = true;
+            return true;
         }
 
         private void Ajustes_Click(object sender, RoutedEventArgs e)
