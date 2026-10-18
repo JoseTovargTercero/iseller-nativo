@@ -29,9 +29,6 @@ namespace Iseller.Pos.App
 {
     public partial class MainWindow : Window
     {
-        private const int FilasSinBusqueda = 200;
-        private const int VentanaCodigoMs = 100;
-
         private static readonly CultureInfo Formato = CultureInfo.GetCultureInfo("es-VE");
 
         private readonly AppConfig _config;
@@ -44,13 +41,11 @@ namespace Iseller.Pos.App
         private readonly ReservadosRepositorio _reservadosRepo = new ReservadosRepositorio();
         private readonly ImagenCache _imagenes;
         private readonly Carrito _carrito = new Carrito();
-        private readonly ObservableCollection<ProductoVista> _resultados = new ObservableCollection<ProductoVista>();
         private readonly ObservableCollection<ItemCarritoVista> _lineas = new ObservableCollection<ItemCarritoVista>();
         private readonly ObservableCollection<VentaVista> _pendientes = new ObservableCollection<VentaVista>();
         private readonly List<VentaVista> _pendientesTodas = new List<VentaVista>();
         private readonly ObservableCollection<ReservadoVista> _reservados = new ObservableCollection<ReservadoVista>();
         private readonly ObservableCollection<VentaVista> _enviados = new ObservableCollection<VentaVista>();
-        private readonly StringBuilder _codigo = new StringBuilder();
 
         private CalculadoraPrecios _calculadora;
         private Tasas _tasas;
@@ -59,7 +54,6 @@ namespace Iseller.Pos.App
         private bool _preguntandoCaja;
         private int? _filtroCajero;
         private EstadoCaja _estadoCaja;
-        private DateTime _ultimaTeclaCodigo = DateTime.MinValue;
         private readonly DispatcherTimer _relojEnvio = new DispatcherTimer
         {
             Interval = TimeSpan.FromSeconds(60),
@@ -74,12 +68,12 @@ namespace Iseller.Pos.App
             _credenciales = credenciales;
 
             TextoSucursal.Text = "Sucursal: " + sesion.SucursalNombre;
-            TablaResultados.ItemsSource = _resultados;
             TablaCarrito.ItemsSource = _lineas;
             TablaPendientes.ItemsSource = _pendientes;
             TablaReservados.ItemsSource = _reservados;
             TablaEnviados.ItemsSource = _enviados;
             _imagenes = new ImagenCache(config.BaseImagenes);
+            new LectorBarras(this, CodigoLeido);
 
             BotonCredito.Visibility = TienePermiso(11) ? Visibility.Visible : Visibility.Collapsed;
             BotonDescuento.Visibility = TienePermiso(12) ? Visibility.Visible : Visibility.Collapsed;
@@ -108,7 +102,6 @@ namespace Iseller.Pos.App
             RefrescarReservados();
             RefrescarEnviados();
             AplicarEstadoCaja(true);
-            CampoBusqueda.Focus();
 
             await EnviarPendientesAsync();
             await SincronizarAsync();
@@ -127,12 +120,10 @@ namespace Iseller.Pos.App
             int total = _catalogo.ContarProductos();
             if (total == 0)
             {
-                _resultados.Clear();
                 TextoCatalogo.Text = "Sin catálogo descargado";
                 return;
             }
 
-            Mostrar(_catalogo.Productos().Take(FilasSinBusqueda));
             TextoCatalogo.Text = _ventasRepo.ContarPendientes() + " por enviar · " + total + " productos";
         }
 
@@ -152,41 +143,6 @@ namespace Iseller.Pos.App
                 PrecioDolarVisible = tasas.PrecioDolarVisible,
                 PrecioPesoVisible = tasas.PrecioPesoVisible,
             });
-        }
-
-        private void Mostrar(IEnumerable<Producto> productos)
-        {
-            _resultados.Clear();
-            if (_calculadora == null)
-            {
-                return;
-            }
-            foreach (var producto in productos)
-            {
-                _resultados.Add(ProductoVista.Desde(producto, _calculadora));
-            }
-
-            // Miniaturas: solo las primeras filas, y la caché evita repetir descargas.
-            foreach (var vista in _resultados.Take(60))
-            {
-                _ = vista.CargarImagenAsync(_imagenes);
-            }
-        }
-
-        private void Buscar(string termino)
-        {
-            if (_calculadora == null)
-            {
-                return;
-            }
-
-            string limpio = (termino ?? "").Trim();
-            if (limpio.Length < 2)
-            {
-                Mostrar(_catalogo.Productos().Take(FilasSinBusqueda));
-                return;
-            }
-            Mostrar(_catalogo.Buscar(limpio, 100));
         }
 
         private void ActualizarTasas(Tasas tasas)
@@ -293,27 +249,22 @@ namespace Iseller.Pos.App
             _carrito.Agregar(producto, _calculadora, cantidad);
             PersistirCarrito();
             RefrescarCarrito();
-
-            CampoBusqueda.Text = "";
-            CampoBusqueda.Focus();
         }
 
-        private void Agregar_Click(object sender, RoutedEventArgs e)
+        /// <summary>Búsqueda modal, igual que el POS web: se ve el nombre completo y se agrega.</summary>
+        private void Buscar_Click(object sender, RoutedEventArgs e)
         {
-            var vista = (sender as FrameworkElement)?.DataContext as ProductoVista;
-            if (vista != null)
+            if (_calculadora == null)
             {
-                Agregar(vista.Modelo, Core.Utilidades.Numero.ADouble(vista.CantidadTexto));
+                Aviso("Sincroniza el catálogo antes de vender.");
+                return;
             }
-        }
 
-        private void TablaResultados_MouseDoubleClick(object sender, MouseButtonEventArgs e)
-        {
-            var vista = TablaResultados.SelectedItem as ProductoVista;
-            if (vista != null)
+            var ventana = new VentanaBusqueda(_catalogo, _imagenes, _calculadora, Agregar)
             {
-                Agregar(vista.Modelo, Core.Utilidades.Numero.ADouble(vista.CantidadTexto));
-            }
+                Owner = this,
+            };
+            ventana.ShowDialog();
         }
 
         private void Sumar_Click(object sender, RoutedEventArgs e)
@@ -456,7 +407,10 @@ namespace Iseller.Pos.App
         private void RefrescarEnviados()
         {
             _enviados.Clear();
-            var lista = _ventasRepo.Enviadas(DateTimeOffset.Now.AddDays(-7), DateTimeOffset.Now.AddDays(1));
+            // Solo lo enviado por el cajero de esta sesión: el POS puede haber sido usado por
+            // varios cajeros el mismo día y "Enviados" no debe mezclar sus ventas.
+            var lista = _ventasRepo.Enviadas(DateTimeOffset.Now.AddDays(-7), DateTimeOffset.Now.AddDays(1),
+                                             _sesion.UsuarioId);
             foreach (var venta in lista)
             {
                 _enviados.Add(new VentaVista { Venta = venta });
@@ -830,23 +784,12 @@ namespace Iseller.Pos.App
 
         private void Window_PreviewKeyDown(object sender, KeyEventArgs e)
         {
-            if (e.Key == Key.Escape)
+            if (e.Handled)
             {
-                CampoBusqueda.Text = "";
-                CampoBusqueda.Focus();
-                e.Handled = true;
                 return;
             }
 
             bool enCampo = Keyboard.FocusedElement is TextBox || Keyboard.FocusedElement is PasswordBox;
-
-            if (e.Key == Key.Enter && !enCampo)
-            {
-                e.Handled = true;
-                CerrarCodigo();
-                return;
-            }
-
             if (enCampo || e.Key == Key.LeftCtrl || e.Key == Key.RightCtrl || e.Key == Key.LeftAlt ||
                 e.Key == Key.RightAlt)
             {
@@ -857,7 +800,7 @@ namespace Iseller.Pos.App
             {
                 case Key.B:
                     e.Handled = true;
-                    CampoBusqueda.Focus();
+                    Buscar_Click(sender, null);
                     return;
                 case Key.V:
                     e.Handled = true;
@@ -879,20 +822,7 @@ namespace Iseller.Pos.App
                     return;
             }
 
-            // Números: agregan el resultado N (1-9) de la búsqueda en curso.
-            int indice = NumeroDe(e.Key);
-            if (indice > 0)
-            {
-                e.Handled = true;
-                if (indice <= _resultados.Count)
-                {
-                    Agregar(_resultados[indice - 1].Modelo, 1);
-                }
-                return;
-            }
-
-            // Lector de barras: acumula dígitos si llegan en ráfaga.
-            AcumularCodigo(e);
+            // Los dígitos y el Enter los consume LectorBarras (lector de código de barras).
         }
 
         private void AjustarSeleccionado(double delta)
@@ -907,65 +837,9 @@ namespace Iseller.Pos.App
             RefrescarCarrito();
         }
 
-        private static int NumeroDe(Key tecla)
+        /// <summary>Código de barras leído: busca el código exacto y lo agrega al carrito.</summary>
+        private void CodigoLeido(string codigo)
         {
-            if (tecla >= Key.D1 && tecla <= Key.D9)
-            {
-                return tecla - Key.D1 + 1;
-            }
-            if (tecla >= Key.NumPad1 && tecla <= Key.NumPad9)
-            {
-                return tecla - Key.NumPad1 + 1;
-            }
-            return 0;
-        }
-
-        private void AcumularCodigo(KeyEventArgs e)
-        {
-            char letra = TeclaADigito(e);
-            if (letra == '\0')
-            {
-                return;
-            }
-
-            var ahora = DateTime.Now;
-            if ((ahora - _ultimaTeclaCodigo).TotalMilliseconds > VentanaCodigoMs)
-            {
-                _codigo.Clear();
-            }
-            _ultimaTeclaCodigo = ahora;
-            _codigo.Append(letra);
-            e.Handled = true;
-        }
-
-        private static char TeclaADigito(KeyEventArgs e)
-        {
-            if (e.Key >= Key.D0 && e.Key <= Key.D9 && Keyboard.Modifiers == ModifierKeys.None)
-            {
-                return (char)('0' + (e.Key - Key.D0));
-            }
-            if (e.Key >= Key.NumPad0 && e.Key <= Key.NumPad9)
-            {
-                return (char)('0' + (e.Key - Key.NumPad0));
-            }
-            return '\0';
-        }
-
-        /// <summary>Al terminar una lectura, busca el código exacto y lo agrega.</summary>
-        private void CerrarCodigo()
-        {
-            if (_codigo.Length == 0)
-            {
-                return;
-            }
-
-            string codigo = _codigo.ToString();
-            _codigo.Clear();
-            if (codigo.Length < 6)
-            {
-                return;
-            }
-
             var producto = _catalogo.BuscarPorCodigo(codigo);
             if (producto == null)
             {
@@ -976,35 +850,6 @@ namespace Iseller.Pos.App
         }
 
         // ── Eventos de UI ──────────────────────────────────────────────────────────
-
-        private void CampoBusqueda_TextChanged(object sender, TextChangedEventArgs e)
-        {
-            Buscar(CampoBusqueda.Text);
-        }
-
-        private void CampoBusqueda_KeyDown(object sender, KeyEventArgs e)
-        {
-            if (e.Key != Key.Enter)
-            {
-                return;
-            }
-            e.Handled = true;
-
-            string termino = CampoBusqueda.Text.Trim();
-
-            // Enter = lectura de código de barras: si coincide exacto, entra al carrito.
-            var porCodigo = _catalogo.BuscarPorCodigo(termino);
-            if (porCodigo != null)
-            {
-                Agregar(porCodigo, 1);
-                return;
-            }
-
-            if (_resultados.Count == 1)
-            {
-                Agregar(_resultados[0].Modelo, 1);
-            }
-        }
 
         private void Ajustes_Click(object sender, RoutedEventArgs e)
         {
@@ -1306,7 +1151,6 @@ namespace Iseller.Pos.App
                     }
 
                     CargarDesdeDisco();
-                    Buscar(CampoBusqueda.Text);
                 }
             }
             catch (Exception ex)

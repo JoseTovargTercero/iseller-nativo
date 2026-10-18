@@ -133,16 +133,26 @@ namespace Iseller.Pos.Core.Datos
             }
         }
 
-        public List<Venta> Enviadas(DateTimeOffset desde, DateTimeOffset hasta)
+        /// <summary>
+        /// Ventas enviadas. Con <paramref name="usuarioId"/> solo las de ese cajero: cada POS
+        /// puede haber sido usado por varios, y "Enviados" no debe mezclar sus ventas.
+        /// </summary>
+        public List<Venta> Enviadas(DateTimeOffset desde, DateTimeOffset hasta, int? usuarioId = null)
         {
-            return Consultar(
-                "WHERE estado = @estado AND enviada_en >= @desde AND enviada_en <= @hasta ORDER BY enviada_en DESC",
-                cmd =>
+            string filtro =
+                "WHERE estado = @estado AND enviada_en >= @desde AND enviada_en <= @hasta" +
+                (usuarioId.HasValue ? " AND usuario_id = @usuario" : "") +
+                " ORDER BY enviada_en DESC";
+            return Consultar(filtro, cmd =>
+            {
+                cmd.Parameters.AddWithValue("@estado", EstadoVenta.Enviada);
+                cmd.Parameters.AddWithValue("@desde", desde.ToString("o"));
+                cmd.Parameters.AddWithValue("@hasta", hasta.ToString("o"));
+                if (usuarioId.HasValue)
                 {
-                    cmd.Parameters.AddWithValue("@estado", EstadoVenta.Enviada);
-                    cmd.Parameters.AddWithValue("@desde", desde.ToString("o"));
-                    cmd.Parameters.AddWithValue("@hasta", hasta.ToString("o"));
-                });
+                    cmd.Parameters.AddWithValue("@usuario", usuarioId.Value);
+                }
+            });
         }
 
         private List<Venta> Consultar(string filtro, Action<SQLiteCommand> parametros)

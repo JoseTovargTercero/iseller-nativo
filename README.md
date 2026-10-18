@@ -59,8 +59,14 @@ PLAN.md                 Plan por fases, contratos y decisiones
   una **versión reducida** (máx. 200 px para las que GDI+ puede decodificar: PNG/JPEG; los webp
   ya vienen pequeños). La clave incluye el id y la ruta de la foto, así un cambio de foto no
   sirve la vieja. Sin conexión se usan las que ya están en disco.
-- **Búsqueda:** por nombre (sin acentos) o por código de barras cuando el término es solo
-  dígitos; un número dentro del nombre ya no arrastra códigos.
+- **Búsqueda:** es un **modal** igual que en el POS web (botón `(B) BÚSQUEDA` o la tecla `B`):
+  buscador arriba y tabla con nombre completo, stock, precios, cantidad y AGREGAR. `Enter` con un
+  código de barras agrega el producto exacto; `Esc` cierra. Un número dentro del nombre no arrastra
+  códigos.
+- **Lector de código de barras:** funciona en toda la ventana (ráfaga de dígitos y `Enter`, con
+  pausa máxima de 100 ms entre teclas, igual que el POS web). También al escribir el código en el
+  buscador del modal. A diferencia del web (que muestra el producto y pide un segundo `Enter`),
+  aquí el producto entra al carrito directamente con la última lectura.
 - **Campos numéricos:** montos de apertura/cierre de caja, cantidad recibida (cambio) y cantidad
   del carrito solo aceptan dígitos y **un** punto decimal. Se bloquean letras, comas, signos,
   espacios y el segundo punto, tanto al teclear como al pegar.
@@ -74,5 +80,7 @@ PLAN.md                 Plan por fases, contratos y decisiones
   los cajeros con su columna CAJERO, permite filtrar por cajero y enviarlas con
   "ENVIAR DEL CAJERO" o "ENVIAR TODOS". Si un cajero nunca inició sesión en el equipo, sus
   ventas quedan pendientes con el motivo visible.
+- **"Enviados" es solo del cajero de la sesión:** aunque el POS lo hayan usado varios cajeros el
+  mismo día, cada uno ve únicamente las ventas que él envió (nada de información cruzada).
 
-47 tests en verde (`dotnet test`).
+76 tests en verde (`dotnet test`).

@@ -371,6 +371,33 @@ namespace Iseller.Pos.Tests
             Assert.Equal(0, repo.ContarPendientes());
             Assert.Single(repo.Enviadas(DateTimeOffset.Now.AddDays(-1), DateTimeOffset.Now.AddDays(1)));
         }
+
+        [Fact]
+        public void Enviadas_se_filtra_por_cajero()
+        {
+            var repo = new VentasRepositorio(_ruta);
+            foreach (int usuario in new[] { 22, 23 })
+            {
+                repo.Guardar(new Venta
+                {
+                    IdPedido = "uuid-cajero-" + usuario,
+                    MetodoPago = "option4",
+                    Despacho = 1,
+                    UsuarioId = usuario,
+                    UsuarioNombre = "CAJA NRO " + usuario,
+                    CreadaEn = DateTimeOffset.Now,
+                });
+                repo.MarcarEnviada("uuid-cajero-" + usuario, DateTimeOffset.Now);
+            }
+
+            var desde = DateTimeOffset.Now.AddDays(-1);
+            var hasta = DateTimeOffset.Now.AddDays(1);
+
+            Assert.Equal(2, repo.Enviadas(desde, hasta).Count);
+            var solo22 = repo.Enviadas(desde, hasta, 22);
+            Assert.Single(solo22);
+            Assert.Equal(22, solo22[0].UsuarioId);
+        }
     }
 
     public class TicketEscPosTests
