@@ -12,6 +12,7 @@ using System.Windows.Media;
 using System.Windows.Threading;
 using Iseller.Pos.Core.Api;
 using Iseller.Pos.Core.Auth;
+using Iseller.Pos.Core.Caja;
 using Iseller.Pos.Core.Carrito;
 using Iseller.Pos.Core.Configuracion;
 using Iseller.Pos.Core.Datos;
@@ -33,6 +34,7 @@ namespace Iseller.Pos.App
         private readonly CatalogoRepositorio _catalogo = new CatalogoRepositorio();
         private readonly CarritoRepositorio _carritoRepo = new CarritoRepositorio();
         private readonly VentasRepositorio _ventasRepo = new VentasRepositorio();
+        private readonly CajaRepositorio _cajaRepo = new CajaRepositorio();
         private readonly Carrito _carrito = new Carrito();
         private readonly ObservableCollection<ProductoVista> _resultados = new ObservableCollection<ProductoVista>();
         private readonly ObservableCollection<ItemCarritoVista> _lineas = new ObservableCollection<ItemCarritoVista>();
@@ -43,6 +45,8 @@ namespace Iseller.Pos.App
         private Tasas _tasas;
         private bool _sincronizando;
         private bool _enviando;
+        private bool _preguntandoCaja;
+        private EstadoCaja _estadoCaja;
         private DateTime _ultimaTeclaCodigo = DateTime.MinValue;
         private readonly DispatcherTimer _relojEnvio = new DispatcherTimer
         {
@@ -66,7 +70,7 @@ namespace Iseller.Pos.App
 
             _relojEnvio.Tick += (s, e) =>
             {
-                if (_ventasRepo.ContarPendientes() > 0)
+                if (_ventasRepo.ContarPendientes() + _cajaRepo.ContarPendientes() > 0)
                 {
                     _ = EnviarPendientesAsync();
                 }
@@ -85,6 +89,7 @@ namespace Iseller.Pos.App
             CargarDesdeDisco();
             CargarCarrito();
             RefrescarPendientes();
+            AplicarEstadoCaja(true);
             CampoBusqueda.Focus();
 
             await EnviarPendientesAsync();
@@ -230,6 +235,13 @@ namespace Iseller.Pos.App
             if (_carrito.Vacio)
             {
                 Aviso("El carrito está vacío.");
+                return false;
+            }
+            if (CajaExigida && CajaReglas.BloqueaVenta(_estadoCaja))
+            {
+                Aviso(_estadoCaja == EstadoCaja.Cerrada
+                    ? "La caja está cerrada. Reábrela para vender."
+                    : "Abre la caja antes de vender.");
                 return false;
             }
             if (_calculadora == null || ReglaSesion.TasaVencida(_tasas, DateTimeOffset.Now))
@@ -460,6 +472,155 @@ namespace Iseller.Pos.App
             return _catalogo.ObtenerCliente(cedula);
         }
 
+        // ── Caja ───────────────────────────────────────────────────────────────────
+
+        private bool CajaExigida
+        {
+            get { return CajaReglas.Requiere(_sesion.Configuracion, _sesion.Nivel); }
+        }
+
+        private void AplicarEstadoCaja(bool preguntarApertura)
+        {
+            _estadoCaja = _cajaRepo.Estado(_sesion.UsuarioId, DateTime.Today);
+
+            if (!CajaExigida)
+            {
+                AvisoCaja.Visibility = Visibility.Collapsed;
+                BotonCerrarCaja.Visibility = Visibility.Collapsed;
+                return;
+            }
+
+            BotonCerrarCaja.Visibility = _estadoCaja == EstadoCaja.Abierta
+                ? Visibility.Visible
+                : Visibility.Collapsed;
+            BotonAbrirCaja.Visibility = _estadoCaja == EstadoCaja.SinApertura
+                ? Visibility.Visible
+                : Visibility.Collapsed;
+            BotonReabrirCaja.Visibility = _estadoCaja == EstadoCaja.Cerrada
+                ? Visibility.Visible
+                : Visibility.Collapsed;
+
+            if (_estadoCaja == EstadoCaja.Abierta)
+            {
+                AvisoCaja.Visibility = Visibility.Collapsed;
+                return;
+            }
+
+            AvisoCaja.Visibility = Visibility.Visible;
+            TextoAvisoCaja.Text = _estadoCaja == EstadoCaja.Cerrada
+                ? "Caja cerrada. Reabre la caja para volver a vender."
+                : "La caja no está abierta. Registra la apertura para vender.";
+
+            if (preguntarApertura && _estadoCaja == EstadoCaja.SinApertura)
+            {
+                AbrirCajaDialogo();
+            }
+        }
+
+        private void AbrirCaja_Click(object sender, RoutedEventArgs e)
+        {
+            AbrirCajaDialogo();
+        }
+
+        private void AbrirCajaDialogo()
+        {
+            if (_preguntandoCaja)
+            {
+                return;
+            }
+            _preguntandoCaja = true;
+            try
+            {
+                var ventana = new VentanaCaja(false) { Owner = this };
+                if (ventana.ShowDialog() != true)
+                {
+                    return;
+                }
+
+                _cajaRepo.Guardar(new RegistroCaja
+                {
+                    Id = Guid.NewGuid().ToString(),
+                    Tipo = "apertura",
+                    CreadaEn = DateTimeOffset.Now,
+                    Observaciones = ventana.Observaciones,
+                    UsuarioId = _sesion.UsuarioId,
+                    Montos = ventana.Montos,
+                });
+
+                AplicarEstadoCaja(false);
+                Aviso("Caja abierta. El movimiento se enviará al sincronizar.");
+                _ = EnviarPendientesAsync();
+            }
+            finally
+            {
+                _preguntandoCaja = false;
+            }
+        }
+
+        private void CerrarCaja_Click(object sender, RoutedEventArgs e)
+        {
+            if (_estadoCaja != EstadoCaja.Abierta)
+            {
+                return;
+            }
+
+            var ventana = new VentanaCaja(true) { Owner = this };
+            if (ventana.ShowDialog() != true)
+            {
+                return;
+            }
+
+            _cajaRepo.Guardar(new RegistroCaja
+            {
+                Id = Guid.NewGuid().ToString(),
+                Tipo = "cierre",
+                CreadaEn = DateTimeOffset.Now,
+                Observaciones = ventana.Observaciones,
+                UsuarioId = _sesion.UsuarioId,
+                Montos = ventana.Montos,
+            });
+
+            AplicarEstadoCaja(false);
+            Aviso("Caja cerrada. No se puede vender hasta reabrirla.");
+            _ = EnviarPendientesAsync();
+        }
+
+        private async void ReabrirCaja_Click(object sender, RoutedEventArgs e)
+        {
+            var ultimo = _cajaRepo.UltimoDelDia(_sesion.UsuarioId, DateTime.Today);
+            if (ultimo == null || !ultimo.EsCierre)
+            {
+                AplicarEstadoCaja(false);
+                return;
+            }
+
+            try
+            {
+                // Primero sube lo pendiente (ventas y el propio cierre), luego reabre.
+                await EnviarPendientesAsync();
+
+                using (var api = new PosApiClient(_config.ApiBaseUrl, _config.ApiKey))
+                {
+                    var resultado = await api.ReabrirCajaAsync(_sesion.Token, ultimo.Id);
+                    if (!resultado.Ok)
+                    {
+                        MessageBox.Show(this, resultado.Error ?? "No se pudo reabrir la caja.",
+                            "Reabrir caja", MessageBoxButton.OK, MessageBoxImage.Warning);
+                        return;
+                    }
+                }
+
+                _cajaRepo.Eliminar(ultimo.Id);
+                AplicarEstadoCaja(false);
+                Aviso("Caja reabierta.");
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(this, "Para reabrir la caja necesitas conexión: " + ex.Message,
+                    "Reabrir caja", MessageBoxButton.OK, MessageBoxImage.Warning);
+            }
+        }
+
         private void RefrescarPendientes()
         {
             _pendientes.Clear();
@@ -472,7 +633,7 @@ namespace Iseller.Pos.App
                 ? "No guardados (" + pendientes.Count + ")"
                 : "No guardados";
 
-            TextoCatalogo.Text = pendientes.Count + " por enviar";
+            TextoCatalogo.Text = (_ventasRepo.ContarPendientes() + _cajaRepo.ContarPendientes()) + " por enviar";
         }
 
         // ── Atajos y lector de barras ──────────────────────────────────────────────
@@ -702,55 +863,82 @@ namespace Iseller.Pos.App
                 return;
             }
 
-            var pendientes = _ventasRepo.Pendientes();
-            if (pendientes.Count == 0)
+            var ventas = _ventasRepo.Pendientes();
+            var caja = _cajaRepo.Pendientes();
+            if (ventas.Count == 0 && caja.Count == 0)
             {
                 return;
             }
 
             _enviando = true;
             PuntoConexion.Fill = (Brush)FindResource("WarningBrush");
-            TextoEstadoConexion.Text = "Enviando " + pendientes.Count + " venta(s)…";
+            TextoEstadoConexion.Text = "Sincronizando " + (ventas.Count + caja.Count) + " registro(s)…";
 
             try
             {
                 using (var api = new PosApiClient(_config.ApiBaseUrl, _config.ApiKey))
                 {
-                    var resultado = await api.EnviarVentasAsync(_sesion.Token, pendientes);
-                    if (!resultado.Ok)
-                    {
-                        Conexion(false, resultado.Error ?? "No se pudieron enviar las ventas");
-                        return;
-                    }
-
                     int enviadas = 0;
                     int errores = 0;
-                    foreach (var r in resultado.Resultados)
+                    int cajaOk = 0;
+                    int cajaErr = 0;
+
+                    if (ventas.Count > 0)
                     {
-                        if (r.Ok)
+                        var resultado = await api.EnviarVentasAsync(_sesion.Token, ventas);
+                        if (!resultado.Ok)
                         {
-                            _ventasRepo.MarcarEnviada(r.IdPedido, DateTimeOffset.Now);
-                            enviadas++;
+                            Conexion(false, resultado.Error ?? "No se pudieron enviar las ventas");
+                            return;
+                        }
+
+                        foreach (var r in resultado.Resultados)
+                        {
+                            if (r.Ok)
+                            {
+                                _ventasRepo.MarcarEnviada(r.IdPedido, DateTimeOffset.Now);
+                                enviadas++;
+                            }
+                            else
+                            {
+                                _ventasRepo.RegistrarFallo(r.IdPedido, r.Error);
+                                errores++;
+                            }
+                        }
+                    }
+
+                    // La caja va después de las ventas: el cierre suma las órdenes del día.
+                    foreach (var registro in caja)
+                    {
+                        var resultadoCaja = await api.GuardarCajaAsync(_sesion.Token, registro);
+                        if (resultadoCaja.Ok)
+                        {
+                            _cajaRepo.MarcarSincronizada(registro.Id, DateTimeOffset.Now);
+                            cajaOk++;
                         }
                         else
                         {
-                            _ventasRepo.RegistrarFallo(r.IdPedido, r.Error);
-                            errores++;
+                            cajaErr++;
                         }
                     }
 
                     Conexion(true, "En línea");
                     RefrescarPendientes();
 
-                    if (enviadas > 0)
+                    int totalOk = enviadas + cajaOk;
+                    int totalError = errores + cajaErr;
+                    if (totalOk > 0)
                     {
-                        Aviso(enviadas + " venta(s) sincronizada(s)" +
-                              (errores > 0 ? ", " + errores + " con error." : "."));
-                        await SincronizarAsync(); // el stock cambió: refresca el catálogo
+                        Aviso(totalOk + " registro(s) sincronizado(s)" +
+                              (totalError > 0 ? ", " + totalError + " con error." : "."));
+                        if (enviadas > 0)
+                        {
+                            await SincronizarAsync(); // el stock cambió: refresca el catálogo
+                        }
                     }
-                    else if (errores > 0)
+                    else if (totalError > 0)
                     {
-                        Aviso("No se pudieron enviar " + errores + " venta(s). Revisa el detalle en No guardados.");
+                        Aviso("No se pudieron enviar " + totalError + " registro(s).");
                     }
                 }
             }

@@ -11,6 +11,7 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="56" />
             <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
             <RowDefinition Height="32" />
         </Grid.RowDefinitions>
@@ -49,8 +50,31 @@
             <TextBlock x:Name="TextoAvisoTasas" Foreground="{StaticResource DangerBrush}" />
         </Border>
 
+        <!-- Aviso de caja -->
+        <Border Grid.Row="2" x:Name="AvisoCaja" Visibility="Collapsed"
+                Background="#1FF5B45B" BorderBrush="{StaticResource WarningBrush}"
+                BorderThickness="0,0,0,1" Padding="20,8">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <TextBlock x:Name="TextoAvisoCaja" Foreground="{StaticResource WarningBrush}"
+                           VerticalAlignment="Center" TextWrapping="Wrap" />
+                <StackPanel Grid.Column="1" Orientation="Horizontal" Margin="12,0,0,0"
+                            VerticalAlignment="Center">
+                    <Button x:Name="BotonAbrirCaja" Content="ABRIR CAJA"
+                            Style="{StaticResource SecondaryButton}" Padding="12,6"
+                            Visibility="Collapsed" Click="AbrirCaja_Click" />
+                    <Button x:Name="BotonReabrirCaja" Content="REABRIR CAJA"
+                            Style="{StaticResource SecondaryButton}" Padding="12,6"
+                            Visibility="Collapsed" Click="ReabrirCaja_Click" />
+                </StackPanel>
+            </Grid>
+        </Border>
+
         <!-- Venta / pendientes -->
-        <TabControl Grid.Row="2" Margin="20,16,20,12">
+        <TabControl Grid.Row="3" Margin="20,16,20,12">
             <TabItem Header="Venta">
                 <Grid Margin="0,16,0,0">
                     <Grid.RowDefinitions>
@@ -185,6 +209,9 @@
                                     Padding="16,10" Margin="0,0,10,10" Click="Cambio_Click" />
                             <Button Content="(V) VENDER" Style="{StaticResource PrimaryButton}"
                                     Padding="20,10" Margin="0,0,10,10" Click="Vender_Click" />
+                            <Button x:Name="BotonCerrarCaja" Content="CERRAR CAJA"
+                                    Style="{StaticResource DangerButton}" Padding="16,10"
+                                    Margin="0,0,10,10" Visibility="Collapsed" Click="CerrarCaja_Click" />
                             <Button Content="DESTRUIR CARRITO" Style="{StaticResource DangerButton}"
                                     Padding="16,10" Margin="0,0,10,10" Click="Destruir_Click" />
                         </WrapPanel>
@@ -218,7 +245,7 @@
         </TabControl>
 
         <!-- Barra de estado -->
-        <Border Grid.Row="3" Background="{StaticResource CardBrush}"
+        <Border Grid.Row="4" Background="{StaticResource CardBrush}"
                 BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,1,0,0">
             <Grid Margin="20,0">
                 <TextBlock x:Name="TextoEstado" Style="{StaticResource MutedText}"

@@ -238,21 +238,37 @@ Verificado el 18/10/2026:
 
 ### Fase 4 — Caja offline (~2 semanas)
 
+**Estado: implementada.** Apertura/cierre con UUID y sincronización, bloqueo de ventas con
+caja cerrada y reapertura por red.
+
 **Objetivo:** apertura, cierre y reapertura sin depender de la red.
 
 **App**
-- Replicar localmente `consulta_apertura`, `registro_apertura` y `registro_cierre` con el
-  mismo formulario (fondo, contado, digital, observaciones).
-- Cada apertura/cierre es un registro con UUID y estado pendiente; se sincroniza igual que
-  una venta.
-- Reabrir caja requiere red (es una corrección administrativa); si no hay, se avisa.
+- Apertura y cierre con los mismos campos del POS web (fondo, contado, digital, observaciones).
+- Cada movimiento se guarda en SQLite con UUID y estado pendiente; se envía junto con las
+  ventas (primero ventas, después caja, para que el cierre sume el día completo).
+- Regla de la web: solo se exige a cajeros (nivel 2) con `cortes_caja = 1`.
+- Caja cerrada bloquea la venta y muestra "Reabrir caja" (requiere conexión).
+- La reapertura borra el cierre local y el del servidor por UUID.
 
-**Backend**
-- `POST /api/pos_caja.php` idempotente por UUID; reutilizar la lógica actual de los endpoints.
+**Backend** — ✅ implementado
+- `POST /api/pos_caja.php` con `accion: guardar|reabrir`.
+- Idempotente por UUID; se agregó la columna `uuid` (nullable, con índice único) a
+  `cortes_de_caja` de forma aditiva.
+- El cierre calcula los totales del sistema desde `orden` (misma lógica que
+  `registro_cierre.php`) y guarda las diferencias contra lo contado.
+- Reabrir borra el cierre por UUID (no "el último del día"), así un reintento no borra dos.
 
 **Aceptación**
 - Abrir caja sin red, vender, cerrar y sincronizar deja los mismos montos que la web.
 - Un cierre enviado dos veces no duplica el registro.
+
+Verificado el 18/10/2026:
+- Apertura y cierre desde la UI, guardados en SQLite y sincronizados; el servidor devolvió
+  `corte_id` y el cierre calculó diferencias contra lo contado.
+- Mismo movimiento enviado dos veces → `duplicada: true`, un solo registro.
+- Reabrir por UUID borró el cierre en el servidor; un segundo intento respondió `ya_estaba`.
+- 44/44 tests en verde (incluye reglas de caja y transiciones del repositorio).
 
 ---
 

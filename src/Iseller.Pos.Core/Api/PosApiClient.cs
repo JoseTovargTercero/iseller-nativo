@@ -62,6 +62,22 @@ namespace Iseller.Pos.Core.Api
         }
     }
 
+    public sealed class ResultadoCaja
+    {
+        public bool Ok { get; set; }
+        public bool Duplicada { get; set; }
+        public int CorteId { get; set; }
+        public string Error { get; set; }
+        public DateTimeOffset ServidorEn { get; set; }
+    }
+
+    public sealed class ResultadoReapertura
+    {
+        public bool Ok { get; set; }
+        public bool YaEstaba { get; set; }
+        public string Error { get; set; }
+    }
+
     /// <summary>Cliente de los endpoints api/pos_*.php (X-Api-Key + Bearer).</summary>
     public sealed class PosApiClient : IDisposable
     {
@@ -317,6 +333,64 @@ namespace Iseller.Pos.Core.Api
             return resultado;
         }
 
+        /// <summary>Guarda una apertura o cierre (idempotente por UUID).</summary>
+        public async Task<ResultadoCaja> GuardarCajaAsync(string token, RegistroCaja registro)
+        {
+            var cuerpo = new JObject
+            {
+                ["accion"] = "guardar",
+                ["id"] = registro.Id,
+                ["tipo"] = registro.Tipo,
+                ["fecha"] = registro.FechaLocal,
+                ["montos"] = JObject.FromObject(registro.Montos ?? new Dictionary<string, double>()),
+                ["observaciones"] = registro.Observaciones ?? "",
+            };
+
+            using (var respuesta = await EnviarAsync("pos_caja.php", HttpMethod.Post, cuerpo, token))
+            {
+                string texto = await respuesta.Content.ReadAsStringAsync();
+                var dto = Deserializar<CajaRespuestaDto>(texto);
+                if (dto == null)
+                {
+                    return new ResultadoCaja { Error = "Respuesta inválida del servidor" };
+                }
+                return new ResultadoCaja
+                {
+                    Ok = dto.Ok,
+                    Duplicada = dto.Duplicada,
+                    CorteId = dto.CorteId,
+                    Error = dto.Error,
+                    ServidorEn = dto.ServidorEn,
+                };
+            }
+        }
+
+        /// <summary>Reabre una caja borrando su cierre en el servidor (requiere red).</summary>
+        public async Task<ResultadoReapertura> ReabrirCajaAsync(string token, string corteId)
+        {
+            var cuerpo = new JObject
+            {
+                ["accion"] = "reabrir",
+                ["corte_id"] = corteId,
+            };
+
+            using (var respuesta = await EnviarAsync("pos_caja.php", HttpMethod.Post, cuerpo, token))
+            {
+                string texto = await respuesta.Content.ReadAsStringAsync();
+                var dto = Deserializar<ReaperturaDto>(texto);
+                if (dto == null)
+                {
+                    return new ResultadoReapertura { Error = "Respuesta inválida del servidor" };
+                }
+                return new ResultadoReapertura
+                {
+                    Ok = dto.Ok,
+                    YaEstaba = dto.YaEstaba,
+                    Error = dto.Error,
+                };
+            }
+        }
+
         /// <summary>Comprueba internet y que el token siga vivo. Null si falló.</summary>
         public async Task<DateTimeOffset?> HeartbeatAsync(string token)
         {
@@ -517,6 +591,22 @@ namespace Iseller.Pos.Core.Api
             [JsonProperty("ok")] public bool Ok { get; set; }
             [JsonProperty("orden_id")] public int OrdenId { get; set; }
             [JsonProperty("duplicada")] public bool Duplicada { get; set; }
+            [JsonProperty("error")] public string Error { get; set; }
+        }
+
+        private sealed class CajaRespuestaDto
+        {
+            [JsonProperty("ok")] public bool Ok { get; set; }
+            [JsonProperty("duplicada")] public bool Duplicada { get; set; }
+            [JsonProperty("corte_id")] public int CorteId { get; set; }
+            [JsonProperty("error")] public string Error { get; set; }
+            [JsonProperty("servidor_en")] public DateTimeOffset ServidorEn { get; set; }
+        }
+
+        private sealed class ReaperturaDto
+        {
+            [JsonProperty("ok")] public bool Ok { get; set; }
+            [JsonProperty("ya_estaba")] public bool YaEstaba { get; set; }
             [JsonProperty("error")] public string Error { get; set; }
         }
     }
