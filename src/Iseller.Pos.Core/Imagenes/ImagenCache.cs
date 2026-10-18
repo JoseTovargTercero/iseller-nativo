@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Security.Cryptography;
@@ -69,7 +71,7 @@ namespace Iseller.Pos.Core.Imagenes
                         return null;
                     }
                     Directory.CreateDirectory(_directorio);
-                    File.WriteAllBytes(ruta, bytes);
+                    File.WriteAllBytes(ruta, Reducir(bytes));
                     LimpiarVariantes(id, ruta);
                     return ruta;
                 }
@@ -124,6 +126,77 @@ namespace Iseller.Pos.Core.Imagenes
             catch (Exception)
             {
                 // Limpieza best-effort.
+            }
+        }
+
+        /// <summary>
+        /// Guarda una versión reducida: la app solo muestra miniaturas de 40 px.
+        /// Si el formato no se puede decodificar (p. ej. webp sin códec en Windows) se guarda igual.
+        /// </summary>
+        public static byte[] Reducir(byte[] original, int maxLado = 200)
+        {
+            if (original == null || original.Length == 0)
+            {
+                return original;
+            }
+
+            try
+            {
+                using (var entrada = new MemoryStream(original))
+                using (var imagen = Image.FromStream(entrada, false, false))
+                {
+                    int ancho = imagen.Width;
+                    int alto = imagen.Height;
+                    double escala = Math.Min(1.0, (double)maxLado / Math.Max(ancho, alto));
+                    if (escala >= 1.0)
+                    {
+                        return original; // ya es más chica que el tope
+                    }
+
+                    int nuevoAncho = Math.Max(1, (int)Math.Round(ancho * escala));
+                    int nuevoAlto = Math.Max(1, (int)Math.Round(alto * escala));
+
+                    using (var reducida = new Bitmap(nuevoAncho, nuevoAlto))
+                    using (var g = Graphics.FromImage(reducida))
+                    using (var salida = new MemoryStream())
+                    {
+                        g.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.HighQualityBicubic;
+                        g.PixelOffsetMode = System.Drawing.Drawing2D.PixelOffsetMode.HighQuality;
+                        g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.HighQuality;
+                        g.DrawImage(imagen, 0, 0, nuevoAncho, nuevoAlto);
+
+                        if (imagen.RawFormat.Equals(System.Drawing.Imaging.ImageFormat.Jpeg))
+                        {
+                            var codificador = System.Drawing.Imaging.ImageCodecInfo.GetImageEncoders()
+                                .FirstOrDefault(c => c.FormatID == System.Drawing.Imaging.ImageFormat.Jpeg.Guid);
+                            if (codificador != null)
+                            {
+                                using (var parametros = new System.Drawing.Imaging.EncoderParameters(1))
+                                {
+                                    parametros.Param[0] = new System.Drawing.Imaging.EncoderParameter(
+                                        System.Drawing.Imaging.Encoder.Quality, 80L);
+                                    reducida.Save(salida, codificador, parametros);
+                                }
+                            }
+                            else
+                            {
+                                reducida.Save(salida, System.Drawing.Imaging.ImageFormat.Jpeg);
+                            }
+                        }
+                        else
+                        {
+                            reducida.Save(salida, System.Drawing.Imaging.ImageFormat.Png);
+                        }
+
+                        byte[] resultado = salida.ToArray();
+                        return resultado.Length > 0 && resultado.Length < original.Length ? resultado : original;
+                    }
+                }
+            }
+            catch (Exception)
+            {
+                // Formato no soportado (webp, svg, corrupto): se guarda el original.
+                return original;
             }
         }
 

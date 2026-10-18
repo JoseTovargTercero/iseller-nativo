@@ -97,6 +97,47 @@ namespace Iseller.Pos.Tests
             Assert.Equal(a, b);
             Assert.NotEqual(a, c);
         }
+
+        [Fact]
+        public void Reduce_las_imagenes_grandes()
+        {
+            // PNG de 1000x1000 generado al vuelo.
+            byte[] original;
+            using (var bmp = new System.Drawing.Bitmap(1000, 1000))
+            using (var g = System.Drawing.Graphics.FromImage(bmp))
+            using (var ms = new MemoryStream())
+            {
+                g.Clear(System.Drawing.Color.CornflowerBlue);
+                bmp.Save(ms, System.Drawing.Imaging.ImageFormat.Png);
+                original = ms.ToArray();
+            }
+
+            byte[] reducida = ImagenCache.Reducir(original);
+
+            Assert.True(reducida.Length < original.Length);
+            using (var ms = new MemoryStream(reducida))
+            using (var img = System.Drawing.Image.FromStream(ms))
+            {
+                Assert.True(img.Width <= 200 && img.Height <= 200);
+                Assert.Equal(200, img.Width);
+            }
+        }
+
+        [Fact]
+        public void Una_imagen_chica_o_ilegible_no_se_toca()
+        {
+            byte[] ilegible = { 1, 2, 3, 4, 5 };
+            Assert.Same(ilegible, ImagenCache.Reducir(ilegible));
+
+            byte[] pngChico;
+            using (var bmp = new System.Drawing.Bitmap(50, 50))
+            using (var ms = new MemoryStream())
+            {
+                bmp.Save(ms, System.Drawing.Imaging.ImageFormat.Png);
+                pngChico = ms.ToArray();
+            }
+            Assert.Same(pngChico, ImagenCache.Reducir(pngChico));
+        }
     }
 
     public class ActualizadorTests
