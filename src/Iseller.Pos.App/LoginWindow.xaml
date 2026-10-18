@@ -1,51 +1,74 @@
 <Window x:Class="Iseller.Pos.App.LoginWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="iSeller POS — Acceso" Height="560" Width="420"
+        Title="iSeller POS — Acceso" Height="600" Width="420"
         ResizeMode="NoResize" WindowStartupLocation="CenterScreen"
+        WindowStyle="None"
+        Icon="Assets/logo1-inv-compact-128.png"
         Style="{StaticResource PosWindow}">
 
-    <Grid Margin="32">
+    <Grid>
         <Grid.RowDefinitions>
-            <RowDefinition Height="Auto" />
+            <RowDefinition Height="34" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
-        <StackPanel Grid.Row="0">
-            <StackPanel Orientation="Horizontal">
-                <Image Source="Assets/logo1-inv-compact-128.png" Width="52" Height="52"
-                       Margin="0,0,14,0" RenderOptions.BitmapScalingMode="HighQuality" />
-                <StackPanel VerticalAlignment="Center">
-                    <StackPanel Orientation="Horizontal">
-                        <TextBlock Text="iSELLER" FontSize="22" FontWeight="Bold"
-                                   Foreground="{StaticResource MintBrush}" />
-                        <TextBlock Text="POS" FontSize="22" FontWeight="Bold" Margin="6,0,0,0" />
+        <!-- Barra superior propia -->
+        <Border Grid.Row="0" Background="{StaticResource BgBrush}"
+                BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,0,0,1"
+                MouseLeftButtonDown="Barra_MouseLeftButtonDown">
+            <Grid Margin="14,0,8,0">
+                <TextBlock Text="iSeller POS" Style="{StaticResource MutedText}"
+                           VerticalAlignment="Center" />
+                <Button x:Name="BtnCerrar" Style="{StaticResource WindowCloseButton}"
+                        HorizontalAlignment="Right" ToolTip="Cerrar" Click="Cerrar_Click">
+                    <Path Data="M0,0 L11,11 M11,0 L0,11" Stroke="White" StrokeThickness="1.2" />
+                </Button>
+            </Grid>
+        </Border>
+
+        <Grid Grid.Row="1" Margin="32,24,32,32">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+
+            <StackPanel Grid.Row="0">
+                <StackPanel Orientation="Horizontal">
+                    <Image Source="Assets/logo1-inv-compact-128.png" Width="52" Height="52"
+                           Margin="0,0,14,0" RenderOptions.BitmapScalingMode="HighQuality" />
+                    <StackPanel VerticalAlignment="Center">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="iSELLER" FontSize="22" FontWeight="Bold"
+                                       Foreground="{StaticResource MintBrush}" />
+                            <TextBlock Text="POS" FontSize="22" FontWeight="Bold" Margin="6,0,0,0" />
+                        </StackPanel>
+                        <TextBlock Text="Acceso a la caja" Style="{StaticResource MutedText}" Margin="0,2,0,0" />
                     </StackPanel>
-                    <TextBlock Text="Acceso a la caja" Style="{StaticResource MutedText}" Margin="0,2,0,0" />
                 </StackPanel>
+
+                <TextBlock Text="Usuario" Style="{StaticResource MutedText}" Margin="0,18,0,4" />
+                <TextBox x:Name="CampoUsuario" Padding="12,9" FontSize="15" />
+
+                <TextBlock Text="Contraseña" Style="{StaticResource MutedText}" Margin="0,16,0,4" />
+                <PasswordBox x:Name="CampoClave" Padding="12,9" FontSize="15"
+                             KeyDown="CampoClave_KeyDown" />
+
+                <StackPanel x:Name="PanelSucursal" Visibility="Collapsed" Margin="0,16,0,0">
+                    <TextBlock Text="Sucursal" Style="{StaticResource MutedText}" Margin="0,0,0,4" />
+                    <ComboBox x:Name="ComboSucursal" DisplayMemberPath="Nombre" SelectedValuePath="Id"
+                              Height="36" />
+                </StackPanel>
+
+                <Button x:Name="BotonEntrar" Content="ENTRAR" Style="{StaticResource PrimaryButton}"
+                        Margin="0,26,0,0" Padding="14,11" Click="BotonEntrar_Click" />
+
+                <TextBlock x:Name="TextoEstado" Style="{StaticResource MutedText}" Margin="0,14,0,0"
+                           TextWrapping="Wrap" />
+
+                <Button Content="AJUSTES DE SERVIDOR E IMPRESORA" Style="{StaticResource SecondaryButton}"
+                        Margin="0,18,0,0" Padding="14,10" Click="Ajustes_Click" />
             </StackPanel>
-
-            <TextBlock Text="Usuario" Style="{StaticResource MutedText}" Margin="0,18,0,4" />
-            <TextBox x:Name="CampoUsuario" Padding="12,9" FontSize="15" />
-
-            <TextBlock Text="Contraseña" Style="{StaticResource MutedText}" Margin="0,16,0,4" />
-            <PasswordBox x:Name="CampoClave" Padding="12,9" FontSize="15"
-                         KeyDown="CampoClave_KeyDown" />
-
-            <StackPanel x:Name="PanelSucursal" Visibility="Collapsed" Margin="0,16,0,0">
-                <TextBlock Text="Sucursal" Style="{StaticResource MutedText}" Margin="0,0,0,4" />
-                <ComboBox x:Name="ComboSucursal" DisplayMemberPath="Nombre" SelectedValuePath="Id"
-                          Height="36" />
-            </StackPanel>
-
-            <Button x:Name="BotonEntrar" Content="ENTRAR" Style="{StaticResource PrimaryButton}"
-                    Margin="0,26,0,0" Padding="14,11" Click="BotonEntrar_Click" />
-
-            <TextBlock x:Name="TextoEstado" Style="{StaticResource MutedText}" Margin="0,14,0,0"
-                       TextWrapping="Wrap" />
-
-            <Button Content="AJUSTES DE SERVIDOR E IMPRESORA" Style="{StaticResource SecondaryButton}"
-                    Margin="0,18,0,0" Padding="14,10" Click="Ajustes_Click" />
-        </StackPanel>
+        </Grid>
     </Grid>
 </Window>

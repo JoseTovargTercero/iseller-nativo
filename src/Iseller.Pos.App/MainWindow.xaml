@@ -4,8 +4,16 @@
         Title="iSeller POS" Height="820" Width="1400"
         MinHeight="640" MinWidth="1100"
         WindowStartupLocation="CenterScreen"
+        WindowStyle="None"
+        Icon="Assets/logo1-inv-compact-128.png"
         Style="{StaticResource PosWindow}"
         PreviewKeyDown="Window_PreviewKeyDown">
+
+    <!-- Mantiene el redimensionado nativo aunque la barra del sistema esté oculta. -->
+    <WindowChrome.WindowChrome>
+        <WindowChrome CaptionHeight="0" ResizeBorderThickness="6" GlassFrameThickness="0"
+                      CornerRadius="0" UseAeroCaptionButtons="False" />
+    </WindowChrome.WindowChrome>
 
     <Grid>
         <Grid.RowDefinitions>
@@ -16,9 +24,10 @@
             <RowDefinition Height="32" />
         </Grid.RowDefinitions>
 
-        <!-- Cabecera -->
-        <Border Grid.Row="0" Background="{StaticResource CardBrush}"
-                BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,0,0,1">
+        <!-- Cabecera (hace de barra de título) -->
+        <Border Grid.Row="0" Background="{StaticResource BgBrush}"
+                BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,0,0,1"
+                MouseLeftButtonDown="Barra_MouseLeftButtonDown">
             <Grid Margin="20,0">
                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                     <Image Source="Assets/logo1-inv-compact-128.png" Width="30" Height="30"
@@ -41,6 +50,14 @@
                             Click="Ajustes_Click" />
                     <Button Content="ACTUALIZAR" Style="{StaticResource SecondaryButton}" Padding="12,6"
                             Margin="8,0,0,0" Click="Actualizar_Click" />
+                    <Button x:Name="BtnMinimizar" Style="{StaticResource WindowButton}" Margin="12,0,0,0"
+                            ToolTip="Minimizar" Click="Minimizar_Click">
+                        <Path Data="M0,0 L11,0" Stroke="White" StrokeThickness="1.2" />
+                    </Button>
+                    <Button x:Name="BtnCerrar" Style="{StaticResource WindowCloseButton}"
+                            ToolTip="Cerrar" Click="Cerrar_Click">
+                        <Path Data="M0,0 L11,11 M11,0 L0,11" Stroke="White" StrokeThickness="1.2" />
+                    </Button>
                 </StackPanel>
             </Grid>
         </Border>
@@ -118,14 +135,22 @@
                         <Border Grid.Row="1" Style="{StaticResource Card}" Padding="0" Margin="0,12,0,0">
                             <DataGrid x:Name="TablaResultados" AutoGenerateColumns="False"
                                       IsReadOnly="True" BorderThickness="0" Background="Transparent"
-                                      RowHeight="34" MouseDoubleClick="TablaResultados_MouseDoubleClick">
+                                      RowHeight="46" MouseDoubleClick="TablaResultados_MouseDoubleClick">
                                 <DataGrid.Columns>
                                     <DataGridTemplateColumn Header="" Width="56">
                                         <DataGridTemplateColumn.CellTemplate>
                                             <DataTemplate>
                                                 <Border Width="40" Height="40" CornerRadius="6"
-                                                        Background="#0AFFFFFF" ClipToBounds="True">
-                                                    <Image Source="{Binding Imagen}" Stretch="UniformToFill" />
+                                                        Background="#0AFFFFFF" ClipToBounds="True"
+                                                        VerticalAlignment="Center">
+                                                    <Grid>
+                                                        <!-- Placeholder cuando el producto no tiene foto. -->
+                                                        <Path Data="M4,10 L9,14 L13,9 L17,14 M4,6 A1.2,1.2 0 1 0 4,6.01 M3,3 L19,3 L19,19 L3,19 Z"
+                                                              Stroke="#4D8892A0" StrokeThickness="1.3"
+                                                              Stretch="Uniform" Margin="9"
+                                                              HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                                        <Image Source="{Binding Imagen}" Stretch="UniformToFill" />
+                                                    </Grid>
                                                 </Border>
                                             </DataTemplate>
                                         </DataGridTemplateColumn.CellTemplate>
@@ -146,7 +171,8 @@
                                         <DataGridTemplateColumn.CellTemplate>
                                             <DataTemplate>
                                                 <Button Content="AGREGAR" Style="{StaticResource PrimaryButton}"
-                                                        Padding="8,4" FontSize="10" Click="Agregar_Click" />
+                                                        Padding="8,4" FontSize="10" VerticalAlignment="Center"
+                                                        Click="Agregar_Click" />
                                             </DataTemplate>
                                         </DataGridTemplateColumn.CellTemplate>
                                     </DataGridTemplateColumn>
@@ -183,7 +209,7 @@
                                         <DataGridTemplateColumn Header="ACCIONES" Width="185">
                                             <DataGridTemplateColumn.CellTemplate>
                                                 <DataTemplate>
-                                                    <StackPanel Orientation="Horizontal">
+                                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                                                         <Button Content="+" Style="{StaticResource MiniOutlineSuccess}"
                                                                 Click="Sumar_Click" />
                                                         <Button Content="−" Style="{StaticResource MiniOutlineMuted}"

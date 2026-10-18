@@ -3,6 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="Calcular cambio" Width="420" SizeToContent="Height"
         ResizeMode="NoResize" WindowStartupLocation="CenterOwner"
+        Icon="Assets/logo1-inv-compact-128.png"
         Style="{StaticResource PosWindow}">
 
     <StackPanel Margin="24">

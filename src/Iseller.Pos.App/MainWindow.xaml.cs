@@ -1172,6 +1172,24 @@ namespace Iseller.Pos.App
             }
         }
 
+        private void Barra_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            if (e.ButtonState == MouseButtonState.Pressed)
+            {
+                DragMove();
+            }
+        }
+
+        private void Minimizar_Click(object sender, RoutedEventArgs e)
+        {
+            WindowState = WindowState.Minimized;
+        }
+
+        private void Cerrar_Click(object sender, RoutedEventArgs e)
+        {
+            Close();
+        }
+
         private async void Actualizar_Click(object sender, RoutedEventArgs e)
         {
             await BuscarActualizacionAsync(false);

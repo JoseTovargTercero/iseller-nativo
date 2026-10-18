@@ -147,6 +147,19 @@ namespace Iseller.Pos.App
             }
         }
 
+        private void Barra_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            if (e.ButtonState == MouseButtonState.Pressed)
+            {
+                DragMove();
+            }
+        }
+
+        private void Cerrar_Click(object sender, RoutedEventArgs e)
+        {
+            Close();
+        }
+
         private void CampoClave_KeyDown(object sender, KeyEventArgs e)
         {
             if (e.Key == Key.Enter)

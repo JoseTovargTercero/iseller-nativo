@@ -52,6 +52,9 @@ PLAN.md                 Plan por fases, contratos y decisiones
 
 - Logo del sistema (`logo1-inv-compact.png`) en el login y en la cabecera.
 - Color primario = color del logo, **#00C0C4** (el POS web usa el mint #2dd4a0; aquí manda el logo).
+- **Barra superior propia** (mismo color que el fondo del sistema) con el logo, arrastre para mover
+  y iconos blancos de minimizar y cerrar. El icono de la ventana (barra de tareas/Alt+Tab) es el logo.
+- Textos, botones y miniaturas de las tablas quedan centrados verticalmente.
 - Login: los campos de usuario y contraseña comparten plantilla (mismo alto y radio). La entrada
   sin conexión es automática: si el servidor no responde, se valida la contraseña contra el
   acceso guardado de ese usuario (hasta 2 días).
