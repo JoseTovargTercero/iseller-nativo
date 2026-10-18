@@ -79,5 +79,15 @@ namespace Iseller.Pos.App
         {
             get { return Venta.UltimoError ?? ""; }
         }
+
+        public string Cajero
+        {
+            get
+            {
+                return string.IsNullOrWhiteSpace(Venta.UsuarioNombre)
+                    ? "—"
+                    : Venta.UsuarioNombre;
+            }
+        }
     }
 }

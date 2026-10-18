@@ -58,5 +58,9 @@ PLAN.md                 Plan por fases, contratos y decisiones
 - **Varios cajeros por POS:** se guarda una sesión por usuario (usuario, `bss_id`, `sucursal_id`,
   token y hash de la clave). Cada venta y cada caja se sincronizan con el token del cajero que
   las hizo, aunque otro cajero esté usando la caja en ese momento.
+- **Pendientes por cajero:** la pestaña "No guardados" lista las ventas sin enviar de **todos**
+  los cajeros con su columna CAJERO, permite filtrar por cajero y enviarlas con
+  "ENVIAR DEL CAJERO" o "ENVIAR TODOS". Si un cajero nunca inició sesión en el equipo, sus
+  ventas quedan pendientes con el motivo visible.
 
 47 tests en verde (`dotnet test`).

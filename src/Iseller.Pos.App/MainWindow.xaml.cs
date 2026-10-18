@@ -47,6 +47,7 @@ namespace Iseller.Pos.App
         private readonly ObservableCollection<ProductoVista> _resultados = new ObservableCollection<ProductoVista>();
         private readonly ObservableCollection<ItemCarritoVista> _lineas = new ObservableCollection<ItemCarritoVista>();
         private readonly ObservableCollection<VentaVista> _pendientes = new ObservableCollection<VentaVista>();
+        private readonly List<VentaVista> _pendientesTodas = new List<VentaVista>();
         private readonly ObservableCollection<ReservadoVista> _reservados = new ObservableCollection<ReservadoVista>();
         private readonly ObservableCollection<VentaVista> _enviados = new ObservableCollection<VentaVista>();
         private readonly StringBuilder _codigo = new StringBuilder();
@@ -56,6 +57,7 @@ namespace Iseller.Pos.App
         private bool _sincronizando;
         private bool _enviando;
         private bool _preguntandoCaja;
+        private int? _filtroCajero;
         private EstadoCaja _estadoCaja;
         private DateTime _ultimaTeclaCodigo = DateTime.MinValue;
         private readonly DispatcherTimer _relojEnvio = new DispatcherTimer
@@ -745,17 +747,78 @@ namespace Iseller.Pos.App
 
         private void RefrescarPendientes()
         {
-            _pendientes.Clear();
-            var pendientes = _ventasRepo.Pendientes();
-            foreach (var venta in pendientes)
+            _pendientesTodas.Clear();
+            foreach (var venta in _ventasRepo.Pendientes())
             {
-                _pendientes.Add(new VentaVista { Venta = venta });
+                _pendientesTodas.Add(new VentaVista { Venta = venta });
             }
-            HeaderPendientes.Text = pendientes.Count > 0
-                ? "No guardados (" + pendientes.Count + ")"
+
+            var opciones = new List<CajeroOpcion>
+            {
+                new CajeroOpcion { Id = null, Nombre = "Todos los cajeros (" + _pendientesTodas.Count + ")" },
+            };
+            foreach (var grupo in _pendientesTodas
+                         .GroupBy(v => new { v.Venta.UsuarioId, v.Venta.UsuarioNombre })
+                         .OrderBy(g => g.Key.UsuarioNombre))
+            {
+                opciones.Add(new CajeroOpcion
+                {
+                    Id = grupo.Key.UsuarioId,
+                    Nombre = grupo.Key.UsuarioNombre + " (" + grupo.Count() + ")",
+                });
+            }
+
+            FiltroCajero.ItemsSource = opciones;
+            FiltroCajero.SelectedIndex = 0; // dispara el filtro y llena la tabla
+
+            HeaderPendientes.Text = _pendientesTodas.Count > 0
+                ? "No guardados (" + _pendientesTodas.Count + ")"
                 : "No guardados";
 
             TextoCatalogo.Text = (_ventasRepo.ContarPendientes() + _cajaRepo.ContarPendientes()) + " por enviar";
+        }
+
+        private void FiltroCajero_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            var opcion = FiltroCajero.SelectedItem as CajeroOpcion;
+            _filtroCajero = opcion != null ? opcion.Id : (int?)null;
+            AplicarFiltroPendientes();
+        }
+
+        /// <summary>Al abrir "No guardados" se relee la cola, por si otro cajero dejó ventas.</summary>
+        private void Tabs_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            // El SelectionChanged de los combos de dentro burbujea hasta aquí: se filtra.
+            if (!ReferenceEquals(e.OriginalSource, TabControlPrincipal))
+            {
+                return;
+            }
+            if (ReferenceEquals(TabControlPrincipal.SelectedItem, TabPendientes))
+            {
+                RefrescarPendientes();
+            }
+        }
+
+        private void AplicarFiltroPendientes()
+        {
+            _pendientes.Clear();
+            foreach (var vista in _pendientesTodas)
+            {
+                if (_filtroCajero == null || vista.Venta.UsuarioId == _filtroCajero)
+                {
+                    _pendientes.Add(vista);
+                }
+            }
+        }
+
+        private async void EnviarTodos_Click(object sender, RoutedEventArgs e)
+        {
+            await EnviarPendientesAsync(null);
+        }
+
+        private async void EnviarFiltrados_Click(object sender, RoutedEventArgs e)
+        {
+            await EnviarPendientesAsync(_filtroCajero);
         }
 
         // ── Atajos y lector de barras ──────────────────────────────────────────────
@@ -978,15 +1041,19 @@ namespace Iseller.Pos.App
         }
 
         /// <summary>Sube las ventas pendientes y las marca según la respuesta por venta.</summary>
-        private async Task EnviarPendientesAsync()
+        private async Task EnviarPendientesAsync(int? usuarioId = null)
         {
             if (_enviando)
             {
                 return;
             }
 
-            var ventas = _ventasRepo.Pendientes();
-            var caja = _cajaRepo.Pendientes();
+            var ventas = _ventasRepo.Pendientes()
+                .Where(v => usuarioId == null || v.UsuarioId == usuarioId)
+                .ToList();
+            var caja = _cajaRepo.Pendientes()
+                .Where(c => usuarioId == null || c.UsuarioId == usuarioId)
+                .ToList();
             if (ventas.Count == 0 && caja.Count == 0)
             {
                 return;
@@ -1012,10 +1079,12 @@ namespace Iseller.Pos.App
                         var sesionCajero = _credenciales.BuscarPorId(grupo.Key);
                         if (sesionCajero == null)
                         {
+                            string nombreCajero = grupo.First().UsuarioNombre;
                             foreach (var venta in grupo)
                             {
                                 _ventasRepo.RegistrarFallo(venta.IdPedido,
-                                    "Sin sesión guardada del cajero " + grupo.Key);
+                                    "El cajero " + nombreCajero + " no tiene sesión guardada en este equipo; " +
+                                    "debe entrar una vez con internet para poder enviar sus ventas.");
                                 errores++;
                             }
                             continue;

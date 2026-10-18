@@ -76,7 +76,8 @@
         </Border>
 
         <!-- Venta / pendientes -->
-        <TabControl x:Name="TabControlPrincipal" Grid.Row="3" Margin="20,16,20,12">
+        <TabControl x:Name="TabControlPrincipal" Grid.Row="3" Margin="20,16,20,12"
+                    SelectionChanged="Tabs_SelectionChanged">
             <TabItem Header="Venta">
                 <Grid Margin="0,16,0,0">
                     <Grid.RowDefinitions>
@@ -234,22 +235,45 @@
                 </Grid>
             </TabItem>
 
-            <TabItem>
+            <TabItem x:Name="TabPendientes">
                 <TabItem.Header>
                     <TextBlock x:Name="HeaderPendientes" Text="No guardados" />
                 </TabItem.Header>
                 <Grid Margin="0,16,0,0">
-                    <Border Style="{StaticResource Card}" Padding="0">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+
+                    <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,12">
+                        <TextBlock Text="Cajero:" Style="{StaticResource MutedText}"
+                                   VerticalAlignment="Center" Margin="2,0,8,0" />
+                        <ComboBox x:Name="FiltroCajero" Width="260" Height="32"
+                                  SelectionChanged="FiltroCajero_SelectionChanged">
+                            <ComboBox.ItemTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding Nombre}" />
+                                </DataTemplate>
+                            </ComboBox.ItemTemplate>
+                        </ComboBox>
+                        <Button Content="ENVIAR DEL CAJERO" Style="{StaticResource SecondaryButton}"
+                                Margin="10,0,0,0" Click="EnviarFiltrados_Click" />
+                        <Button Content="ENVIAR TODOS" Style="{StaticResource PrimaryButton}"
+                                Margin="10,0,0,0" Click="EnviarTodos_Click" />
+                    </StackPanel>
+
+                    <Border Grid.Row="1" Style="{StaticResource Card}" Padding="0">
                         <DataGrid x:Name="TablaPendientes" AutoGenerateColumns="False" IsReadOnly="True"
-                                  BorderThickness="0" Background="Transparent" RowHeight="34">
+                                  BorderThickness="0" Background="Transparent" RowHeight="40">
                             <DataGrid.Columns>
-                                <DataGridTextColumn Header="FECHA" Binding="{Binding Fecha}" Width="110" />
-                                <DataGridTextColumn Header="TIPO" Binding="{Binding Tipo}" Width="90" />
-                                <DataGridTextColumn Header="MÉTODO" Binding="{Binding Metodo}" Width="120" />
-                                <DataGridTextColumn Header="PESOS" Binding="{Binding Pesos}" Width="112" />
-                                <DataGridTextColumn Header="BOLÍVARES" Binding="{Binding Bolivares}" Width="132" />
-                                <DataGridTextColumn Header="DÓLARES" Binding="{Binding Dolares}" Width="100" />
-                                <DataGridTextColumn Header="ESTADO" Binding="{Binding Estado}" Width="110" />
+                                <DataGridTextColumn Header="FECHA" Binding="{Binding Fecha}" Width="105" />
+                                <DataGridTextColumn Header="CAJERO" Binding="{Binding Cajero}" Width="150" />
+                                <DataGridTextColumn Header="TIPO" Binding="{Binding Tipo}" Width="85" />
+                                <DataGridTextColumn Header="MÉTODO" Binding="{Binding Metodo}" Width="115" />
+                                <DataGridTextColumn Header="PESOS" Binding="{Binding Pesos}" Width="110" />
+                                <DataGridTextColumn Header="BOLÍVARES" Binding="{Binding Bolivares}" Width="125" />
+                                <DataGridTextColumn Header="DÓLARES" Binding="{Binding Dolares}" Width="95" />
+                                <DataGridTextColumn Header="ESTADO" Binding="{Binding Estado}" Width="105" />
                                 <DataGridTextColumn Header="DETALLE" Binding="{Binding Detalle}" Width="*" />
                             </DataGrid.Columns>
                         </DataGrid>

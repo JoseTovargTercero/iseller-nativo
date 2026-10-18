@@ -209,7 +209,9 @@ al abrir la app, refresco de catálogo/stock tras sincronizar y pestaña "Enviad
 - Envío en lote con `id_pedido`; procesa la respuesta por venta.
 - La venta solo pasa a `enviada` cuando el servidor confirma esa venta.
 - Refresco de catálogo/tasas tras sincronizar.
-- Pantalla "No guardados" con estado, intentos y último error por venta.
+- Pantalla "No guardados" con estado, intentos y último error por venta. Muestra las ventas de
+  **todos** los cajeros con su columna CAJERO, filtro por cajero y envío por cajero o de todo,
+  para que el administrador pueda sincronizar lo que quedó de cada uno.
 
 **Backend** — ✅ implementado
 - `POST /api/pos_ventas.php` (lote). Por cada venta: insertar orden + artículos + stock en una
