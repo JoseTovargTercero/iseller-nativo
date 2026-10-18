@@ -78,6 +78,20 @@ namespace Iseller.Pos.Core.Configuracion
             };
         }
 
+        /// <summary>Base de las fotos de producto en el hosting (iseller_store).</summary>
+        public string BaseImagenes
+        {
+            get
+            {
+                string url = (ApiBaseUrl ?? "").TrimEnd('/');
+                if (url.EndsWith("/api", StringComparison.OrdinalIgnoreCase))
+                {
+                    url = url.Substring(0, url.Length - 4);
+                }
+                return url + "/iseller_store/";
+            }
+        }
+
         private void Normalizar()
         {
             if (string.IsNullOrWhiteSpace(ApiBaseUrl))

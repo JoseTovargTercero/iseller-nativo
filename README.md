@@ -45,6 +45,7 @@ PLAN.md                 Plan por fases, contratos y decisiones
 - Fase 2: carrito persistente, venta offline, ticket ESC/POS 58/80 y cajón opcional.
 - Fase 3: sincronización idempotente de ventas y refresco de stock.
 - Fase 4: caja offline (apertura, cierre y reapertura por UUID).
-- Backend: `api/pos_login.php`, `pos_catalogo.php`, `pos_tasas.php`, `pos_heartbeat.php`, `pos_ventas.php`, `pos_caja.php`.
+- Extras: caché de imágenes, carritos reservados, pestaña Enviados y autoactualización.
+- Backend: `api/pos_login.php`, `pos_catalogo.php`, `pos_tasas.php`, `pos_heartbeat.php`, `pos_ventas.php`, `pos_caja.php`, `pos_version.php`.
 
-44 tests en verde (`dotnet test`).
+47 tests en verde (`dotnet test`).

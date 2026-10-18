@@ -117,7 +117,7 @@ tema oscuro. *(El test de apertura de ventana es manual: `dotnet run`.)*
 ### Fase 1 — Login, catálogo y tasas offline (~3 semanas)
 
 **Estado: implementada en la app** (login online/offline, SQLite, descarga de catálogo,
-búsqueda y precios). Pendiente: caché de imágenes de producto.
+búsqueda, precios y caché de imágenes de producto).
 
 **Objetivo:** abrir la app sin internet, con el catálogo y las tasas del último contacto.
 
@@ -190,14 +190,14 @@ Notas de alcance:
 - `1-9` agrega el resultado N de la búsqueda; el ranking real de más vendidos llega en la fase 3.
 - El lector de barras funciona escribiendo en el buscador y con `Enter`, o con una ráfaga de
   dígitos (< 100 ms) fuera de un campo de texto.
-- "Reservar carrito" y la pestaña "Enviados" quedan para después (no estaban en esta fase).
+- "Reservar carrito" y la pestaña "Enviados" también quedaron implementadas.
 
 ---
 
 ### Fase 3 — Sincronización (~3 semanas)
 
 **Estado: implementada.** Lote idempotente, envío automático al guardar, reintento cada 60 s y
-al abrir la app, y refresco de catálogo/stock tras sincronizar. Falta la pestaña "Enviados".
+al abrir la app, refresco de catálogo/stock tras sincronizar y pestaña "Enviados".
 
 **Objetivo:** subir ventas pendientes sin duplicar y bajar catálogo/stock actualizado.
 
@@ -277,8 +277,9 @@ Verificado el 18/10/2026:
 **Objetivo:** instalarlo en cajas reales y actualizarlo sin visitar la tienda.
 
 - Instalador **Inno Setup** (soporta Windows 7; instalación por usuario, sin admin).
-- Actualizador propio: descarga ZIP firmado, verifica SHA-256 + firma Authenticode y
-  reemplaza al reiniciar. Sin dependencias externas.
+- **Autoactualización**: `api/pos_version.php` + `Actualizador` (compara versión, descarga el
+  ZIP, valida SHA-256 y lo aplica al cerrar la app). Ya implementada; falta firmar el ZIP con
+  Authenticode cuando haya certificado.
 - Migraciones de SQLite versionadas y respaldo previo a cada actualización.
 - Log local rotativo + comando "Exportar diagnóstico" (sin datos sensibles).
 - Plan de piloto: 1 sucursal, 1 semana, comparación diaria contra la web.

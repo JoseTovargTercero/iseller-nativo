@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -10,15 +12,18 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Threading;
+using Iseller.Pos.Core.Actualizacion;
 using Iseller.Pos.Core.Api;
 using Iseller.Pos.Core.Auth;
 using Iseller.Pos.Core.Caja;
 using Iseller.Pos.Core.Carrito;
 using Iseller.Pos.Core.Configuracion;
 using Iseller.Pos.Core.Datos;
+using Iseller.Pos.Core.Imagenes;
 using Iseller.Pos.Core.Impresion;
 using Iseller.Pos.Core.Modelos;
 using Iseller.Pos.Core.Precios;
+using Newtonsoft.Json;
 
 namespace Iseller.Pos.App
 {
@@ -35,10 +40,14 @@ namespace Iseller.Pos.App
         private readonly CarritoRepositorio _carritoRepo = new CarritoRepositorio();
         private readonly VentasRepositorio _ventasRepo = new VentasRepositorio();
         private readonly CajaRepositorio _cajaRepo = new CajaRepositorio();
+        private readonly ReservadosRepositorio _reservadosRepo = new ReservadosRepositorio();
+        private readonly ImagenCache _imagenes;
         private readonly Carrito _carrito = new Carrito();
         private readonly ObservableCollection<ProductoVista> _resultados = new ObservableCollection<ProductoVista>();
         private readonly ObservableCollection<ItemCarritoVista> _lineas = new ObservableCollection<ItemCarritoVista>();
         private readonly ObservableCollection<VentaVista> _pendientes = new ObservableCollection<VentaVista>();
+        private readonly ObservableCollection<ReservadoVista> _reservados = new ObservableCollection<ReservadoVista>();
+        private readonly ObservableCollection<VentaVista> _enviados = new ObservableCollection<VentaVista>();
         private readonly StringBuilder _codigo = new StringBuilder();
 
         private CalculadoraPrecios _calculadora;
@@ -64,6 +73,9 @@ namespace Iseller.Pos.App
             TablaResultados.ItemsSource = _resultados;
             TablaCarrito.ItemsSource = _lineas;
             TablaPendientes.ItemsSource = _pendientes;
+            TablaReservados.ItemsSource = _reservados;
+            TablaEnviados.ItemsSource = _enviados;
+            _imagenes = new ImagenCache(config.BaseImagenes);
 
             BotonCredito.Visibility = TienePermiso(11) ? Visibility.Visible : Visibility.Collapsed;
             BotonDescuento.Visibility = TienePermiso(12) ? Visibility.Visible : Visibility.Collapsed;
@@ -89,12 +101,15 @@ namespace Iseller.Pos.App
             CargarDesdeDisco();
             CargarCarrito();
             RefrescarPendientes();
+            RefrescarReservados();
+            RefrescarEnviados();
             AplicarEstadoCaja(true);
             CampoBusqueda.Focus();
 
             await EnviarPendientesAsync();
             await SincronizarAsync();
             _relojEnvio.Start();
+            await BuscarActualizacionAsync(true);
         }
 
         // ── Catálogo ───────────────────────────────────────────────────────────────
@@ -145,6 +160,12 @@ namespace Iseller.Pos.App
             foreach (var producto in productos)
             {
                 _resultados.Add(ProductoVista.Desde(producto, _calculadora));
+            }
+
+            // Miniaturas: solo las primeras filas, y la caché evita repetir descargas.
+            foreach (var vista in _resultados.Take(60))
+            {
+                _ = vista.CargarImagenAsync(_imagenes);
             }
         }
 
@@ -335,6 +356,105 @@ namespace Iseller.Pos.App
             _carrito.Vaciar();
             _carritoRepo.Vaciar();
             RefrescarCarrito();
+        }
+
+        // ── Carritos reservados ────────────────────────────────────────────────────
+
+        private void Reservar_Click(object sender, RoutedEventArgs e)
+        {
+            if (_carrito.Vacio)
+            {
+                Aviso("El carrito está vacío.");
+                return;
+            }
+
+            var ventana = new VentanaReserva { Owner = this };
+            if (ventana.ShowDialog() != true)
+            {
+                return;
+            }
+
+            _reservadosRepo.Guardar(new Reservado
+            {
+                Id = Guid.NewGuid().ToString(),
+                Cliente = ventana.Cliente,
+                CreadaEn = DateTimeOffset.Now,
+                ProductosJson = JsonConvert.SerializeObject(_carrito.Items),
+            });
+
+            _carrito.Vaciar();
+            _carritoRepo.Vaciar();
+            RefrescarCarrito();
+            RefrescarReservados();
+            Aviso("Carrito reservado.");
+        }
+
+        private void RefrescarReservados()
+        {
+            _reservados.Clear();
+            var lista = _reservadosRepo.Listar();
+            foreach (var reservado in lista)
+            {
+                _reservados.Add(new ReservadoVista { Reservado = reservado });
+            }
+            HeaderReservados.Text = lista.Count > 0
+                ? "Reservados (" + lista.Count + ")"
+                : "Reservados";
+        }
+
+        private void Retomar_Click(object sender, RoutedEventArgs e)
+        {
+            var vista = (sender as FrameworkElement)?.DataContext as ReservadoVista;
+            if (vista == null)
+            {
+                return;
+            }
+
+            var reservado = _reservadosRepo.Obtener(vista.Reservado.Id);
+            if (reservado == null)
+            {
+                RefrescarReservados();
+                return;
+            }
+
+            _carrito.Cargar(reservado.Productos());
+            _carritoRepo.Reemplazar(_carrito.Items);
+            _reservadosRepo.Eliminar(reservado.Id);
+            RefrescarCarrito();
+            RefrescarReservados();
+            TabControlPrincipal.SelectedIndex = 0;
+            Aviso("Carrito retomado.");
+        }
+
+        private void EliminarReservado_Click(object sender, RoutedEventArgs e)
+        {
+            var vista = (sender as FrameworkElement)?.DataContext as ReservadoVista;
+            if (vista == null)
+            {
+                return;
+            }
+
+            if (MessageBox.Show(this, "¿Eliminar el carrito reservado?", "Confirmar",
+                                MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes)
+            {
+                return;
+            }
+
+            _reservadosRepo.Eliminar(vista.Reservado.Id);
+            RefrescarReservados();
+        }
+
+        private void RefrescarEnviados()
+        {
+            _enviados.Clear();
+            var lista = _ventasRepo.Enviadas(DateTimeOffset.Now.AddDays(-7), DateTimeOffset.Now.AddDays(1));
+            foreach (var venta in lista)
+            {
+                _enviados.Add(new VentaVista { Venta = venta });
+            }
+            HeaderEnviados.Text = lista.Count > 0
+                ? "Enviados (" + lista.Count + ")"
+                : "Enviados";
         }
 
         // ── Venta ──────────────────────────────────────────────────────────────────
@@ -924,6 +1044,7 @@ namespace Iseller.Pos.App
 
                     Conexion(true, "En línea");
                     RefrescarPendientes();
+                    RefrescarEnviados();
 
                     int totalOk = enviadas + cajaOk;
                     int totalError = errores + cajaErr;
@@ -949,6 +1070,74 @@ namespace Iseller.Pos.App
             finally
             {
                 _enviando = false;
+            }
+        }
+
+        private async void Actualizar_Click(object sender, RoutedEventArgs e)
+        {
+            await BuscarActualizacionAsync(false);
+        }
+
+        /// <summary>
+        /// Consulta api/pos_version.php. Si hay versión nueva, descarga el ZIP, valida el
+        /// SHA-256 y lo aplica al cerrar la app.
+        /// </summary>
+        private async Task BuscarActualizacionAsync(bool silenciosa)
+        {
+            var resultado = await Actualizador.BuscarAsync(_config.ApiBaseUrl, _config.ApiKey, App.VersionApp);
+
+            if (!resultado.Ok)
+            {
+                if (!silenciosa)
+                {
+                    Aviso("No se pudo consultar la actualización: " + (resultado.Error ?? "sin conexión"));
+                }
+                return;
+            }
+
+            if (!resultado.Hay)
+            {
+                if (!silenciosa)
+                {
+                    MessageBox.Show(this, "Ya tienes la última versión (" + App.VersionApp + ").",
+                        "Actualizar", MessageBoxButton.OK, MessageBoxImage.Information);
+                }
+                return;
+            }
+
+            var respuesta = MessageBox.Show(this,
+                "Hay una versión nueva: " + resultado.Version + "\n\n" + (resultado.Notas ?? "") +
+                "\n\n¿Descargar y aplicar ahora? La app se reiniciará.",
+                "Actualización disponible", MessageBoxButton.YesNo, MessageBoxImage.Question);
+            if (respuesta != MessageBoxResult.Yes)
+            {
+                return;
+            }
+
+            try
+            {
+                string zip = Path.Combine(Path.Combine(BasePos.Directorio, "update"), "pos_update.zip");
+                PuntoConexion.Fill = (Brush)FindResource("WarningBrush");
+                TextoEstadoConexion.Text = "Descargando actualización…";
+
+                await Actualizador.DescargarAsync(resultado.Url, zip);
+
+                if (!Actualizador.VerificarSha256(zip, resultado.Sha256))
+                {
+                    File.Delete(zip);
+                    MessageBox.Show(this,
+                        "El archivo descargado no coincide con la firma esperada. No se aplicará.",
+                        "Actualización", MessageBoxButton.OK, MessageBoxImage.Error);
+                    return;
+                }
+
+                Actualizador.Aplicar(zip, Process.GetCurrentProcess().MainModule.FileName);
+                Application.Current.Shutdown();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(this, "No se pudo actualizar: " + ex.Message, "Actualización",
+                    MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 

@@ -108,3 +108,13 @@ CREATE TABLE IF NOT EXISTS caja (
 );
 
 CREATE INDEX IF NOT EXISTS ix_caja_pendiente ON caja (sincronizada_en);
+
+-- Carritos apartados para retomar después.
+CREATE TABLE IF NOT EXISTS carritos_reservados (
+    id             TEXT PRIMARY KEY,
+    cliente        TEXT NOT NULL,
+    productos_json TEXT NOT NULL,
+    creada_en      TEXT NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS ix_reservados_creada ON carritos_reservados (creada_en);

@@ -39,6 +39,8 @@
                                Margin="0,0,16,0" />
                     <Button Content="AJUSTES" Style="{StaticResource SecondaryButton}" Padding="12,6"
                             Click="Ajustes_Click" />
+                    <Button Content="ACTUALIZAR" Style="{StaticResource SecondaryButton}" Padding="12,6"
+                            Margin="8,0,0,0" Click="Actualizar_Click" />
                 </StackPanel>
             </Grid>
         </Border>
@@ -74,7 +76,7 @@
         </Border>
 
         <!-- Venta / pendientes -->
-        <TabControl Grid.Row="3" Margin="20,16,20,12">
+        <TabControl x:Name="TabControlPrincipal" Grid.Row="3" Margin="20,16,20,12">
             <TabItem Header="Venta">
                 <Grid Margin="0,16,0,0">
                     <Grid.RowDefinitions>
@@ -117,6 +119,16 @@
                                       IsReadOnly="True" BorderThickness="0" Background="Transparent"
                                       RowHeight="34" MouseDoubleClick="TablaResultados_MouseDoubleClick">
                                 <DataGrid.Columns>
+                                    <DataGridTemplateColumn Header="" Width="56">
+                                        <DataGridTemplateColumn.CellTemplate>
+                                            <DataTemplate>
+                                                <Border Width="40" Height="40" CornerRadius="6"
+                                                        Background="#0AFFFFFF" ClipToBounds="True">
+                                                    <Image Source="{Binding Imagen}" Stretch="UniformToFill" />
+                                                </Border>
+                                            </DataTemplate>
+                                        </DataGridTemplateColumn.CellTemplate>
+                                    </DataGridTemplateColumn>
                                     <DataGridTemplateColumn Header="PRODUCTO" Width="*">
                                         <DataGridTemplateColumn.CellTemplate>
                                             <DataTemplate>
@@ -207,6 +219,8 @@
                                     Margin="0,0,10,10" Visibility="Collapsed" Click="Descuento_Click" />
                             <Button Content="(C) CALCULAR CAMBIO" Style="{StaticResource SecondaryButton}"
                                     Padding="16,10" Margin="0,0,10,10" Click="Cambio_Click" />
+                            <Button Content="RESERVAR CARRITO" Style="{StaticResource SecondaryButton}"
+                                    Padding="16,10" Margin="0,0,10,10" Click="Reservar_Click" />
                             <Button Content="(V) VENDER" Style="{StaticResource PrimaryButton}"
                                     Padding="20,10" Margin="0,0,10,10" Click="Vender_Click" />
                             <Button x:Name="BotonCerrarCaja" Content="CERRAR CAJA"
@@ -237,6 +251,61 @@
                                 <DataGridTextColumn Header="DÓLARES" Binding="{Binding Dolares}" Width="100" />
                                 <DataGridTextColumn Header="ESTADO" Binding="{Binding Estado}" Width="110" />
                                 <DataGridTextColumn Header="DETALLE" Binding="{Binding Detalle}" Width="*" />
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </Border>
+                </Grid>
+            </TabItem>
+
+            <TabItem>
+                <TabItem.Header>
+                    <TextBlock x:Name="HeaderReservados" Text="Reservados" />
+                </TabItem.Header>
+                <Grid Margin="0,16,0,0">
+                    <Border Style="{StaticResource Card}" Padding="0">
+                        <DataGrid x:Name="TablaReservados" AutoGenerateColumns="False" IsReadOnly="True"
+                                  BorderThickness="0" Background="Transparent" RowHeight="40">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="FECHA" Binding="{Binding Fecha}" Width="110" />
+                                <DataGridTextColumn Header="CLIENTE" Binding="{Binding Cliente}" Width="*" />
+                                <DataGridTextColumn Header="PRODUCTOS" Binding="{Binding Productos}" Width="120" />
+                                <DataGridTextColumn Header="PESOS" Binding="{Binding Pesos}" Width="120" />
+                                <DataGridTextColumn Header="BOLÍVARES" Binding="{Binding Bolivares}" Width="130" />
+                                <DataGridTextColumn Header="DÓLARES" Binding="{Binding Dolares}" Width="100" />
+                                <DataGridTemplateColumn Header="ACCIONES" Width="190">
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <StackPanel Orientation="Horizontal">
+                                                <Button Content="Retomar" Style="{StaticResource MiniOutlineSuccess}"
+                                                        Click="Retomar_Click" />
+                                                <Button Content="Eliminar" Style="{StaticResource MiniOutlineDanger}"
+                                                        Margin="5,0,0,0" Click="EliminarReservado_Click" />
+                                            </StackPanel>
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </Border>
+                </Grid>
+            </TabItem>
+
+            <TabItem>
+                <TabItem.Header>
+                    <TextBlock x:Name="HeaderEnviados" Text="Enviados" />
+                </TabItem.Header>
+                <Grid Margin="0,16,0,0">
+                    <Border Style="{StaticResource Card}" Padding="0">
+                        <DataGrid x:Name="TablaEnviados" AutoGenerateColumns="False" IsReadOnly="True"
+                                  BorderThickness="0" Background="Transparent" RowHeight="40">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="FECHA" Binding="{Binding Fecha}" Width="110" />
+                                <DataGridTextColumn Header="TIPO" Binding="{Binding Tipo}" Width="90" />
+                                <DataGridTextColumn Header="MÉTODO" Binding="{Binding Metodo}" Width="120" />
+                                <DataGridTextColumn Header="PESOS" Binding="{Binding Pesos}" Width="120" />
+                                <DataGridTextColumn Header="BOLÍVARES" Binding="{Binding Bolivares}" Width="140" />
+                                <DataGridTextColumn Header="DÓLARES" Binding="{Binding Dolares}" Width="110" />
+                                <DataGridTextColumn Header="USUARIO" Binding="{Binding Venta.UsuarioNombre}" Width="*" />
                             </DataGrid.Columns>
                         </DataGrid>
                     </Border>

@@ -7,6 +7,9 @@ namespace Iseller.Pos.App
 {
     public partial class App : Application
     {
+        /// <summary>Versión publicada en api/pos_version.json.</summary>
+        public const string VersionApp = "1.0.0";
+
         public AppConfig Config { get; private set; }
         public AlmacenCredenciales Credenciales { get; private set; }
 
