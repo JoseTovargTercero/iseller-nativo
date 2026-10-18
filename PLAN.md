@@ -53,7 +53,7 @@ Los cambios de backend (endpoints nuevos) sí van en el repo web, como cualquier
 └──────────────────────────────────┬───────────────────────────────────────────┘
                                    │ HTTPS / JSON
                                    ▼
-                 Backend PHP actual  +  endpoints /api/pos/*
+                 Backend PHP actual  +  endpoints api/pos_*.php
 ```
 
 ### Proyectos
@@ -117,7 +117,7 @@ tema oscuro. *(El test de apertura de ventana es manual: `dotnet run`.)*
 **Objetivo:** abrir la app sin internet, con el catálogo y las tasas del último contacto.
 
 **App**
-- Pantalla de login. Online valida contra `/api/pos/login`; guarda token y hash local
+- Pantalla de login. Online valida contra `/api/pos_login.php`; guarda token y hash local
   (Argon2id con sal) cifrados con DPAPI.
 - Desbloqueo offline con el hash local, vigencia de **2 días** desde el último login válido.
 - Descarga de catálogo: productos, stock de la sucursal, combos, clientes, configuración
@@ -184,7 +184,7 @@ tema oscuro. *(El test de apertura de ventana es manual: `dotnet run`.)*
 - Pantalla "No guardados" y "Enviados" equivalentes a las pestañas actuales.
 
 **Backend**
-- `POST /api/pos/ventas` (lote). Por cada venta: insertar orden + artículos + stock en una
+- `POST /api/pos_ventas.php` (lote). Por cada venta: insertar orden + artículos + stock en una
   transacción, devolver `{id_pedido, ok, orden_id, error}`.
 - Confiar en `uniq_orden_id_pedido` para el reintento; el error 1062 significa "ya estaba".
 - **Quitar** la validación de "venta idéntica" por total+fecha+cliente de `accion_carta.php`:
@@ -213,7 +213,7 @@ tema oscuro. *(El test de apertura de ventana es manual: `dotnet run`.)*
 - Reabrir caja requiere red (es una corrección administrativa); si no hay, se avisa.
 
 **Backend**
-- `POST /api/pos/caja` idempotente por UUID; reutilizar la lógica actual de los endpoints.
+- `POST /api/pos_caja.php` idempotente por UUID; reutilizar la lógica actual de los endpoints.
 
 **Aceptación**
 - Abrir caja sin red, vender, cerrar y sincronizar deja los mismos montos que la web.
