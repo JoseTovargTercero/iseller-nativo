@@ -53,7 +53,10 @@ PLAN.md                 Plan por fases, contratos y decisiones
 - Logo del sistema (`logo1-inv-compact.png`) en el login y en la cabecera.
 - Color primario = color del logo, **#00C0C4** (el POS web usa el mint #2dd4a0; aquí manda el logo).
 - Login: los campos de usuario y contraseña comparten plantilla (mismo alto y radio). La entrada
-  sin conexión es automática: si el servidor no responde, se valida la contraseña contra la
-  sesión guardada (hasta 2 días).
+  sin conexión es automática: si el servidor no responde, se valida la contraseña contra el
+  acceso guardado de ese usuario (hasta 2 días).
+- **Varios cajeros por POS:** se guarda una sesión por usuario (usuario, `bss_id`, `sucursal_id`,
+  token y hash de la clave). Cada venta y cada caja se sincronizan con el token del cajero que
+  las hizo, aunque otro cajero esté usando la caja en ese momento.
 
 47 tests en verde (`dotnet test`).

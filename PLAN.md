@@ -125,6 +125,9 @@ búsqueda, precios y caché de imágenes de producto).
 - Pantalla de login. Online valida contra `/api/pos_login.php`; guarda token y hash local
   (Argon2id con sal) cifrados con DPAPI.
 - Desbloqueo offline con el hash local, vigencia de **2 días** desde el último login válido.
+  Se guarda **una sesión por cajero** (usuario, `bss_id`, `sucursal_id` y token), porque en un
+  mismo POS pueden entrar varias personas el mismo día; cada venta/caja se sincroniza con el
+  token de su cajero.
 - Descarga de catálogo: productos, stock de la sucursal, combos, clientes, configuración
   (tickets, cortes, registro de clientes) y tasas.
 - Repositorios SQLite + migraciones (leer `PRAGMA user_version` y aplicar scripts).

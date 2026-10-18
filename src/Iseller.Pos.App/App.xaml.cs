@@ -23,13 +23,12 @@ namespace Iseller.Pos.App
             Config = AppConfig.Cargar();
             Credenciales = new AlmacenCredenciales();
 
-            var sesionGuardada = Credenciales.Cargar();
-            var acceso = new LoginWindow(Config, Credenciales, sesionGuardada);
+            var acceso = new LoginWindow(Config, Credenciales);
             bool? entro = acceso.ShowDialog();
 
             if (entro == true && acceso.Sesion != null)
             {
-                var principal = new MainWindow(Config, acceso.Sesion);
+                var principal = new MainWindow(Config, acceso.Sesion, Credenciales);
                 principal.Closed += (s, args) => Shutdown();
                 principal.Show();
             }

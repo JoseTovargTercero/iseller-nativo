@@ -36,6 +36,7 @@ namespace Iseller.Pos.App
 
         private readonly AppConfig _config;
         private readonly SesionLocal _sesion;
+        private readonly AlmacenCredenciales _credenciales;
         private readonly CatalogoRepositorio _catalogo = new CatalogoRepositorio();
         private readonly CarritoRepositorio _carritoRepo = new CarritoRepositorio();
         private readonly VentasRepositorio _ventasRepo = new VentasRepositorio();
@@ -62,12 +63,13 @@ namespace Iseller.Pos.App
             Interval = TimeSpan.FromSeconds(60),
         };
 
-        public MainWindow(AppConfig config, SesionLocal sesion)
+        public MainWindow(AppConfig config, SesionLocal sesion, AlmacenCredenciales credenciales)
         {
             InitializeComponent();
 
             _config = config;
             _sesion = sesion;
+            _credenciales = credenciales;
 
             TextoSucursal.Text = "Sucursal: " + sesion.SucursalNombre;
             TablaResultados.ItemsSource = _resultados;
@@ -1003,13 +1005,31 @@ namespace Iseller.Pos.App
                     int cajaOk = 0;
                     int cajaErr = 0;
 
-                    if (ventas.Count > 0)
+                    // Cada cajero guarda su propio token: las ventas y las cajas se envían con el
+                    // del cajero que las hizo (puede haber más de uno por día en el mismo POS).
+                    foreach (var grupo in ventas.GroupBy(v => v.UsuarioId))
                     {
-                        var resultado = await api.EnviarVentasAsync(_sesion.Token, ventas);
+                        var sesionCajero = _credenciales.BuscarPorId(grupo.Key);
+                        if (sesionCajero == null)
+                        {
+                            foreach (var venta in grupo)
+                            {
+                                _ventasRepo.RegistrarFallo(venta.IdPedido,
+                                    "Sin sesión guardada del cajero " + grupo.Key);
+                                errores++;
+                            }
+                            continue;
+                        }
+
+                        var resultado = await api.EnviarVentasAsync(sesionCajero.Token, grupo.ToList());
                         if (!resultado.Ok)
                         {
-                            Conexion(false, resultado.Error ?? "No se pudieron enviar las ventas");
-                            return;
+                            foreach (var venta in grupo)
+                            {
+                                _ventasRepo.RegistrarFallo(venta.IdPedido, resultado.Error);
+                                errores++;
+                            }
+                            continue;
                         }
 
                         foreach (var r in resultado.Resultados)
@@ -1028,17 +1048,27 @@ namespace Iseller.Pos.App
                     }
 
                     // La caja va después de las ventas: el cierre suma las órdenes del día.
-                    foreach (var registro in caja)
+                    foreach (var grupo in caja.GroupBy(c => c.UsuarioId))
                     {
-                        var resultadoCaja = await api.GuardarCajaAsync(_sesion.Token, registro);
-                        if (resultadoCaja.Ok)
+                        var sesionCajero = _credenciales.BuscarPorId(grupo.Key);
+                        if (sesionCajero == null)
                         {
-                            _cajaRepo.MarcarSincronizada(registro.Id, DateTimeOffset.Now);
-                            cajaOk++;
+                            cajaErr += grupo.Count();
+                            continue;
                         }
-                        else
+
+                        foreach (var registro in grupo)
                         {
-                            cajaErr++;
+                            var resultadoCaja = await api.GuardarCajaAsync(sesionCajero.Token, registro);
+                            if (resultadoCaja.Ok)
+                            {
+                                _cajaRepo.MarcarSincronizada(registro.Id, DateTimeOffset.Now);
+                                cajaOk++;
+                            }
+                            else
+                            {
+                                cajaErr++;
+                            }
                         }
                     }
 

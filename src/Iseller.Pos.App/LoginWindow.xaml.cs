@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Input;
 using Iseller.Pos.Core.Api;
@@ -13,38 +12,20 @@ namespace Iseller.Pos.App
     {
         private readonly AppConfig _config;
         private readonly AlmacenCredenciales _credenciales;
-        private readonly SesionLocal _sesionGuardada;
         private int? _sucursalElegida;
 
         public SesionLocal Sesion { get; private set; }
 
-        public LoginWindow(AppConfig config, AlmacenCredenciales credenciales, SesionLocal sesionGuardada)
+        public LoginWindow(AppConfig config, AlmacenCredenciales credenciales)
         {
             InitializeComponent();
 
             _config = config;
             _credenciales = credenciales;
-            _sesionGuardada = sesionGuardada;
 
-            if (sesionGuardada != null)
-            {
-                CampoUsuario.Text = sesionGuardada.Usuario;
-                if (ReglaSesion.PuedeEntrarOffline(sesionGuardada, DateTimeOffset.Now))
-                {
-                    Estado("Sesión guardada de " + sesionGuardada.Nombre +
-                           ". Si no hay conexión, entrarás con tu contraseña hasta el " +
-                           sesionGuardada.UltimoLoginValidoEn.Add(ReglaSesion.LimiteOffline)
-                               .ToLocalTime().ToString("dd/MM HH:mm") + ".");
-                }
-                else
-                {
-                    Estado("La sesión guardada venció (más de 2 días sin conectar). Hay que entrar con internet.");
-                }
-            }
-            else
-            {
-                Estado("Primer acceso: se necesita conexión a internet.");
-            }
+            Estado(_credenciales.CargarTodas().Count > 0
+                ? "Si no hay conexión, puedes entrar con tu contraseña: este equipo recuerda a los usuarios que ya iniciaron sesión."
+                : "Primer acceso: se necesita conexión a internet.");
 
             Loaded += (s, e) => CampoUsuario.Focus();
         }
@@ -63,6 +44,7 @@ namespace Iseller.Pos.App
             BotonEntrar.IsEnabled = false;
             Estado("Conectando…");
             _sucursalElegida = ComboSucursal.SelectedValue is int elegida ? elegida : (int?)null;
+
             try
             {
                 using (var api = new PosApiClient(_config.ApiBaseUrl, _config.ApiKey))
@@ -100,18 +82,20 @@ namespace Iseller.Pos.App
                     resultado.Sesion.ClaveHash = hash;
                     resultado.Sesion.ClaveIteraciones = ClaveLocal.IteracionesPorDefecto;
 
+                    // Se guarda por usuario: en un mismo POS pueden entrar varios cajeros.
                     _credenciales.Guardar(resultado.Sesion);
                     Sesion = resultado.Sesion;
                     DialogResult = true;
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                // Sin conexión: se intenta entrar con la sesión guardada (fallback automático).
+                // Sin conexión: se intenta entrar con el acceso guardado de ese usuario.
+                SesionLocal guardada;
                 string motivo;
-                if (IntentarEntradaOffline(usuario, clave, out motivo))
+                if (IntentarEntradaOffline(usuario, clave, out guardada, out motivo))
                 {
-                    Sesion = _sesionGuardada;
+                    Sesion = guardada;
                     DialogResult = true;
                     return;
                 }
@@ -125,35 +109,32 @@ namespace Iseller.Pos.App
         }
 
         /// <summary>
-        /// Entrada sin conexión: valida la clave contra el hash local guardado.
-        /// Se usa solo cuando falla el login online.
+        /// Entrada sin conexión para el usuario que escribió sus credenciales.
+        /// Cada cajero tiene su propia sesión guardada (usuario, negocio y sucursal).
         /// </summary>
-        private bool IntentarEntradaOffline(string usuario, string clave, out string motivo)
+        private bool IntentarEntradaOffline(string usuario, string clave, out SesionLocal sesion, out string motivo)
         {
+            sesion = null;
             motivo = "";
 
-            if (_sesionGuardada == null)
+            var guardada = _credenciales.Buscar(usuario);
+            if (guardada == null)
             {
-                motivo = "No hay una sesión guardada en este equipo.";
+                motivo = "Este usuario no tiene acceso guardado en este equipo.";
                 return false;
             }
-            if (!string.Equals(usuario, _sesionGuardada.Usuario, StringComparison.OrdinalIgnoreCase))
+            if (!ReglaSesion.PuedeEntrarOffline(guardada, DateTimeOffset.Now))
             {
-                motivo = "La sesión guardada es de otro usuario.";
+                motivo = "Pasaron más de 2 días sin conectar con este usuario.";
                 return false;
             }
-            if (!ReglaSesion.PuedeEntrarOffline(_sesionGuardada, DateTimeOffset.Now))
+            if (!ClaveLocal.Verificar(clave, guardada.ClaveSal, guardada.ClaveHash, guardada.ClaveIteraciones))
             {
-                motivo = "La sesión guardada venció (más de 2 días sin conectar).";
-                return false;
-            }
-            if (!ClaveLocal.Verificar(clave, _sesionGuardada.ClaveSal,
-                                      _sesionGuardada.ClaveHash, _sesionGuardada.ClaveIteraciones))
-            {
-                motivo = "La contraseña no coincide con la sesión guardada.";
+                motivo = "Contraseña incorrecta.";
                 return false;
             }
 
+            sesion = guardada;
             return true;
         }
 
