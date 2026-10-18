@@ -79,9 +79,23 @@ namespace Iseller.Pos.Tests
         public void La_ruta_local_usa_el_id_y_la_extension()
         {
             var cache = new ImagenCache("http://localhost/iseller-tienda/iseller_store", Path.GetTempPath());
-            Assert.EndsWith("3305.webp", cache.RutaLocal(3305, "assets/img/stock/optimized/3305.webp"));
-            Assert.EndsWith("77.png", cache.RutaLocal(77, "foto.png"));
-            Assert.EndsWith("9.img", cache.RutaLocal(9, "sin-extension"));
+            Assert.EndsWith(".webp", cache.RutaLocal(3305, "assets/img/stock/optimized/3305.webp"));
+            Assert.StartsWith("3305-", Path.GetFileName(cache.RutaLocal(3305, "assets/img/stock/optimized/3305.webp")));
+            Assert.EndsWith(".png", cache.RutaLocal(77, "foto.png"));
+            Assert.EndsWith(".img", cache.RutaLocal(9, "sin-extension"));
+        }
+
+        [Fact]
+        public void La_misma_foto_da_la_misma_ruta_y_otra_foto_da_otra()
+        {
+            var cache = new ImagenCache("http://localhost/iseller_store", Path.GetTempPath());
+
+            string a = cache.RutaLocal(3305, "assets/img/stock/optimized/3305.webp");
+            string b = cache.RutaLocal(3305, "assets/img/stock/optimized/3305.webp");
+            string c = cache.RutaLocal(3305, "assets/img/tiendas/2/otra-foto.webp");
+
+            Assert.Equal(a, b);
+            Assert.NotEqual(a, c);
         }
     }
 

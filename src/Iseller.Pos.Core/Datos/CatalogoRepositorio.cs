@@ -9,8 +9,8 @@ using System.Data.SQLite;
 namespace Iseller.Pos.Core.Datos
 {
     /// <summary>
-    /// Lectura/escritura del catÃ¡logo local. El catÃ¡logo llega como snapshot completo:
-    /// se reemplaza entero dentro de una transacciÃ³n.
+    /// Lectura/escritura del catálogo local. El catálogo llega como snapshot completo:
+    /// se reemplaza entero dentro de una transacción.
     /// </summary>
     public sealed class CatalogoRepositorio
     {
@@ -21,7 +21,7 @@ namespace Iseller.Pos.Core.Datos
             _ruta = ruta ?? BasePos.RutaArchivo;
         }
 
-        // â”€â”€ Escritura â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+        // ── Escritura ──────────────────────────────────────────────────────────────
 
         public void GuardarCatalogo(
             IEnumerable<Producto> productos,
@@ -164,7 +164,7 @@ namespace Iseller.Pos.Core.Datos
             }
         }
 
-        // â”€â”€ Lectura â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+        // ── Lectura ────────────────────────────────────────────────────────────────
 
         public string Version()
         {
@@ -243,7 +243,11 @@ namespace Iseller.Pos.Core.Datos
                 null);
         }
 
-        /// <summary>BÃºsqueda por nombre (sin acentos) y por cÃ³digo de barras.</summary>
+        /// <summary>
+        /// Búsqueda por nombre (sin acentos) o por código de barras.
+        /// Si el término es solo dígitos y largo, se busca por código; si tiene letras, solo por
+        /// nombre (antes, un dígito dentro del nombre arrastraba coincidencias de códigos).
+        /// </summary>
         public List<Producto> Buscar(string termino, int limite = 50)
         {
             string limpio = (termino ?? "").Trim();
@@ -252,29 +256,37 @@ namespace Iseller.Pos.Core.Datos
                 return new List<Producto>();
             }
 
+            string soloDigitos = new string(limpio.Where(char.IsDigit).ToArray());
+            bool pareceCodigo = soloDigitos.Length >= 6 && limpio.All(char.IsDigit);
+
+            string columnas =
+                "SELECT p.id, p.nombre, p.codigo_barras, p.origen, p.precio_compra, p.cantidad_unidades, " +
+                "p.porcentaje, p.mayor, p.es_combo, p.foto, COALESCE(s.cantidad, 0) " +
+                "FROM productos p LEFT JOIN stock s ON s.producto_id = p.id ";
+
+            if (pareceCodigo)
+            {
+                return ConsultarProductos(
+                    columnas + "WHERE p.codigo_barras LIKE @codigo ESCAPE '\\' ORDER BY p.nombre " +
+                    "LIMIT " + limite.ToString(CultureInfo.InvariantCulture),
+                    cmd => cmd.Parameters.AddWithValue("@codigo", "%" + Escapar(soloDigitos) + "%"));
+            }
+
             string normalizado = Normalizar(limpio);
             if (normalizado.Length == 0)
             {
                 return new List<Producto>();
             }
-            string soloDigitos = new string(limpio.Where(char.IsDigit).ToArray());
 
-            string sql =
-                "SELECT p.id, p.nombre, p.codigo_barras, p.origen, p.precio_compra, p.cantidad_unidades, " +
-                "p.porcentaje, p.mayor, p.es_combo, p.foto, COALESCE(s.cantidad, 0) " +
-                "FROM productos p LEFT JOIN stock s ON s.producto_id = p.id " +
-                "WHERE p.nombre_busqueda LIKE @termino ESCAPE '\\' " +
-                "OR (@digitos <> '' AND p.codigo_barras LIKE @codigo ESCAPE '\\') " +
+            return ConsultarProductos(
+                columnas + "WHERE p.nombre_busqueda LIKE @termino ESCAPE '\\' " +
                 "ORDER BY CASE WHEN p.codigo_barras = @exacto THEN 0 ELSE 1 END, p.nombre " +
-                "LIMIT " + limite.ToString(CultureInfo.InvariantCulture);
-
-            return ConsultarProductos(sql, cmd =>
-            {
-                cmd.Parameters.AddWithValue("@termino", "%" + Escapar(normalizado) + "%");
-                cmd.Parameters.AddWithValue("@digitos", soloDigitos);
-                cmd.Parameters.AddWithValue("@codigo", "%" + Escapar(soloDigitos) + "%");
-                cmd.Parameters.AddWithValue("@exacto", limpio);
-            });
+                "LIMIT " + limite.ToString(CultureInfo.InvariantCulture),
+                cmd =>
+                {
+                    cmd.Parameters.AddWithValue("@termino", "%" + Escapar(normalizado) + "%");
+                    cmd.Parameters.AddWithValue("@exacto", limpio);
+                });
         }
 
         public Producto BuscarPorCodigo(string codigo)
@@ -385,9 +397,9 @@ namespace Iseller.Pos.Core.Datos
             return resultado;
         }
 
-        // â”€â”€ Auxiliares â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+        // ── Auxiliares ─────────────────────────────────────────────────────────────
 
-        /// <summary>MayÃºsculas y sin acentos, como la bÃºsqueda del POS web.</summary>
+        /// <summary>Mayúsculas y sin acentos, como la búsqueda del POS web.</summary>
         public static string Normalizar(string texto)
         {
             if (string.IsNullOrEmpty(texto))

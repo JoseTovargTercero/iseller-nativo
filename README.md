@@ -55,6 +55,11 @@ PLAN.md                 Plan por fases, contratos y decisiones
 - **Barra superior propia** (mismo color que el fondo del sistema) con el logo, arrastre para mover
   y iconos blancos de minimizar y cerrar. El icono de la ventana (barra de tareas/Alt+Tab) es el logo.
 - Textos, botones y miniaturas de las tablas quedan centrados verticalmente.
+- **Imágenes:** descarga bajo demanda y caché local en `%LOCALAPPDATA%\iSeller\img`; la clave
+  incluye el id y la ruta de la foto, así un cambio de foto no sirve la vieja. Sin conexión se
+  usan las que ya están en disco.
+- **Búsqueda:** por nombre (sin acentos) o por código de barras cuando el término es solo
+  dígitos; un número dentro del nombre ya no arrastra códigos.
 - Login: los campos de usuario y contraseña comparten plantilla (mismo alto y radio). La entrada
   sin conexión es automática: si el servidor no responde, se valida la contraseña contra el
   acceso guardado de ese usuario (hasta 2 días).

@@ -146,6 +146,17 @@ namespace Iseller.Pos.Tests
         }
 
         [Fact]
+        public void Un_digito_en_el_nombre_no_arrastra_codigos()
+        {
+            var repo = new CatalogoRepositorio(_ruta);
+            Guardar(repo, DateTimeOffset.Now);
+
+            // Antes, el "2" hacía LIKE sobre códigos de barras y devolvía media tienda.
+            Assert.Empty(repo.Buscar("jabon 2"));
+            Assert.Single(repo.Buscar("jabon"));
+        }
+
+        [Fact]
         public void Conserva_los_items_del_combo()
         {
             var repo = new CatalogoRepositorio(_ruta);

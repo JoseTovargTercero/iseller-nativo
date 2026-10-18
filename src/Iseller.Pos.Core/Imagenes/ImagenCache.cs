@@ -70,6 +70,7 @@ namespace Iseller.Pos.Core.Imagenes
                     }
                     Directory.CreateDirectory(_directorio);
                     File.WriteAllBytes(ruta, bytes);
+                    LimpiarVariantes(id, ruta);
                     return ruta;
                 }
             }
@@ -91,7 +92,39 @@ namespace Iseller.Pos.Core.Imagenes
             {
                 extension = ".img";
             }
-            return Path.Combine(_directorio, id.ToString() + extension);
+            // La clave incluye la ruta de la foto: si el negocio la cambia, se descarga la nueva.
+            return Path.Combine(_directorio, id + "-" + Huella(foto) + extension);
+        }
+
+        private static string Huella(string foto)
+        {
+            using (var sha = SHA1.Create())
+            {
+                byte[] hash = sha.ComputeHash(System.Text.Encoding.UTF8.GetBytes((foto ?? "").Trim()));
+                return BitConverter.ToString(hash).Replace("-", "").Substring(0, 8).ToLowerInvariant();
+            }
+        }
+
+        /// <summary>Borra variantes viejas de la misma foto (cambios de ruta o del formato anterior).</summary>
+        private void LimpiarVariantes(int id, string rutaActual)
+        {
+            try
+            {
+                foreach (string patron in new[] { id + "-*", id + ".*" })
+                {
+                    foreach (string archivo in Directory.GetFiles(_directorio, patron))
+                    {
+                        if (!string.Equals(archivo, rutaActual, StringComparison.OrdinalIgnoreCase))
+                        {
+                            File.Delete(archivo);
+                        }
+                    }
+                }
+            }
+            catch (Exception)
+            {
+                // Limpieza best-effort.
+            }
         }
 
         public void Dispose()
