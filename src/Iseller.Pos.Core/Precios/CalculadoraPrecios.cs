@@ -1,6 +1,4 @@
 using System;
-using System.Globalization;
-using System.Text.RegularExpressions;
 
 namespace Iseller.Pos.Core.Precios
 {
@@ -11,10 +9,6 @@ namespace Iseller.Pos.Core.Precios
     /// </summary>
     public sealed class CalculadoraPrecios
     {
-        private static readonly Regex NumeroInicial = new Regex(
-            @"^[ \t\n\r\v\f]*[+-]?(\d+(\.\d*)?|\.\d+)",
-            RegexOptions.Compiled | RegexOptions.CultureInvariant);
-
         private readonly ParametrosPrecios _parametros;
 
         public CalculadoraPrecios(ParametrosPrecios parametros)
@@ -36,9 +30,6 @@ namespace Iseller.Pos.Core.Precios
             double precioDolarCompra = precioCompra / cantidadPorPrecio;
             double precioDolarVenta = precioDolarCompra + (precioDolarCompra * porcentaje / 100);
 
-            // PHP: number_format($precioDolarVenta, 2, '.', ',') y luego (float).
-            string precioDolarVisible = NumeroFormateado(precioDolarVenta);
-
             // Dolar -> pesos, con redondeo a centenas.
             double precioPesoVenta = FormatPeso(precioDolarVenta * _parametros.PesoDolar);
 
@@ -56,14 +47,14 @@ namespace Iseller.Pos.Core.Precios
             double precioBolivarPeso = FormatPeso((precioBsVenta * _parametros.BolivarPeso) * 1000);
             double precioBolivarDolar = precioBsVenta / _parametros.Bcv;
 
-            // Ojo: en PHP el || tiene menor precedencia que ?: y se evalua igual que aqui.
+            // En PHP el || tiene menor precedencia que ?: y se evalua igual que aqui.
             double valorPesos = (_parametros.PrecioPesoVisible || origen == "c")
                 ? precioPesoVenta
                 : precioBolivarPeso;
 
             double precioDolar = _parametros.PrecioDolarVisible
-                ? FloatDesdeTextoPhp(precioDolarVisible)
-                : FloatDesdeTextoPhp(NumeroFormateado(precioBolivarDolar));
+                ? Redondear2(precioDolarVenta)
+                : Redondear2(precioBolivarDolar);
 
             return new PreciosCalculados
             {
@@ -92,34 +83,10 @@ namespace Iseller.Pos.Core.Precios
             return Math.Floor(valor / 100) * 100;
         }
 
-        /// <summary>Equivalente a number_format($valor, 2, '.', ',') de PHP.</summary>
-        private static string NumeroFormateado(double valor)
+        /// <summary>Equivalente a round($valor, 2) de PHP.</summary>
+        private static double Redondear2(double valor)
         {
-            double redondeado = Math.Round(valor, 2, MidpointRounding.AwayFromZero);
-            return redondeado.ToString("N2", CultureInfo.InvariantCulture);
-        }
-
-        /// <summary>
-        /// Equivalente a (float)"1,234.56" en PHP: toma solo el prefijo numerico.
-        /// Esto reproduce el bug del PHP actual con precios >= 1000 (devuelve 1 en vez de 1234.56).
-        /// </summary>
-        private static double FloatDesdeTextoPhp(string texto)
-        {
-            if (string.IsNullOrEmpty(texto))
-            {
-                return 0;
-            }
-
-            Match match = NumeroInicial.Match(texto);
-            if (!match.Success)
-            {
-                return 0;
-            }
-
-            double valor;
-            return double.TryParse(match.Value, NumberStyles.Float, CultureInfo.InvariantCulture, out valor)
-                ? valor
-                : 0;
+            return Math.Round(valor, 2, MidpointRounding.AwayFromZero);
         }
     }
 }

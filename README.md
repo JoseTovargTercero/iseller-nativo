@@ -35,6 +35,6 @@ PLAN.md                 Plan por fases, contratos y decisiones
 ## Estado
 
 Fase 0 completada: solución compilable, tema del POS extraído a XAML, cálculo de precios
-portado desde PHP y validado con 8 tests contra valores generados por el PHP real.
+portado desde PHP y validado con 9 tests contra valores generados por el PHP real.
 
 Ver [PLAN.md](PLAN.md).

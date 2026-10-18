@@ -17,6 +17,13 @@ idempotente al reconectar. Debe correr en Windows 7 SP1, 8.1, 10 y 11.
 | Repositorio | **Separado**, en `C:\xampp\pos-nativo` | El repo web es la raíz de Apache; los binarios y fuentes .NET no deben quedar servidos por HTTP. Ciclo de release distinto. |
 | Sincronización | **Outbox + UUID por venta** | El servidor ya tiene `uniq_orden_id_pedido`, así que reintentar es seguro. |
 | Precios | **Port exacto de `CalculadoraPrecios`** | El precio debe coincidir al centavo con la web, incluso en sus rarezas. |
+| Tasa vieja | **Bloquear a las 48 h sin actualizar** | Decisión del dueño: pasado ese plazo la caja exige conexión. |
+| Sobreventa | **Permitir stock negativo y marcarlo** | Nunca frenar una venta real; el faltante se revisa al sincronizar. |
+| Login offline | **2 días** | Decisión del dueño. |
+| Impresión | **58 y 80 mm USB, configurable por equipo** | El usuario elige el ancho en la configuración de la caja. |
+| Cajón monedero | **Opcional** | Si no existe o falla, la venta continúa. |
+| Equipos | **Windows 7 SP1, 10 y 11** | Decisión del dueño. |
+| Entrada | **Teclado + pantalla táctil** | La misma UI sirve para ambos. |
 
 ### Por qué no dentro del repo actual
 
@@ -65,8 +72,8 @@ La capa SQLite y la de sync viven en `Core` al principio. Si crecen, se separan 
 1. **Idempotencia por `id_pedido`.** El UUID se genera en la caja y no cambia en los reintentos.
 2. **Precios congelados.** La venta guarda los precios y las tasas usadas. Una tasa nueva no
    reescribe ventas viejas.
-3. **El servidor manda en stock.** La caja vende con el último snapshot; al sincronizar se
-   refresca. La política de sobreventa se decide en §8.
+3. **El servidor manda en stock, pero la caja no se bloquea por stock.** Se permite stock
+   negativo, la venta queda marcada y el reporte de sincronización muestra el faltante.
 4. **Nunca perder una venta local.** Si el envío falla, la fila queda `pendiente` con el error.
 5. **El total que ve el cajero es el que se envía.** El servidor valida la suma de las líneas
    contra el total; si no cuadra, rechaza esa venta (no la corrige en silencio).
@@ -74,6 +81,8 @@ La capa SQLite y la de sync viven en `Core` al principio. Si crecen, se separan 
    (`CurrentUser`), y el archivo de base con ACL del usuario de Windows.
 7. **TLS 1.2 obligatorio.** En Windows 7 hay que habilitarlo a nivel de sistema; el instalador
    lo verifica y avisa.
+8. **Tasa vieja = 48 h.** Pasado ese plazo sin actualizar, la caja bloquea la venta hasta
+   conectar. Antes de eso solo avisa con la antigüedad.
 
 ---
 
@@ -92,8 +101,10 @@ y verificable, no con "código escrito".
   tarjetas y tablas.
 - `MainWindow` esqueleto con cabecera, barra lateral y área de contenido.
 - `CalculadoraPrecios` portada desde `configurar/_calculadrora_precios.php`, incluidas
-  las rarezas de `formatPeso()` y del casteo de `number_format`.
-- 8 tests xUnit con valores generados por el PHP real.
+  las rarezas de `formatPeso()`.
+- 9 tests xUnit con valores generados por el PHP real.
+- Bug de precios > $999.99 corregido en los dos PHP (`configurar/` y `iseller_store/core/`)
+  y en el port nativo.
 - `db/esquema.sql` con catálogo, stock, combos, clientes, tasas, ventas y caja.
 
 **Criterio de aceptación:** `dotnet build` y `dotnet test` en verde; la ventana abre con el
@@ -108,7 +119,7 @@ tema oscuro. *(El test de apertura de ventana es manual: `dotnet run`.)*
 **App**
 - Pantalla de login. Online valida contra `/api/pos/login`; guarda token y hash local
   (Argon2id con sal) cifrados con DPAPI.
-- Desbloqueo offline con el hash local, vigencia configurable (por defecto 14 días).
+- Desbloqueo offline con el hash local, vigencia de **2 días** desde el último login válido.
 - Descarga de catálogo: productos, stock de la sucursal, combos, clientes, configuración
   (tickets, cortes, registro de clientes) y tasas.
 - Repositorios SQLite + migraciones (leer `PRAGMA user_version` y aplicar scripts).
@@ -124,7 +135,9 @@ tema oscuro. *(El test de apertura de ventana es manual: `dotnet run`.)*
 - `GET /api/pos/tasas` y `GET /api/pos/heartbeat` (hora del servidor).
 
 **Aceptación**
-- Con el servidor apagado, un usuario que ya inició sesión entra y ve el catálogo completo.
+- Con el servidor apagado, un usuario que ya inició sesión entra y ve el catálogo completo
+  (hasta 2 días desde el último login válido).
+- Al tercer día sin conexión, la app exige conectar antes de abrir.
 - Los precios de 3 productos elegidos coinciden con la web al centavo.
 - Un usuario sin login previo no puede entrar offline.
 - Borrar el token en el servidor y reconectar expulsa la sesión local.
@@ -142,8 +155,11 @@ tema oscuro. *(El test de apertura de ventana es manual: `dotnet run`.)*
 - Ventas al mayor y combos con el mismo comportamiento del POS web.
 - Venta a crédito (despacho 2) y descuento (despacho 3) con sus permisos.
 - Guardado transaccional en `ventas` con estado `pendiente`; nunca se pierde el carrito.
-- Ticket: render ESC/POS 58/80 mm e impresión raw al spooler. Logo opcional como raster.
-- Apertura/cierre de caja **todavía no**; se usa la caja existente o se bloquea según §8.
+- Ticket: ESC/POS a 58 u 80 mm, ancho configurable por equipo. Impresión raw al spooler.
+  Si no hay impresora, la venta se guarda igual y solo se avisa.
+- Apertura de cajón monedero opcional al cobrar en efectivo; si no existe o falla, la venta
+  continúa.
+- Apertura/cierre de caja **todavía no**; se maneja en la fase 4.
 
 **Backend**
 - Ninguno nuevo en esta fase (se reutiliza el contrato de la fase 3).
@@ -152,6 +168,8 @@ tema oscuro. *(El test de apertura de ventana es manual: `dotnet run`.)*
 - 20 ventas seguidas sin red: todas en SQLite, totales correctos, ticket impreso.
 - Cerrar la app a mitad de una venta no deja una venta a medias ni un carrito corrupto.
 - Reiniciar la app conserva el carrito activo.
+- Con una impresora de 58 mm y otra de 80 mm, el ticket sale con el ancho configurado.
+- Desconectar la impresora o el cajón a mitad de turno no impide cobrar.
 
 ---
 
@@ -345,26 +363,28 @@ CREATE TABLE pos_tokens (
 
 | Riesgo | Impacto | Mitigación |
 |---|---|---|
-| Tasas viejas sin internet | Precios incorrectos | Mostrar antigüedad de la tasa y política en §8; congelar tasa por venta. |
-| Sobreventa offline | Stock negativo | Política en §8 + reporte de diferencias al sincronizar. |
+| Tasas viejas sin internet | Precios incorrectos | Avisar con la antigüedad; **bloquear a las 48 h**. Congelar tasa por venta. |
+| Sobreventa offline | Stock negativo | **Permitir negativo** y marcarlo; reporte de diferencias al sincronizar. |
 | Reloj de la caja desfasado | Fechas y reportes mal | Guardar UTC + offset; comparar con `servidor_en`. |
 | Windows 7 sin TLS 1.2 | No conecta | Verificación en instalador; parche de sistema documentado. |
-| Impresora desconocida | No imprime | Definir modelos en §8; capa de impresión aislada con fallback a PDF. |
-| Bug de precios > 999.99 | Precio en dólares = 1 | Ya reproducido en test. Corregir en PHP y app a la vez, o dejarlo si el negocio lo asume. |
+| Impresora o cajón ausente | No imprime / no abre | Impresión 58/80 configurable y aislada; fallback a PDF. El cajón es opcional y su fallo no corta la venta. |
+| Bug de precios > 999.99 | Precio en dólares = 1 | **Corregido** en `configurar/` y `iseller_store/core/`, y en el port nativo. Test de regresión. |
 | Antivirus bloquea el .exe | No arranca | Firma de código y instalador firmado. |
 | SQLite corrupta | Pérdida de ventas | Transacciones + respaldo diario + WAL. |
 
 ---
 
-## 7. Decisiones pendientes del dueño (antes de la fase 1/2)
+## 7. Decisiones tomadas (18/10/2026)
 
-1. **Tasa vieja:** ¿máximo cuántas horas sin actualizar se permite vender? ¿Se bloquea o solo avisa?
-2. **Sobreventa:** ¿permitir stock negativo (nunca frenar una venta real) o bloquear en 0?
-3. **Impresoras:** marca/modelo y ancho (58/80 mm). ¿Hay cajón monedero?
-4. **Login offline:** ¿cuántos días puede un cajero entrar sin conectar?
-5. **Caja obligatoria:** ¿se puede vender sin apertura de caja registrada?
-6. **Equipos:** ¿queda alguna Windows 7 u 8.1? ¿Pantalla táctil o teclado?
-7. **Bug de precio > 999.99:** ¿se corrige en ambos lados o se mantiene por compatibilidad?
+1. **Tasa vieja:** se avisa y se permite vender hasta **48 h**; después se bloquea hasta conectar.
+2. **Sobreventa:** se permite stock negativo. La venta se marca y se revisa al sincronizar.
+3. **Impresoras:** 58 y 80 mm USB. El ancho se configura por equipo. El cajón monedero es
+   opcional; si no existe o falla, la venta continúa.
+4. **Login offline:** **2 días** desde el último login válido.
+5. **Caja:** se replica la regla de la web (`cortes_caja`): si está activo, exige apertura;
+   si no, permite vender.
+6. **Equipos:** Windows 7 SP1 y Windows 10/11. Entrada por teclado y por pantalla táctil.
+7. **Precio > $999.99:** corregido en ambos lados (PHP y nativo) en la Fase 0.
 
 ---
 
@@ -381,7 +401,7 @@ CREATE TABLE pos_tokens (
 
 ## 9. Orden de arranque recomendado
 
-1. Cerrar las decisiones de §7 con el dueño.
+1. Las decisiones de §7 ya están cerradas.
 2. Implementar en el repo web `login`, `catalogo` y `tasas` (Fase 1 backend) contra una
    tabla de tokens; probar con `curl`/Postman.
 3. Construir en la app el login offline + repositorios + pantalla de catálogo.

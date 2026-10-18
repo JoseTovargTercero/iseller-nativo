@@ -124,18 +124,27 @@ namespace Iseller.Pos.Tests
         }
 
         [Fact]
-        public void Precio_dolar_mayor_a_999_reproduce_el_bug_del_php_actual()
+        public void Precio_dolar_mayor_a_999_se_calcula_correctamente()
         {
-            // documenta el bug: number_format("6,500.00") casteado a float da 6.
+            // Regresion: number_format("6,500.00") casteado a float devolvia 6.
             var calc = new CalculadoraPrecios(Tasas(true, true));
             var r = calc.Calcular(Producto(1, "v", 5000, 30, "0"));
 
             Iguales(new PreciosCalculados
             {
-                PrecioVentaDolar = 6,
+                PrecioVentaDolar = 6500,
                 PrecioVentaBs = 260000,
                 PrecioVentaPeso = 26000000
             }, r);
+        }
+
+        [Fact]
+        public void Precio_dolar_derivado_de_bolivares_mayor_a_999_se_calcula_correctamente()
+        {
+            var calc = new CalculadoraPrecios(Tasas());
+            var r = calc.Calcular(Producto(1, "v", 5000, 30, "0"));
+
+            Assert.Equal(6500, r.PrecioVentaDolar, 6);
         }
 
         [Fact]
