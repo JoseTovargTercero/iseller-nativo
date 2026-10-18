@@ -127,12 +127,10 @@ tema oscuro. *(El test de apertura de ventana es manual: `dotnet run`.)*
   de productos alcanza con prefijo/substring con scoring. Se descarta Fuse.js.
 - Caché de imágenes en `%LOCALAPPDATA%\iSeller\img`; descarga bajo demanda.
 
-**Backend (repo web)**
-- `POST /api/pos/login` con token Bearer; tabla `pos_tokens` (guardar SHA-256 del token).
-- `GET /api/pos/catalogo` con snapshot versionado (hash). Sin `updated_at` en `productos`
-  ni `stock`, el snapshot completo es lo correcto por ahora; si pesa, agregar `updated_at`
-  y pasar a deltas.
-- `GET /api/pos/tasas` y `GET /api/pos/heartbeat` (hora del servidor).
+**Backend (repo web)** — ✅ implementado
+- `POST /api/pos_login.php` con token Bearer; tabla `pos_tokens` (SHA-256 del token).
+- `GET /api/pos_catalogo.php` con snapshot versionado (hash) y `304` si no cambió.
+- `GET /api/pos_tasas.php` y `GET /api/pos_heartbeat.php`.
 
 **Aceptación**
 - Con el servidor apagado, un usuario que ya inició sesión entra y ve el catálogo completo
@@ -244,30 +242,39 @@ tema oscuro. *(El test de apertura de ventana es manual: `dotnet run`.)*
 
 ## 5. Contratos con el backend
 
-Prefijo sugerido: `/api/pos/`. Autenticación `Authorization: Bearer <token>`.
+Implementado en el repo web como archivos sueltos dentro de `api/`, igual que el resto de
+la API de la app Android. Autenticación doble: cabecera `X-Api-Key` (POS_API_KEY del `.env`,
+fail-closed) y `Authorization: Bearer <token>` de usuario (tabla `pos_tokens`).
 Todas las respuestas JSON. Errores con `{ "ok": false, "error": "..." }`.
 
-### `POST /api/pos/login`
+Estado: `pos_login`, `pos_catalogo`, `pos_tasas` y `pos_heartbeat` **implementados y probados**
+(Fase 1). `pos_ventas` y `pos_caja` son de las fases 3 y 4.
+
+### `POST /api/pos_login.php`
+
+`usuario` y `password`. `sucursal_id` es opcional; si el negocio tiene varias sucursales y no
+se manda, responde `409` con la lista para que la caja muestre el selector.
 
 ```json
 // request
-{ "usuario": "cajero1", "clave": "...", "dispositivo": "POS-CAJA-01" }
+{ "usuario": "cajero1", "password": "...", "sucursal_id": 7 }
 
 // response
 {
   "ok": true,
   "token": "…",
-  "expira": "2026-11-17T23:59:59Z",
-  "usuario": { "id": 12, "nombre": "Ana", "nivel": 2 },
+  "expira_en": 2592000,
+  "usuario": { "id": 12, "nombre": "Ana", "usuario": "cajero1", "nivel": 2 },
   "bss_id": 3,
   "sucursal": { "id": 7, "nombre": "CENTRO" },
   "permisos": [11, 12],
   "configuracion": { "tickets": 1, "bs_ticket": 0, "cortes_caja": 1, "registro_clientes": 0 },
-  "puede_vender_al_mayor": false
+  "puede_vender_al_mayor": false,
+  "servidor_en": "2026-10-18T12:00:00-04:00"
 }
 ```
 
-### `GET /api/pos/catalogo?v=<hash>`
+### `GET /api/pos_catalogo.php?v=<hash>`
 
 Si `v` coincide con la versión actual, `304 Not Modified`.
 Si no:
@@ -276,12 +283,11 @@ Si no:
 {
   "ok": true,
   "version": "sha256:…",
-  "generado_en": "2026-10-18T12:00:00Z",
+  "servidor_en": "2026-10-18T12:00:00Z",
   "tasas": {
     "peso_dolar": 4000, "peso_bolivar": 25, "dolar_bolivar": 40,
     "bolivar_peso": 0.22, "bcv": 40,
-    "precio_dolar_visible": true, "precio_peso_visible": true,
-    "actualizado_en": "2026-10-18T11:00:00Z"
+    "data_monedas": { "precio_dolar_visible": true, "precio_peso_visible": true }
   },
   "productos": [
     {
@@ -299,7 +305,7 @@ Si no:
 Los precios **no** se envían calculados: la app los calcula con la misma fórmula y las tasas
 recibidas. Así una tasa nueva recalcula todo el catálogo sin reenviar productos.
 
-### `POST /api/pos/ventas`
+### `POST /api/pos_ventas.php` (fase 3, pendiente)
 
 ```json
 {
@@ -338,10 +344,14 @@ recibidas. Así una tasa nueva recalcula todo el catálogo sin reenviar producto
 
 ### Otros
 
-- `GET /api/pos/ventas/ultimas?limit=20` — para la tabla "Últimas ventas".
-- `GET /api/pos/top-vendidos` — ranking de la sucursal.
-- `POST /api/pos/caja` — `{ "id": "uuid", "tipo": "apertura|cierre", "montos": {...}, "observaciones": "" }`.
-- `GET /api/pos/heartbeat` — `{ "ok": true, "servidor_en": "..." }`.
+- `GET /api/pos_tasas.php` — implementado. Refresca solo las tasas.
+- `GET /api/pos_heartbeat.php` — implementado. Hora del servidor y validación del token.
+- `GET /api/pos_ventas_ultimas.php` — fase 3.
+- `GET /api/pos_top_vendidos.php` — fase 3.
+- `POST /api/pos_caja.php` — fase 4. `{ "id": "uuid", "tipo": "apertura|cierre", "montos": {...}, "observaciones": "" }`.
+
+La app sella la fecha de descarga de las tasas con `servidor_en`, no con su reloj: así el
+límite de 48 h no depende del reloj de la caja.
 
 ### Tabla de tokens (MySQL)
 

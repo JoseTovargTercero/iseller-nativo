@@ -160,5 +160,31 @@ namespace Iseller.Pos.Tests
                 PrecioVentaPeso = 101200
             }, r);
         }
+
+        [Fact]
+        public void Caso_real_harina_tradicional_sucursal_8()
+        {
+            // Datos reales del negocio 2 (api/pos_catalogo.php), validados contra el PHP:
+            // precio_compra 27.4, 20 unidades, 5% de ganancia, origen venezolano,
+            // sin banderas de moneda visible (data_monedas solo trae claves bolivar).
+            var calc = new CalculadoraPrecios(new ParametrosPrecios
+            {
+                PesoDolar = 4000,
+                PesoBolivar = 0.0058,
+                DolarBolivar = 1000,
+                BolivarPeso = 0.0043,
+                Bcv = 1000,
+                PrecioDolarVisible = false,
+                PrecioPesoVisible = false
+            });
+            var r = calc.Calcular(Producto(20, "v", 27.4, 5, ""));
+
+            Iguales(new PreciosCalculados
+            {
+                PrecioVentaDolar = 1.44,
+                PrecioVentaBs = 1438.5,
+                PrecioVentaPeso = 6200
+            }, r);
+        }
     }
 }
