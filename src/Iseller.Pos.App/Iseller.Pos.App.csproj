@@ -9,4 +9,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Iseller.Pos.Core\Iseller.Pos.Core.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <Reference Include="System.Net.Http" />
+  </ItemGroup>
 </Project>

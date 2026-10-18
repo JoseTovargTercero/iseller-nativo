@@ -17,6 +17,8 @@ idempotente al reconectar. Debe correr en Windows 7 SP1, 8.1, 10 y 11.
 | Repositorio | **Separado**, en `C:\xampp\pos-nativo` | El repo web es la raíz de Apache; los binarios y fuentes .NET no deben quedar servidos por HTTP. Ciclo de release distinto. |
 | Sincronización | **Outbox + UUID por venta** | El servidor ya tiene `uniq_orden_id_pedido`, así que reintentar es seguro. |
 | Precios | **Port exacto de `CalculadoraPrecios`** | El precio debe coincidir al centavo con la web, incluso en sus rarezas. |
+| Clave offline | **PBKDF2-SHA256 (100k iteraciones)** | .NET 4.8 no trae Argon2 sin dependencias extra. Guardada con DPAPI. |
+| Base local | **SQLite vía `System.Data.SQLite`** | `Microsoft.Data.Sqlite` arrastra un choque de `System.Memory` en net48. |
 | Tasa vieja | **Bloquear a las 48 h sin actualizar** | Decisión del dueño: pasado ese plazo la caja exige conexión. |
 | Sobreventa | **Permitir stock negativo y marcarlo** | Nunca frenar una venta real; el faltante se revisa al sincronizar. |
 | Login offline | **2 días** | Decisión del dueño. |
@@ -114,6 +116,9 @@ tema oscuro. *(El test de apertura de ventana es manual: `dotnet run`.)*
 
 ### Fase 1 — Login, catálogo y tasas offline (~3 semanas)
 
+**Estado: implementada en la app** (login online/offline, SQLite, descarga de catálogo,
+búsqueda y precios). Pendiente: caché de imágenes de producto.
+
 **Objetivo:** abrir la app sin internet, con el catálogo y las tasas del último contacto.
 
 **App**
@@ -139,6 +144,9 @@ tema oscuro. *(El test de apertura de ventana es manual: `dotnet run`.)*
 - Los precios de 3 productos elegidos coinciden con la web al centavo.
 - Un usuario sin login previo no puede entrar offline.
 - Borrar el token en el servidor y reconectar expulsa la sesión local.
+
+Verificado el 18/10/2026 con el negocio 3 (YOLA MARKET 1): 561 productos, 2 combos con stock
+armable, y `Harina Pan` en `$1,67 / 1.674,00 Bs / 7.000 Cop` tanto en la app como en el PHP.
 
 ---
 

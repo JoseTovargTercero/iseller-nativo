@@ -13,6 +13,7 @@ CREATE TABLE IF NOT EXISTS meta (
 CREATE TABLE IF NOT EXISTS productos (
     id                INTEGER PRIMARY KEY,
     nombre            TEXT    NOT NULL,
+    nombre_busqueda   TEXT    NOT NULL DEFAULT '',
     codigo_barras     TEXT,
     origen            TEXT    NOT NULL DEFAULT 'v', -- 'v' venezolano, 'c' colombiano
     precio_compra     REAL    NOT NULL DEFAULT 0,
@@ -26,7 +27,7 @@ CREATE TABLE IF NOT EXISTS productos (
 );
 
 CREATE INDEX IF NOT EXISTS ix_productos_codigo ON productos (codigo_barras);
-CREATE INDEX IF NOT EXISTS ix_productos_nombre ON productos (nombre);
+CREATE INDEX IF NOT EXISTS ix_productos_busqueda ON productos (nombre_busqueda);
 
 CREATE TABLE IF NOT EXISTS stock (
     producto_id INTEGER NOT NULL,
@@ -36,10 +37,10 @@ CREATE TABLE IF NOT EXISTS stock (
 );
 
 CREATE TABLE IF NOT EXISTS combo_items (
-    combo_id    INTEGER NOT NULL,
-    producto_id INTEGER NOT NULL,
-    cantidad    REAL    NOT NULL,
-    PRIMARY KEY (combo_id, producto_id)
+    combo_id INTEGER NOT NULL,
+    nombre   TEXT    NOT NULL,
+    cantidad REAL    NOT NULL,
+    PRIMARY KEY (combo_id, nombre)
 );
 
 CREATE TABLE IF NOT EXISTS clientes (

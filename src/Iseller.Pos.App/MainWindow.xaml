@@ -9,7 +9,9 @@
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="56" />
+            <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
+            <RowDefinition Height="32" />
         </Grid.RowDefinitions>
 
         <!-- Cabecera -->
@@ -20,67 +22,79 @@
                     <TextBlock Text="iSELLER" FontSize="16" FontWeight="Bold"
                                Foreground="{StaticResource MintBrush}" />
                     <TextBlock Text="POS" FontSize="16" FontWeight="Bold" Margin="6,0,0,0" />
+                    <TextBlock x:Name="TextoSucursal" Style="{StaticResource MutedText}"
+                               Margin="24,0,0,0" VerticalAlignment="Center" />
                 </StackPanel>
 
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Right"
                             VerticalAlignment="Center">
-                    <Ellipse Width="8" Height="8" Fill="{StaticResource WarningBrush}"
-                             Margin="0,0,8,0" />
-                    <TextBlock Text="Sin conexión" Style="{StaticResource MutedText}" />
+                    <Ellipse x:Name="PuntoConexion" Width="8" Height="8"
+                             Fill="{StaticResource WarningBrush}" Margin="0,0,8,0" />
+                    <TextBlock x:Name="TextoEstadoConexion" Text="Comprobando…"
+                               Style="{StaticResource MutedText}" VerticalAlignment="Center" />
                 </StackPanel>
             </Grid>
         </Border>
 
-        <Grid Grid.Row="1">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="220" />
-                <ColumnDefinition Width="*" />
-            </Grid.ColumnDefinitions>
+        <!-- Aviso de tasa vieja -->
+        <Border Grid.Row="1" x:Name="AvisoTasas" Visibility="Collapsed"
+                Background="{StaticResource DangerDimBrush}" BorderBrush="{StaticResource DangerBrush}"
+                BorderThickness="0,0,0,1" Padding="20,8">
+            <TextBlock x:Name="TextoAvisoTasas" Foreground="{StaticResource DangerBrush}" />
+        </Border>
 
-            <!-- Barra lateral -->
-            <Border Grid.Column="0" Background="{StaticResource CardBrush}"
-                    BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,0,1,0"
-                    Padding="16">
-                <StackPanel>
-                    <TextBlock Text="SUCURSAL" Style="{StaticResource MutedText}" />
-                    <TextBlock Text="Sin configurar" Margin="0,4,0,20" FontWeight="SemiBold" />
+        <!-- Catálogo -->
+        <Grid Grid.Row="2" Margin="24,20,24,12">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
 
-                    <TextBlock Text="CARRITO ACTIVO" Foreground="{StaticResource MintBrush}"
-                               FontWeight="SemiBold" Margin="0,0,0,10" />
-                    <TextBlock Text="No guardados" Style="{StaticResource MutedText}" Margin="0,0,0,10" />
-                    <TextBlock Text="Reservados" Style="{StaticResource MutedText}" Margin="0,0,0,10" />
-                    <TextBlock Text="Enviados" Style="{StaticResource MutedText}" />
-                </StackPanel>
-            </Border>
+            <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,14">
+                <TextBox x:Name="CampoBusqueda" Width="420" Padding="12,9" FontSize="15"
+                         TextChanged="CampoBusqueda_TextChanged"
+                         KeyDown="CampoBusqueda_KeyDown" />
+                <Button Content="SINCRONIZAR CATÁLOGO" Style="{StaticResource PrimaryButton}"
+                        Margin="10,0,0,0" Click="Sincronizar_Click" />
+                <Button Content="VERIFICAR CONEXIÓN" Style="{StaticResource SecondaryButton}"
+                        Margin="10,0,0,0" Click="Verificar_Click" />
+            </StackPanel>
 
-            <!-- Contenido -->
-            <Grid Grid.Column="1" Margin="24">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="*" />
-                </Grid.RowDefinitions>
+            <Border Grid.Row="1" Style="{StaticResource Card}" Padding="0">
+                <Grid>
+                    <DataGrid x:Name="TablaProductos" AutoGenerateColumns="False" IsReadOnly="True"
+                              HeadersVisibility="Column" CanUserAddRows="False" BorderThickness="0"
+                              Background="Transparent" RowHeight="34">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Producto" Binding="{Binding Nombre}" Width="*" />
+                            <DataGridTextColumn Header="Stock" Binding="{Binding Stock}" Width="90" />
+                            <DataGridTextColumn Header="Dólares" Binding="{Binding PrecioDolar}" Width="120" />
+                            <DataGridTextColumn Header="Bolívares" Binding="{Binding PrecioBs}" Width="140" />
+                            <DataGridTextColumn Header="Pesos" Binding="{Binding PrecioPeso}" Width="140" />
+                        </DataGrid.Columns>
+                    </DataGrid>
 
-                <TextBlock Grid.Row="0" Text="Ventas" Style="{StaticResource PageTitle}" />
-
-                <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,16,0,16">
-                    <TextBox Width="360" Padding="12,9" FontSize="14" />
-                    <Button Content="(B) BÚSQUEDA" Style="{StaticResource PrimaryButton}"
-                            Margin="10,0,0,0" />
-                    <Button Content="CALCULAR CAMBIO" Style="{StaticResource SecondaryButton}"
-                            Margin="10,0,0,0" />
-                </StackPanel>
-
-                <Border Grid.Row="2" Style="{StaticResource Card}">
-                    <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
-                        <TextBlock Text="Esqueleto del POS nativo" FontSize="16"
+                    <StackPanel x:Name="MensajeVacio" VerticalAlignment="Center"
+                                HorizontalAlignment="Center">
+                        <TextBlock Text="Sincroniza el catálogo para empezar" FontSize="16"
                                    FontWeight="SemiBold" HorizontalAlignment="Center" />
-                        <TextBlock Text="Fase 0: solución, tema y cálculo de precios portado."
+                        <TextBlock Text="Necesitas conexión al menos una vez para descargar productos y tasas."
                                    Style="{StaticResource MutedText}" Margin="0,8,0,0"
                                    HorizontalAlignment="Center" />
                     </StackPanel>
-                </Border>
-            </Grid>
+                </Grid>
+            </Border>
         </Grid>
+
+        <!-- Barra de estado -->
+        <Border Grid.Row="3" Background="{StaticResource CardBrush}"
+                BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,1,0,0">
+            <Grid Margin="20,0">
+                <TextBlock x:Name="TextoEstado" Style="{StaticResource MutedText}"
+                           VerticalAlignment="Center" />
+                <TextBlock x:Name="TextoCatalogo" Style="{StaticResource MutedText}"
+                           HorizontalAlignment="Right" VerticalAlignment="Center" />
+            </Grid>
+        </Border>
     </Grid>
 </Window>

@@ -25,8 +25,12 @@ dotnet run --project src/Iseller.Pos.App/Iseller.Pos.App.csproj
 ## Estructura
 
 ```
-src/Iseller.Pos.App     UI WPF (ventana, temas, vistas)
-src/Iseller.Pos.Core    Dominio puro: precios, modelos, contratos de sync
+src/Iseller.Pos.App     UI WPF (login, catálogo, temas)
+src/Iseller.Pos.Core    Dominio y servicios:
+                        Precios/    CalculadoraPrecios (port del PHP)
+                        Datos/      SQLite (esquema embebido de db/esquema.sql)
+                        Api/        cliente de api/pos_*.php
+                        Auth/       DPAPI + PBKDF2 + reglas de vigencia
 src/Iseller.Pos.Tests   Tests (xUnit)
 db/esquema.sql          Esquema SQLite local
 PLAN.md                 Plan por fases, contratos y decisiones
@@ -34,7 +38,8 @@ PLAN.md                 Plan por fases, contratos y decisiones
 
 ## Estado
 
-Fase 0 completada: solución compilable, tema del POS extraído a XAML, cálculo de precios
-portado desde PHP y validado con 9 tests contra valores generados por el PHP real.
+- Fase 0: solución, tema del POS, cálculo de precios portado y validado contra el PHP.
+- Fase 1: login online/offline, catálogo en SQLite, búsqueda y precios locales.
+- Backend: `api/pos_login.php`, `pos_catalogo.php`, `pos_tasas.php`, `pos_heartbeat.php`.
 
-Ver [PLAN.md](PLAN.md).
+18 tests en verde (`dotnet test`).
