@@ -1,0 +1,43 @@
+<Window x:Class="Iseller.Pos.App.VentanaAjustes"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Ajustes" Width="560" SizeToContent="Height"
+        ResizeMode="NoResize" WindowStartupLocation="CenterOwner"
+        Style="{StaticResource PosWindow}">
+
+    <StackPanel Margin="24">
+        <TextBlock Text="Servidor" Style="{StaticResource SectionTitle}" />
+        <TextBlock Text="URL de la API" Style="{StaticResource MutedText}" Margin="0,8,0,4" />
+        <TextBox x:Name="CampoUrl" Padding="10,8" />
+        <TextBlock Text="Clave de la API (POS_API_KEY)" Style="{StaticResource MutedText}" Margin="0,10,0,4" />
+        <TextBox x:Name="CampoApiKey" Padding="10,8" />
+
+        <TextBlock Text="Impresora de tickets" Style="{StaticResource SectionTitle}" Margin="0,22,0,0" />
+        <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
+            <ComboBox x:Name="ComboImpresoras" Width="330" Height="32" />
+            <Button Content="Refrescar" Style="{StaticResource SecondaryButton}" Margin="8,0,0,0"
+                    Click="Refrescar_Click" />
+        </StackPanel>
+
+        <StackPanel Orientation="Horizontal" Margin="0,12,0,0">
+            <RadioButton x:Name="Ancho58" Content="58 mm" Foreground="{StaticResource TextBrush}"
+                         Margin="0,0,18,0" />
+            <RadioButton x:Name="Ancho80" Content="80 mm" Foreground="{StaticResource TextBrush}" />
+        </StackPanel>
+
+        <CheckBox x:Name="CheckCajon" Content="Abrir cajón monedero al cobrar en efectivo"
+                  Foreground="{StaticResource TextBrush}" Margin="0,12,0,0" />
+
+        <TextBlock x:Name="TextoEstado" Style="{StaticResource MutedText}" Margin="0,12,0,0"
+                   TextWrapping="Wrap" />
+
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,20,0,0">
+            <Button Content="Imprimir prueba" Style="{StaticResource SecondaryButton}" Padding="14,9"
+                    Click="Probar_Click" />
+            <Button Content="Cancelar" Style="{StaticResource SecondaryButton}" Padding="14,9"
+                    Margin="10,0,0,0" Click="Cancelar_Click" />
+            <Button Content="GUARDAR" Style="{StaticResource PrimaryButton}" Padding="14,9"
+                    Margin="10,0,0,0" Click="Guardar_Click" />
+        </StackPanel>
+    </StackPanel>
+</Window>

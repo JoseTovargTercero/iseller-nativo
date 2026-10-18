@@ -44,19 +44,9 @@
 
             <TextBlock x:Name="TextoEstado" Style="{StaticResource MutedText}" Margin="0,14,0,0"
                        TextWrapping="Wrap" />
-        </StackPanel>
 
-        <Expander Grid.Row="1" Header="Servidor" Foreground="{StaticResource MutedBrush}"
-                  VerticalAlignment="Bottom" Margin="0,24,0,0">
-            <StackPanel Margin="0,10,0,0">
-                <TextBlock Text="URL de la API" Style="{StaticResource MutedText}" Margin="0,0,0,4" />
-                <TextBox x:Name="CampoUrl" Padding="10,7" />
-                <TextBlock Text="Clave de la API (POS_API_KEY)" Style="{StaticResource MutedText}"
-                           Margin="0,12,0,4" />
-                <TextBox x:Name="CampoApiKey" Padding="10,7" />
-                <Button Content="Guardar" Style="{StaticResource SecondaryButton}" Margin="0,12,0,0"
-                        HorizontalAlignment="Left" Click="GuardarConfig_Click" />
-            </StackPanel>
-        </Expander>
+            <Button Content="AJUSTES DE SERVIDOR E IMPRESORA" Style="{StaticResource SecondaryButton}"
+                    Margin="0,18,0,0" Padding="14,10" Click="Ajustes_Click" />
+        </StackPanel>
     </Grid>
 </Window>

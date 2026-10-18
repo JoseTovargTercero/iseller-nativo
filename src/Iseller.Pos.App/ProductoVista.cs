@@ -15,6 +15,9 @@ namespace Iseller.Pos.App
         public string PrecioBs { get; set; }
         public string PrecioPeso { get; set; }
 
+        /// <summary>Producto original, para agregarlo al carrito.</summary>
+        public Core.Modelos.Producto Modelo { get; set; }
+
         public static ProductoVista Desde(Core.Modelos.Producto p, CalculadoraPrecios calculadora)
         {
             var precios = calculadora.Calcular(new ProductoPrecio
@@ -32,6 +35,7 @@ namespace Iseller.Pos.App
                 Nombre = p.EsCombo == 1 ? p.Nombre + "  [Combo]" : p.Nombre,
                 Stock = p.Stock,
                 EsCombo = p.EsCombo == 1,
+                Modelo = p,
                 PrecioDolar = "$" + Numero(precios.PrecioVentaDolar),
                 PrecioBs = Numero(precios.PrecioVentaBs) + " Bs",
                 PrecioPeso = Numero(precios.PrecioVentaPeso) + " Cop",

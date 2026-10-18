@@ -3,14 +3,18 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Globalization;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using Iseller.Pos.Core.Api;
 using Iseller.Pos.Core.Auth;
+using Iseller.Pos.Core.Carrito;
 using Iseller.Pos.Core.Configuracion;
 using Iseller.Pos.Core.Datos;
+using Iseller.Pos.Core.Impresion;
 using Iseller.Pos.Core.Modelos;
 using Iseller.Pos.Core.Precios;
 
@@ -19,14 +23,25 @@ namespace Iseller.Pos.App
     public partial class MainWindow : Window
     {
         private const int FilasSinBusqueda = 200;
+        private const int VentanaCodigoMs = 100;
+
+        private static readonly CultureInfo Formato = CultureInfo.GetCultureInfo("es-VE");
 
         private readonly AppConfig _config;
         private readonly SesionLocal _sesion;
-        private readonly CatalogoRepositorio _repo;
-        private readonly ObservableCollection<ProductoVista> _filas = new ObservableCollection<ProductoVista>();
+        private readonly CatalogoRepositorio _catalogo = new CatalogoRepositorio();
+        private readonly CarritoRepositorio _carritoRepo = new CarritoRepositorio();
+        private readonly VentasRepositorio _ventasRepo = new VentasRepositorio();
+        private readonly Carrito _carrito = new Carrito();
+        private readonly ObservableCollection<ProductoVista> _resultados = new ObservableCollection<ProductoVista>();
+        private readonly ObservableCollection<ItemCarritoVista> _lineas = new ObservableCollection<ItemCarritoVista>();
+        private readonly ObservableCollection<VentaVista> _pendientes = new ObservableCollection<VentaVista>();
+        private readonly StringBuilder _codigo = new StringBuilder();
 
         private CalculadoraPrecios _calculadora;
+        private Tasas _tasas;
         private bool _sincronizando;
+        private DateTime _ultimaTeclaCodigo = DateTime.MinValue;
 
         public MainWindow(AppConfig config, SesionLocal sesion)
         {
@@ -34,41 +49,51 @@ namespace Iseller.Pos.App
 
             _config = config;
             _sesion = sesion;
-            _repo = new CatalogoRepositorio();
 
             TextoSucursal.Text = "Sucursal: " + sesion.SucursalNombre;
-            TextoEstado.Text = sesion.Nombre + " · " + (sesion.Nivel == 1 ? "administrador" : "cajero");
+            TablaResultados.ItemsSource = _resultados;
+            TablaCarrito.ItemsSource = _lineas;
+            TablaPendientes.ItemsSource = _pendientes;
 
-            TablaProductos.ItemsSource = _filas;
+            BotonCredito.Visibility = TienePermiso(11) ? Visibility.Visible : Visibility.Collapsed;
+            BotonDescuento.Visibility = TienePermiso(12) ? Visibility.Visible : Visibility.Collapsed;
+
             Loaded += MainWindow_Loaded;
+        }
+
+        private bool TienePermiso(int idMenu)
+        {
+            return _sesion.Nivel == 1 || _sesion.Permisos.Contains(idMenu);
         }
 
         private async void MainWindow_Loaded(object sender, RoutedEventArgs e)
         {
             CargarDesdeDisco();
+            CargarCarrito();
+            RefrescarPendientes();
+            CampoBusqueda.Focus();
+
             await SincronizarAsync();
         }
 
-        // ── Catálogo local ─────────────────────────────────────────────────────────
+        // ── Catálogo ───────────────────────────────────────────────────────────────
 
         private void CargarDesdeDisco()
         {
-            var tasas = _repo.ObtenerTasas();
-            _calculadora = CrearCalculadora(tasas);
-            ActualizarTasas(tasas);
+            _tasas = _catalogo.ObtenerTasas();
+            _calculadora = CrearCalculadora(_tasas);
+            ActualizarTasas(_tasas);
 
-            int total = _repo.ContarProductos();
+            int total = _catalogo.ContarProductos();
             if (total == 0)
             {
-                _filas.Clear();
-                MensajeVacio.Visibility = Visibility.Visible;
+                _resultados.Clear();
                 TextoCatalogo.Text = "Sin catálogo descargado";
                 return;
             }
 
-            MensajeVacio.Visibility = Visibility.Collapsed;
-            Mostrar(_repo.Productos().Take(FilasSinBusqueda));
-            TextoCatalogo.Text = total + " productos · descargado " + FechaCatalogo();
+            Mostrar(_catalogo.Productos().Take(FilasSinBusqueda));
+            TextoCatalogo.Text = _ventasRepo.ContarPendientes() + " por enviar · " + total + " productos";
         }
 
         private CalculadoraPrecios CrearCalculadora(Tasas tasas)
@@ -91,14 +116,14 @@ namespace Iseller.Pos.App
 
         private void Mostrar(IEnumerable<Producto> productos)
         {
-            _filas.Clear();
+            _resultados.Clear();
             if (_calculadora == null)
             {
                 return;
             }
-            foreach (var p in productos)
+            foreach (var producto in productos)
             {
-                _filas.Add(ProductoVista.Desde(p, _calculadora));
+                _resultados.Add(ProductoVista.Desde(producto, _calculadora));
             }
         }
 
@@ -112,11 +137,10 @@ namespace Iseller.Pos.App
             string limpio = (termino ?? "").Trim();
             if (limpio.Length < 2)
             {
-                Mostrar(_repo.Productos().Take(FilasSinBusqueda));
+                Mostrar(_catalogo.Productos().Take(FilasSinBusqueda));
                 return;
             }
-
-            Mostrar(_repo.Buscar(limpio, 100));
+            Mostrar(_catalogo.Buscar(limpio, 100));
         }
 
         private void ActualizarTasas(Tasas tasas)
@@ -146,7 +170,480 @@ namespace Iseller.Pos.App
                                " · tasa " + texto;
         }
 
-        // ── Sincronización ─────────────────────────────────────────────────────────
+        // ── Carrito ────────────────────────────────────────────────────────────────
+
+        private void CargarCarrito()
+        {
+            _carrito.Cargar(_carritoRepo.Cargar());
+            RefrescarCarrito();
+        }
+
+        private void PersistirCarrito()
+        {
+            _carritoRepo.Reemplazar(_carrito.Items);
+        }
+
+        private void RefrescarCarrito()
+        {
+            _lineas.Clear();
+            foreach (var item in _carrito.Items.OrderBy(i => i.Name))
+            {
+                _lineas.Add(new ItemCarritoVista { Item = item });
+            }
+
+            if (_carrito.Vacio)
+            {
+                TextoTotales.Text = "Carrito vacío";
+            }
+            else
+            {
+                TextoTotales.Text = "TOTAL:   " + _carrito.TotalPeso.ToString("N0", Formato) + " Cop    " +
+                                    _carrito.TotalBs.ToString("N2", Formato) + " Bs    $" +
+                                    _carrito.TotalUsd.ToString("N2", Formato);
+            }
+
+            TextoCatalogo.Text = _ventasRepo.ContarPendientes() + " por enviar";
+        }
+
+        private bool PuedeVender()
+        {
+            if (_carrito.Vacio)
+            {
+                Aviso("El carrito está vacío.");
+                return false;
+            }
+            if (_calculadora == null || ReglaSesion.TasaVencida(_tasas, DateTimeOffset.Now))
+            {
+                Aviso("No se puede vender: la tasa está vencida o no hay tasas. Conecta y sincroniza.");
+                return false;
+            }
+            return true;
+        }
+
+        private void Agregar(Producto producto, double cantidad)
+        {
+            if (producto == null || _calculadora == null)
+            {
+                Aviso("Sincroniza el catálogo antes de vender.");
+                return;
+            }
+
+            _carrito.Agregar(producto, _calculadora, cantidad);
+            PersistirCarrito();
+            RefrescarCarrito();
+
+            CampoBusqueda.Text = "";
+            CampoBusqueda.Focus();
+        }
+
+        private void Agregar_Click(object sender, RoutedEventArgs e)
+        {
+            var vista = (sender as FrameworkElement)?.DataContext as ProductoVista;
+            if (vista != null)
+            {
+                Agregar(vista.Modelo, 1);
+            }
+        }
+
+        private void TablaResultados_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+        {
+            var vista = TablaResultados.SelectedItem as ProductoVista;
+            if (vista != null)
+            {
+                Agregar(vista.Modelo, 1);
+            }
+        }
+
+        private void Sumar_Click(object sender, RoutedEventArgs e)
+        {
+            Ajustar(sender, 1);
+        }
+
+        private void Restar_Click(object sender, RoutedEventArgs e)
+        {
+            Ajustar(sender, -1);
+        }
+
+        private void Ajustar(object sender, double delta)
+        {
+            var vista = (sender as FrameworkElement)?.DataContext as ItemCarritoVista;
+            if (vista == null)
+            {
+                return;
+            }
+            _carrito.Ajustar(vista.Item.Id, delta);
+            PersistirCarrito();
+            RefrescarCarrito();
+        }
+
+        private void Quitar_Click(object sender, RoutedEventArgs e)
+        {
+            var vista = (sender as FrameworkElement)?.DataContext as ItemCarritoVista;
+            if (vista == null)
+            {
+                return;
+            }
+            _carrito.Quitar(vista.Item.Id);
+            PersistirCarrito();
+            RefrescarCarrito();
+        }
+
+        private void Destruir_Click(object sender, RoutedEventArgs e)
+        {
+            if (_carrito.Vacio)
+            {
+                return;
+            }
+            if (MessageBox.Show(this, "¿Vaciar el carrito?", "Confirmar",
+                                MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes)
+            {
+                return;
+            }
+
+            _carrito.Vaciar();
+            _carritoRepo.Vaciar();
+            RefrescarCarrito();
+        }
+
+        // ── Venta ──────────────────────────────────────────────────────────────────
+
+        private void Vender_Click(object sender, RoutedEventArgs e)
+        {
+            Vender();
+        }
+
+        private void Vender()
+        {
+            if (!PuedeVender())
+            {
+                return;
+            }
+
+            var dialogo = new VentanaPago(false, _sesion.Configuracion.RegistroClientes, _carrito, BuscarCliente)
+            {
+                Owner = this,
+            };
+            if (dialogo.ShowDialog() == true)
+            {
+                ProcesarVenta(dialogo.MetodoPago, Despacho.Venta, dialogo.Cliente);
+            }
+        }
+
+        private void Credito_Click(object sender, RoutedEventArgs e)
+        {
+            if (!PuedeVender())
+            {
+                return;
+            }
+
+            var dialogo = new VentanaPago(true, 1, _carrito, BuscarCliente) { Owner = this };
+            if (dialogo.ShowDialog() == true)
+            {
+                ProcesarVenta("0", Despacho.Credito, dialogo.Cliente);
+            }
+        }
+
+        private void Descuento_Click(object sender, RoutedEventArgs e)
+        {
+            if (!PuedeVender())
+            {
+                return;
+            }
+            if (MessageBox.Show(this, "Se descontarán productos del almacén. ¿Continuar?", "Confirmar",
+                                MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes)
+            {
+                return;
+            }
+            ProcesarVenta("0", Despacho.Descuento, new Cliente());
+        }
+
+        private void ProcesarVenta(string metodoPago, int despacho, Cliente cliente)
+        {
+            Venta venta;
+            try
+            {
+                venta = VentaFabrica.Crear(_carrito, metodoPago, despacho, cliente, _sesion, _tasas, DateTimeOffset.Now);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(this, ex.Message, "No se pudo armar la venta", MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
+            }
+
+            var validacion = ValidadorVenta.Validar(venta);
+            if (!validacion.Valido)
+            {
+                MessageBox.Show(this, validacion.Error, "Venta inválida", MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
+            }
+
+            try
+            {
+                _ventasRepo.Guardar(venta);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(this, "No se pudo guardar la venta: " + ex.Message, "Error",
+                                MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
+            }
+
+            _carrito.Vaciar();
+            _carritoRepo.Vaciar();
+            RefrescarCarrito();
+            RefrescarPendientes();
+
+            if (_sesion.Configuracion.Tickets == 1)
+            {
+                Imprimir(venta);
+            }
+
+            Aviso("Venta guardada. Queda como pendiente de enviar.");
+        }
+
+        private void Imprimir(Venta venta)
+        {
+            try
+            {
+                var opciones = _config.ComoOpcionesImpresion();
+                if (!opciones.ImprimirTickets)
+                {
+                    return;
+                }
+                byte[] datos = TicketEscPos.Generar(venta, _sesion.SucursalNombre, opciones);
+                ImpresoraRaw.Enviar(opciones.Impresora, datos);
+            }
+            catch (Exception ex)
+            {
+                Aviso("La venta se guardó, pero no se pudo imprimir: " + ex.Message);
+            }
+        }
+
+        private void Cambio_Click(object sender, RoutedEventArgs e)
+        {
+            if (_carrito.Vacio)
+            {
+                Aviso("El carrito está vacío.");
+                return;
+            }
+
+            var ventana = new VentanaCambio(_carrito.TotalPeso, _carrito.TotalUsd, _carrito.TotalBs)
+            {
+                Owner = this,
+            };
+            ventana.ShowDialog();
+        }
+
+        private Cliente BuscarCliente(string cedula)
+        {
+            return _catalogo.ObtenerCliente(cedula);
+        }
+
+        private void RefrescarPendientes()
+        {
+            _pendientes.Clear();
+            var pendientes = _ventasRepo.Pendientes();
+            foreach (var venta in pendientes)
+            {
+                _pendientes.Add(new VentaVista { Venta = venta });
+            }
+            HeaderPendientes.Text = pendientes.Count > 0
+                ? "No guardados (" + pendientes.Count + ")"
+                : "No guardados";
+
+            TextoCatalogo.Text = pendientes.Count + " por enviar";
+        }
+
+        // ── Atajos y lector de barras ──────────────────────────────────────────────
+
+        private void Window_PreviewKeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Escape)
+            {
+                CampoBusqueda.Text = "";
+                CampoBusqueda.Focus();
+                e.Handled = true;
+                return;
+            }
+
+            bool enCampo = Keyboard.FocusedElement is TextBox || Keyboard.FocusedElement is PasswordBox;
+
+            if (e.Key == Key.Enter && !enCampo)
+            {
+                e.Handled = true;
+                CerrarCodigo();
+                return;
+            }
+
+            if (enCampo || e.Key == Key.LeftCtrl || e.Key == Key.RightCtrl || e.Key == Key.LeftAlt ||
+                e.Key == Key.RightAlt)
+            {
+                return;
+            }
+
+            switch (e.Key)
+            {
+                case Key.B:
+                    e.Handled = true;
+                    CampoBusqueda.Focus();
+                    return;
+                case Key.V:
+                    e.Handled = true;
+                    Vender();
+                    return;
+                case Key.C:
+                    e.Handled = true;
+                    Cambio_Click(sender, null);
+                    return;
+                case Key.Add:
+                case Key.OemPlus:
+                    e.Handled = true;
+                    AjustarSeleccionado(1);
+                    return;
+                case Key.Subtract:
+                case Key.OemMinus:
+                    e.Handled = true;
+                    AjustarSeleccionado(-1);
+                    return;
+            }
+
+            // Números: agregan el resultado N (1-9) de la búsqueda en curso.
+            int indice = NumeroDe(e.Key);
+            if (indice > 0)
+            {
+                e.Handled = true;
+                if (indice <= _resultados.Count)
+                {
+                    Agregar(_resultados[indice - 1].Modelo, 1);
+                }
+                return;
+            }
+
+            // Lector de barras: acumula dígitos si llegan en ráfaga.
+            AcumularCodigo(e);
+        }
+
+        private void AjustarSeleccionado(double delta)
+        {
+            var vista = TablaCarrito.SelectedItem as ItemCarritoVista;
+            if (vista == null)
+            {
+                return;
+            }
+            _carrito.Ajustar(vista.Item.Id, delta);
+            PersistirCarrito();
+            RefrescarCarrito();
+        }
+
+        private static int NumeroDe(Key tecla)
+        {
+            if (tecla >= Key.D1 && tecla <= Key.D9)
+            {
+                return tecla - Key.D1 + 1;
+            }
+            if (tecla >= Key.NumPad1 && tecla <= Key.NumPad9)
+            {
+                return tecla - Key.NumPad1 + 1;
+            }
+            return 0;
+        }
+
+        private void AcumularCodigo(KeyEventArgs e)
+        {
+            char letra = TeclaADigito(e);
+            if (letra == '\0')
+            {
+                return;
+            }
+
+            var ahora = DateTime.Now;
+            if ((ahora - _ultimaTeclaCodigo).TotalMilliseconds > VentanaCodigoMs)
+            {
+                _codigo.Clear();
+            }
+            _ultimaTeclaCodigo = ahora;
+            _codigo.Append(letra);
+            e.Handled = true;
+        }
+
+        private static char TeclaADigito(KeyEventArgs e)
+        {
+            if (e.Key >= Key.D0 && e.Key <= Key.D9 && Keyboard.Modifiers == ModifierKeys.None)
+            {
+                return (char)('0' + (e.Key - Key.D0));
+            }
+            if (e.Key >= Key.NumPad0 && e.Key <= Key.NumPad9)
+            {
+                return (char)('0' + (e.Key - Key.NumPad0));
+            }
+            return '\0';
+        }
+
+        /// <summary>Al terminar una lectura, busca el código exacto y lo agrega.</summary>
+        private void CerrarCodigo()
+        {
+            if (_codigo.Length == 0)
+            {
+                return;
+            }
+
+            string codigo = _codigo.ToString();
+            _codigo.Clear();
+            if (codigo.Length < 6)
+            {
+                return;
+            }
+
+            var producto = _catalogo.BuscarPorCodigo(codigo);
+            if (producto == null)
+            {
+                Aviso("El producto con código " + codigo + " no está en el catálogo.");
+                return;
+            }
+            Agregar(producto, 1);
+        }
+
+        // ── Eventos de UI ──────────────────────────────────────────────────────────
+
+        private void CampoBusqueda_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            Buscar(CampoBusqueda.Text);
+        }
+
+        private void CampoBusqueda_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key != Key.Enter)
+            {
+                return;
+            }
+            e.Handled = true;
+
+            string termino = CampoBusqueda.Text.Trim();
+
+            // Enter = lectura de código de barras: si coincide exacto, entra al carrito.
+            var porCodigo = _catalogo.BuscarPorCodigo(termino);
+            if (porCodigo != null)
+            {
+                Agregar(porCodigo, 1);
+                return;
+            }
+
+            if (_resultados.Count == 1)
+            {
+                Agregar(_resultados[0].Modelo, 1);
+            }
+        }
+
+        private void Ajustes_Click(object sender, RoutedEventArgs e)
+        {
+            var ajustes = new VentanaAjustes(_config) { Owner = this };
+            if (ajustes.ShowDialog() == true)
+            {
+                Aviso("Ajustes guardados.");
+            }
+        }
+
+        // ── Sincronización y auxiliares ────────────────────────────────────────────
 
         private async Task SincronizarAsync()
         {
@@ -171,7 +668,7 @@ namespace Iseller.Pos.App
 
                     Conexion(true, "En línea");
 
-                    var catalogo = await api.DescargarCatalogoAsync(_sesion.Token, _repo.Version());
+                    var catalogo = await api.DescargarCatalogoAsync(_sesion.Token, _catalogo.Version());
                     if (!catalogo.Ok)
                     {
                         TextoEstadoConexion.Text = "En línea · " + catalogo.Error;
@@ -180,7 +677,7 @@ namespace Iseller.Pos.App
 
                     if (!catalogo.SinCambios)
                     {
-                        _repo.GuardarCatalogo(
+                        _catalogo.GuardarCatalogo(
                             catalogo.Productos,
                             catalogo.Clientes,
                             catalogo.Tasas,
@@ -191,6 +688,7 @@ namespace Iseller.Pos.App
                     }
 
                     CargarDesdeDisco();
+                    Buscar(CampoBusqueda.Text);
                 }
             }
             catch (Exception ex)
@@ -209,60 +707,9 @@ namespace Iseller.Pos.App
             TextoEstadoConexion.Text = texto;
         }
 
-        // ── Eventos ────────────────────────────────────────────────────────────────
-
-        private void CampoBusqueda_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
+        private void Aviso(string mensaje)
         {
-            Buscar(CampoBusqueda.Text);
-        }
-
-        private void CampoBusqueda_KeyDown(object sender, KeyEventArgs e)
-        {
-            if (e.Key != Key.Enter)
-            {
-                return;
-            }
-            e.Handled = true;
-
-            // Enter = lectura de código de barras: si coincide exacto, se muestra solo ese producto.
-            var porCodigo = _repo.BuscarPorCodigo(CampoBusqueda.Text.Trim());
-            if (porCodigo != null)
-            {
-                Mostrar(new[] { porCodigo });
-                return;
-            }
-            Buscar(CampoBusqueda.Text);
-        }
-
-        private async void Sincronizar_Click(object sender, RoutedEventArgs e)
-        {
-            await SincronizarAsync();
-        }
-
-        private async void Verificar_Click(object sender, RoutedEventArgs e)
-        {
-            PuntoConexion.Fill = (Brush)FindResource("WarningBrush");
-            TextoEstadoConexion.Text = "Comprobando…";
-            try
-            {
-                using (var api = new PosApiClient(_config.ApiBaseUrl, _config.ApiKey))
-                {
-                    var hora = await api.HeartbeatAsync(_sesion.Token);
-                    Conexion(hora.HasValue, hora.HasValue ? "En línea" : "Sin conexión (o sesión vencida)");
-                }
-            }
-            catch (Exception)
-            {
-                Conexion(false, "Sin conexión");
-            }
-        }
-
-        // ── Detalles ───────────────────────────────────────────────────────────────
-
-        private string FechaCatalogo()
-        {
-            var fecha = _repo.ServidorEn();
-            return fecha.HasValue ? fecha.Value.ToLocalTime().ToString("dd/MM HH:mm") : "—";
+            TextoEstadoConexion.Text = mensaje;
         }
 
         private static string AntiguedadLegible(TimeSpan valor)

@@ -116,6 +116,7 @@ namespace Iseller.Pos.Tests
             Assert.NotNull(tasas);
             Assert.Equal(4000, tasas.PesoDolar, 6);
             Assert.False(tasas.PrecioDolarVisible);
+            Assert.Equal("{\"precio_bolivar_dolar\":\"1\"}", tasas.DataMonedasJson);
             Assert.Equal(servidorEn, tasas.ActualizadoEn.Value);
 
             var cliente = repo.ObtenerCliente("V123");

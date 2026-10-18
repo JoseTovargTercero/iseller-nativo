@@ -152,6 +152,10 @@ armable, y `Harina Pan` en `$1,67 / 1.674,00 Bs / 7.000 Cop` tanto en la app com
 
 ### Fase 2 — Carrito, venta offline y ticket (~3-4 semanas)
 
+**Estado: implementada.** Carrito persistente, venta local con precios y tasas congelados,
+ticket ESC/POS 58/80 mm configurable, cajón monedero opcional y atajos. Pendiente de probar
+en hardware real (no hay impresora conectada).
+
 **Objetivo:** cobrar y entregar ticket sin red.
 
 **App**
@@ -176,6 +180,17 @@ armable, y `Harina Pan` en `$1,67 / 1.674,00 Bs / 7.000 Cop` tanto en la app com
 - Reiniciar la app conserva el carrito activo.
 - Con una impresora de 58 mm y otra de 80 mm, el ticket sale con el ancho configurado.
 - Desconectar la impresora o el cajón a mitad de turno no impide cobrar.
+
+Verificado el 18/10/2026 con el negocio 3: venta completa desde la UI (2 productos, cliente,
+pago Punto) guardada en SQLite con UUID, totales `$4,84 / 4.848,00 Bs / 20.200 Cop`, ítems y
+tasas congeladas. El carrito sobrevive al reinicio (test de repositorio). Ticket validado a
+nivel de bytes y de ancho de línea para 58 y 80 mm; falta la prueba en impresora física.
+
+Notas de alcance:
+- `1-9` agrega el resultado N de la búsqueda; el ranking real de más vendidos llega en la fase 3.
+- El lector de barras funciona escribiendo en el buscador y con `Enter`, o con una ráfaga de
+  dígitos (< 100 ms) fuera de un campo de texto.
+- "Reservar carrito" y la pestaña "Enviados" quedan para después (no estaban en esta fase).
 
 ---
 

@@ -26,9 +26,6 @@ namespace Iseller.Pos.App
             _credenciales = credenciales;
             _sesionGuardada = sesionGuardada;
 
-            CampoUrl.Text = config.ApiBaseUrl;
-            CampoApiKey.Text = config.ApiKey;
-
             if (sesionGuardada != null)
             {
                 CampoUsuario.Text = sesionGuardada.Usuario;
@@ -150,12 +147,13 @@ namespace Iseller.Pos.App
             DialogResult = true;
         }
 
-        private void GuardarConfig_Click(object sender, RoutedEventArgs e)
+        private void Ajustes_Click(object sender, RoutedEventArgs e)
         {
-            _config.ApiBaseUrl = CampoUrl.Text.Trim();
-            _config.ApiKey = CampoApiKey.Text.Trim();
-            _config.Guardar();
-            Estado("Servidor guardado.");
+            var ajustes = new VentanaAjustes(_config) { Owner = this };
+            if (ajustes.ShowDialog() == true)
+            {
+                Estado("Ajustes guardados.");
+            }
         }
 
         private void CampoClave_KeyDown(object sender, KeyEventArgs e)

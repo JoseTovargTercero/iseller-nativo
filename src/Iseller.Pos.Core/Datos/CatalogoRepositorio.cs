@@ -133,8 +133,8 @@ namespace Iseller.Pos.Core.Datos
                 cmd.Transaction = tx;
                 cmd.CommandText =
                     "INSERT OR REPLACE INTO tasas (id, peso_dolar, peso_bolivar, dolar_bolivar, bolivar_peso, bcv, " +
-                    "precio_dolar_visible, precio_peso_visible, actualizado_en) " +
-                    "VALUES (1, @pd, @pb, @db, @bp, @bcv, @dolarVis, @pesoVis, @fecha)";
+                    "precio_dolar_visible, precio_peso_visible, data_monedas, actualizado_en) " +
+                    "VALUES (1, @pd, @pb, @db, @bp, @bcv, @dolarVis, @pesoVis, @monedas, @fecha)";
                 cmd.Parameters.AddWithValue("@pd", tasas.PesoDolar);
                 cmd.Parameters.AddWithValue("@pb", tasas.PesoBolivar);
                 cmd.Parameters.AddWithValue("@db", tasas.DolarBolivar);
@@ -142,6 +142,8 @@ namespace Iseller.Pos.Core.Datos
                 cmd.Parameters.AddWithValue("@bcv", tasas.Bcv);
                 cmd.Parameters.AddWithValue("@dolarVis", tasas.PrecioDolarVisible ? 1 : 0);
                 cmd.Parameters.AddWithValue("@pesoVis", tasas.PrecioPesoVisible ? 1 : 0);
+                cmd.Parameters.AddWithValue("@monedas",
+                    string.IsNullOrWhiteSpace(tasas.DataMonedasJson) ? "{}" : tasas.DataMonedasJson);
                 cmd.Parameters.AddWithValue("@fecha",
                     tasas.ActualizadoEn.HasValue ? tasas.ActualizadoEn.Value.ToString("o") : DateTimeOffset.Now.ToString("o"));
                 cmd.ExecuteNonQuery();
@@ -198,7 +200,7 @@ namespace Iseller.Pos.Core.Datos
             {
                 cmd.CommandText =
                     "SELECT peso_dolar, peso_bolivar, dolar_bolivar, bolivar_peso, bcv, " +
-                    "precio_dolar_visible, precio_peso_visible, actualizado_en FROM tasas WHERE id = 1";
+                    "precio_dolar_visible, precio_peso_visible, data_monedas, actualizado_en FROM tasas WHERE id = 1";
                 using (var lector = cmd.ExecuteReader())
                 {
                     if (!lector.Read())
@@ -214,7 +216,8 @@ namespace Iseller.Pos.Core.Datos
                         Bcv = lector.GetDouble(4),
                         PrecioDolarVisible = lector.GetInt64(5) == 1,
                         PrecioPesoVisible = lector.GetInt64(6) == 1,
-                        ActualizadoEn = LeerFecha(lector.IsDBNull(7) ? null : lector.GetString(7)),
+                        DataMonedasJson = lector.IsDBNull(7) ? "{}" : lector.GetString(7),
+                        ActualizadoEn = LeerFecha(lector.IsDBNull(8) ? null : lector.GetString(8)),
                     };
                 }
             }

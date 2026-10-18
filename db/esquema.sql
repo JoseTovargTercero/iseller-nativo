@@ -59,7 +59,15 @@ CREATE TABLE IF NOT EXISTS tasas (
     bcv                  REAL    NOT NULL,
     precio_dolar_visible INTEGER NOT NULL DEFAULT 1,
     precio_peso_visible  INTEGER NOT NULL DEFAULT 1,
+    data_monedas         TEXT    NOT NULL DEFAULT '{}',
     actualizado_en       TEXT    NOT NULL
+);
+
+-- Carrito en curso. Se guarda item por item para sobrevivir a un cierre de la app.
+CREATE TABLE IF NOT EXISTS carrito_activo (
+    producto_id INTEGER PRIMARY KEY,
+    item_json   TEXT    NOT NULL,
+    agregado_en TEXT    NOT NULL
 );
 
 -- Ventas locales. estado = pendiente | enviada | error.

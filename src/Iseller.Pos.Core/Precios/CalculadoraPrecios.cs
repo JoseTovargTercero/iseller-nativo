@@ -16,6 +16,12 @@ namespace Iseller.Pos.Core.Precios
             _parametros = parametros ?? throw new ArgumentNullException(nameof(parametros));
         }
 
+        /// <summary>Tasas con las que se calculan los precios (las necesita el carrito).</summary>
+        public ParametrosPrecios Parametros
+        {
+            get { return _parametros; }
+        }
+
         public PreciosCalculados Calcular(ProductoPrecio producto)
         {
             if (producto == null) throw new ArgumentNullException(nameof(producto));
