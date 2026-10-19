@@ -78,14 +78,21 @@ PLAN.md                 Plan por fases, contratos y decisiones
   Si la venta sigue en la cola local se quita de la caja; si ya se envió, se anula en el servidor
   (`api/pos_venta_anular.php`), que devuelve los productos al stock (combos incluidos) y luego se
   refresca el catálogo. Las ventas a crédito no se anulan desde aquí.
+- **Topbar:** las acciones del sistema van agrupadas en el menú **☰** (sincronizar catálogo,
+  enviar pendientes, verificar conexión); el **⚙** abre Ajustes y "ÚLTIMAS VENTAS" queda como
+  botón propio. Los iconos van a la derecha, junto a minimizar y cerrar.
+- **Sincronización automática:** cada 30 s se comprueba internet. Cuando el internet llega (o
+  vuelve), la app envía sola lo pendiente, sincroniza el catálogo y busca actualización. Al
+  arrancar con internet también consulta si hay versión nueva (silenciosa, pide confirmación
+  para instalar).
 - **El estado de conexión** vive en la barra inferior (texto y mensajes de sincronización); en el
   topbar queda solo el punto de color, con el estado en su tooltip.
 - **Campos numéricos:** montos de apertura/cierre de caja, cantidad recibida (cambio) y cantidad
   del carrito solo aceptan dígitos y **un** punto decimal. Se bloquean letras, comas, signos,
   espacios y el segundo punto, tanto al teclear como al pegar.
-- **Ajustes:** solo impresora (ancho, cajón, prueba). La URL y la clave de la API no se muestran
-  ni se editan desde la app; viven en `config.json`. Se abre desde la ventana principal, no desde
-  el login.
+- **Ajustes:** impresora (ancho, cajón, prueba) y **buscar actualización** (muestra la versión
+  instalada). La URL y la clave de la API no se muestran ni se editan desde la app; viven en
+  `config.json`. Se abre desde el engranaje del topbar, no desde el login.
 - Login: los campos de usuario y contraseña comparten plantilla (mismo alto y radio). La entrada
   sin conexión es automática: si el servidor no responde, se valida la contraseña contra el
   acceso guardado de ese usuario (hasta 2 días).

@@ -12,6 +12,9 @@ namespace Iseller.Pos.App
     {
         private readonly AppConfig _config;
 
+        /// <summary>El usuario pidió buscar actualización desde aquí.</summary>
+        public bool PedirActualizacion { get; private set; }
+
         public VentanaAjustes(AppConfig config)
         {
             InitializeComponent();
@@ -20,7 +23,17 @@ namespace Iseller.Pos.App
             Ancho58.IsChecked = config.AnchoMm < 80;
             Ancho80.IsChecked = config.AnchoMm >= 80;
             CheckCajon.IsChecked = config.AbrirCajon ?? true;
+            TextoVersion.Text = "Versión instalada: " + App.VersionApp;
             Refrescar();
+        }
+
+        /// <summary>Cierra los ajustes y pide a la ventana principal que busque actualización.</summary>
+        private void Actualizacion_Click(object sender, RoutedEventArgs e)
+        {
+            Volcar();
+            _config.Guardar();
+            PedirActualizacion = true;
+            DialogResult = true;
         }
 
         private void Refrescar_Click(object sender, RoutedEventArgs e)

@@ -52,11 +52,15 @@ namespace Iseller.Pos.App
         private bool _sincronizando;
         private bool _enviando;
         private bool _preguntandoCaja;
+        private bool? _estadoEnLinea;
         private int? _filtroCajero;
         private EstadoCaja _estadoCaja;
-        private readonly DispatcherTimer _relojEnvio = new DispatcherTimer
+
+        // Cada 30 s se comprueba internet: si acaba de llegar, se envían pendientes y se
+        // sincroniza (y se busca actualización). Sin internet no molesta al cajero.
+        private readonly DispatcherTimer _relojConexion = new DispatcherTimer
         {
-            Interval = TimeSpan.FromSeconds(60),
+            Interval = TimeSpan.FromSeconds(30),
         };
 
         public MainWindow(AppConfig config, SesionLocal sesion, AlmacenCredenciales credenciales)
@@ -82,13 +86,7 @@ namespace Iseller.Pos.App
             AccionesPendientes.Visibility = _sesion.Nivel == 1 ? Visibility.Visible : Visibility.Collapsed;
             AccionesEnviados.Visibility = _sesion.Nivel == 1 ? Visibility.Visible : Visibility.Collapsed;
 
-            _relojEnvio.Tick += (s, e) =>
-            {
-                if (_ventasRepo.ContarPendientes() + _cajaRepo.ContarPendientes() > 0)
-                {
-                    _ = EnviarPendientesAsync();
-                }
-            };
+            _relojConexion.Tick += (s, e) => { _ = RevisarConexionAsync(); };
 
             Loaded += MainWindow_Loaded;
         }
@@ -118,8 +116,57 @@ namespace Iseller.Pos.App
 
             await EnviarPendientesAsync();
             await SincronizarAsync();
-            _relojEnvio.Start();
+            _relojConexion.Start();
+            // Arranque con internet: se busca actualización (silenciosa).
             await BuscarActualizacionAsync(true);
+        }
+
+        /// <summary>
+        /// Comprueba internet cada 30 s. Si acaba de llegar, envía lo pendiente, sincroniza el
+        /// catálogo y busca actualización; si ya había internet y quedan pendientes, reintenta.
+        /// </summary>
+        private async Task RevisarConexionAsync()
+        {
+            if (_sincronizando || _enviando)
+            {
+                return;
+            }
+
+            bool enLinea;
+            try
+            {
+                using (var api = new PosApiClient(_config.ApiBaseUrl, _config.ApiKey))
+                {
+                    enLinea = (await api.HeartbeatAsync(_sesion.Token)).HasValue;
+                }
+            }
+            catch (Exception)
+            {
+                enLinea = false;
+            }
+
+            bool llegoInternet = enLinea && _estadoEnLinea == false;
+            bool cambio = _estadoEnLinea != enLinea;
+            _estadoEnLinea = enLinea;
+
+            if (cambio)
+            {
+                Conexion(enLinea, enLinea ? "En línea" : "Sin conexión");
+            }
+
+            if (llegoInternet)
+            {
+                Aviso("Internet detectado: enviando pendientes y sincronizando…");
+                await EnviarPendientesAsync();
+                await SincronizarAsync();
+                await BuscarActualizacionAsync(true);
+                return;
+            }
+
+            if (enLinea && (_ventasRepo.ContarPendientes() + _cajaRepo.ContarPendientes()) > 0)
+            {
+                await EnviarPendientesAsync();
+            }
         }
 
         // ── Catálogo ───────────────────────────────────────────────────────────────
@@ -954,11 +1001,37 @@ namespace Iseller.Pos.App
 
         private void Ajustes_Click(object sender, RoutedEventArgs e)
         {
+            Ajustes();
+        }
+
+        private async void Ajustes()
+        {
             var ajustes = new VentanaAjustes(_config) { Owner = this };
-            if (ajustes.ShowDialog() == true)
+            if (ajustes.ShowDialog() != true)
             {
-                Aviso("Ajustes guardados.");
+                return;
             }
+
+            if (ajustes.PedirActualizacion)
+            {
+                await BuscarActualizacionAsync(false);
+                return;
+            }
+            Aviso("Ajustes guardados.");
+        }
+
+        /// <summary>Abre el menú de sincronización del topbar (hamburguesa).</summary>
+        private void Menu_Click(object sender, RoutedEventArgs e)
+        {
+            var boton = sender as Button;
+            if (boton == null || boton.ContextMenu == null)
+            {
+                return;
+            }
+
+            boton.ContextMenu.PlacementTarget = boton;
+            boton.ContextMenu.Placement = System.Windows.Controls.Primitives.PlacementMode.Bottom;
+            boton.ContextMenu.IsOpen = true;
         }
 
         // ── Sincronización y auxiliares ────────────────────────────────────────────
@@ -1140,11 +1213,6 @@ namespace Iseller.Pos.App
         private void Cerrar_Click(object sender, RoutedEventArgs e)
         {
             Close();
-        }
-
-        private async void Actualizar_Click(object sender, RoutedEventArgs e)
-        {
-            await BuscarActualizacionAsync(false);
         }
 
         /// <summary>

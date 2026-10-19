@@ -26,6 +26,15 @@
         <TextBlock x:Name="TextoEstado" Style="{StaticResource MutedText}" Margin="0,12,0,0"
                    TextWrapping="Wrap" />
 
+        <TextBlock Text="Actualizaciones" Style="{StaticResource SectionTitle}" Margin="0,22,0,0" />
+        <Grid Margin="0,8,0,0">
+            <TextBlock x:Name="TextoVersion" Style="{StaticResource MutedText}"
+                       VerticalAlignment="Center" />
+            <Button Content="BUSCAR ACTUALIZACIÓN" Style="{StaticResource SecondaryButton}"
+                    Padding="12,7" HorizontalAlignment="Right" Click="Actualizacion_Click"
+                    ToolTip="Consultar si hay una versión nueva del POS" />
+        </Grid>
+
         <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,20,0,0">
             <Button Content="Imprimir prueba" Style="{StaticResource SecondaryButton}" Padding="14,9"
                     Click="Probar_Click" />
