@@ -37,39 +37,53 @@
 
     <Grid>
         <Grid.RowDefinitions>
-            <RowDefinition Height="56" />
+            <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
             <RowDefinition Height="32" />
         </Grid.RowDefinitions>
 
-        <!-- Cabecera (hace de barra de título) -->
-        <Border Grid.Row="0" Background="{StaticResource BgBrush}"
+        <!-- Cabecera (hace de barra de título): crece si los botones se pasan de ancho. -->
+        <Border Grid.Row="0" Background="{StaticResource BgBrush}" MinHeight="56"
                 BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,0,0,1"
                 MouseLeftButtonDown="Barra_MouseLeftButtonDown">
-            <Grid Margin="20,0">
-                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+            <Grid Margin="20,6">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center"
+                            ClipToBounds="True">
                     <Image Source="Assets/logo1-inv-compact-128.png" Width="30" Height="30"
                            Margin="0,0,10,0" RenderOptions.BitmapScalingMode="HighQuality" />
                     <TextBlock Text="iSELLER" FontSize="16" FontWeight="Bold"
                                Foreground="{StaticResource MintBrush}" />
                     <TextBlock Text="POS" FontSize="16" FontWeight="Bold" Margin="6,0,0,0" />
                     <TextBlock x:Name="TextoSucursal" Style="{StaticResource MutedText}"
-                               Margin="24,0,0,0" VerticalAlignment="Center" />
+                               Margin="24,0,0,0" VerticalAlignment="Center"
+                               TextTrimming="CharacterEllipsis" />
                 </StackPanel>
 
-                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right"
-                            VerticalAlignment="Center">
+                <WrapPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right"
+                           VerticalAlignment="Center">
                     <Ellipse x:Name="PuntoConexion" Width="8" Height="8"
-                             Fill="{StaticResource WarningBrush}" Margin="0,0,8,0" />
+                             Fill="{StaticResource WarningBrush}" Margin="0,0,8,0"
+                             VerticalAlignment="Center" />
                     <TextBlock x:Name="TextoEstadoConexion" Text="Comprobando…"
                                Style="{StaticResource MutedText}" VerticalAlignment="Center"
                                Margin="0,0,16,0" />
+                    <Button Content="SINCRONIZAR CATÁLOGO" Style="{StaticResource SecondaryButton}"
+                            Padding="12,6" Margin="0,3,0,3" Click="Sincronizar_Click" />
+                    <Button Content="ENVIAR PENDIENTES" Style="{StaticResource SecondaryButton}"
+                            Padding="12,6" Margin="8,3,0,3" Click="Enviar_Click" />
+                    <Button Content="VERIFICAR CONEXIÓN" Style="{StaticResource SecondaryButton}"
+                            Padding="12,6" Margin="8,3,0,3" Click="Verificar_Click" />
                     <Button Content="AJUSTES" Style="{StaticResource SecondaryButton}" Padding="12,6"
-                            Click="Ajustes_Click" />
+                            Margin="8,3,0,3" Click="Ajustes_Click" />
                     <Button Style="{StaticResource SecondaryButton}" Padding="12,6"
-                            Margin="8,0,0,0" Click="Actualizar_Click"
+                            Margin="8,3,0,3" Click="Actualizar_Click"
                             ToolTip="Buscar si hay una versión nueva del POS">
                         <StackPanel Orientation="Horizontal">
                             <Path Data="M12,3 L12,15 M6,9 L12,15 L18,9 M4,20 L20,20"
@@ -80,15 +94,15 @@
                             <TextBlock Text="VERIFICAR ACTUALIZACIONES" VerticalAlignment="Center" />
                         </StackPanel>
                     </Button>
-                    <Button x:Name="BtnMinimizar" Style="{StaticResource WindowButton}" Margin="12,0,0,0"
+                    <Button x:Name="BtnMinimizar" Style="{StaticResource WindowButton}" Margin="12,3,0,3"
                             ToolTip="Minimizar" Click="Minimizar_Click">
                         <Path Data="M0,0 L11,0" Stroke="White" StrokeThickness="1.2" />
                     </Button>
-                    <Button x:Name="BtnCerrar" Style="{StaticResource WindowCloseButton}"
+                    <Button x:Name="BtnCerrar" Style="{StaticResource WindowCloseButton}" Margin="0,3,0,3"
                             ToolTip="Cerrar" Click="Cerrar_Click">
                         <Path Data="M0,0 L11,11 M11,0 L0,11" Stroke="White" StrokeThickness="1.2" />
                     </Button>
-                </StackPanel>
+                </WrapPanel>
             </Grid>
         </Border>
 
@@ -136,12 +150,6 @@
                         <StackPanel Orientation="Horizontal">
                             <Button Content="(B) BÚSQUEDA" Style="{StaticResource PrimaryButton}"
                                     Padding="18,10" Click="Buscar_Click" />
-                            <Button Content="SINCRONIZAR CATÁLOGO" Style="{StaticResource SecondaryButton}"
-                                    Margin="10,0,0,0" Click="Sincronizar_Click" />
-                            <Button Content="ENVIAR PENDIENTES" Style="{StaticResource SecondaryButton}"
-                                    Margin="10,0,0,0" Click="Enviar_Click" />
-                            <Button Content="VERIFICAR CONEXIÓN" Style="{StaticResource SecondaryButton}"
-                                    Margin="10,0,0,0" Click="Verificar_Click" />
                         </StackPanel>
                         <Button x:Name="BotonCerrarCaja" Content="CERRAR CAJA"
                                 Style="{StaticResource DangerButton}" Padding="16,10"
