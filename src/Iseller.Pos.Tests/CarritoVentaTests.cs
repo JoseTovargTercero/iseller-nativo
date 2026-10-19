@@ -464,8 +464,8 @@ namespace Iseller.Pos.Tests
         [Fact]
         public void Usa_la_moneda_del_metodo_de_pago()
         {
-            // option6 = pesos: 7.000*2 + 6.200, redondeado a centenas.
-            Assert.Contains("20.200,00 COP", Texto(TicketEscPos.Generar(VentaDePrueba("option6"), "X", new OpcionesImpresion())));
+            // option6 = pesos: 7.000*2 + 6.200, redondeado a centenas y sin decimales.
+            Assert.Contains("20.200 COP", Texto(TicketEscPos.Generar(VentaDePrueba("option6"), "X", new OpcionesImpresion())));
             // option5 = dólares: 1,67*2 + 1,50.
             Assert.Contains("4,84 USD", Texto(TicketEscPos.Generar(VentaDePrueba("option5"), "X", new OpcionesImpresion())));
         }

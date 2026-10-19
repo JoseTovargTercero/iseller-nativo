@@ -12,6 +12,8 @@ namespace Iseller.Pos.App
     /// <summary>Producto del catálogo con precios e imagen para la vista.</summary>
     public sealed class ProductoVista : INotifyPropertyChanged
     {
+        private static readonly CultureInfo Formato = CultureInfo.GetCultureInfo("es-VE");
+
         private ImageSource _imagen;
 
         public int Id { get; set; }
@@ -67,7 +69,8 @@ namespace Iseller.Pos.App
                 CantidadTexto = "1",
                 PrecioDolar = "$" + Numero(precios.PrecioVentaDolar),
                 PrecioBs = Numero(precios.PrecioVentaBs) + " Bs",
-                PrecioPeso = Numero(precios.PrecioVentaPeso) + " Cop",
+                // Los pesos van sin decimales (como el POS web).
+                PrecioPeso = precios.PrecioVentaPeso.ToString("N0", Formato) + " Cop",
             };
         }
 
@@ -104,7 +107,7 @@ namespace Iseller.Pos.App
 
         private static string Numero(double valor)
         {
-            return valor.ToString("N2", CultureInfo.GetCultureInfo("es-VE"));
+            return valor.ToString("N2", Formato);
         }
     }
 }

@@ -27,7 +27,8 @@ namespace Iseller.Pos.App
 
         public string Peso
         {
-            get { return Numero(Item.SubtotalPeso) + " Cop"; }
+            // Los pesos se muestran sin decimales, como en el carrito del POS web.
+            get { return Item.SubtotalPeso.ToString("N0", Formato) + " Cop"; }
         }
 
         public string Bolivares

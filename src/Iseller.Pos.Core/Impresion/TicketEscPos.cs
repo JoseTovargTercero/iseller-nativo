@@ -69,7 +69,7 @@ namespace Iseller.Pos.Core.Impresion
             }
 
             lineas.Add(new LineaTicket(new string('-', ancho)));
-            lineas.Add(new LineaTicket(Derecha("TOTAL: " + Numero(total) + " " + moneda, ancho), false, true));
+            lineas.Add(new LineaTicket(Derecha("TOTAL: " + Numero(total, moneda) + " " + moneda, ancho), false, true));
 
             if (!string.IsNullOrWhiteSpace(venta.ClienteNombre) || !string.IsNullOrWhiteSpace(venta.ClienteCedula))
             {
@@ -183,7 +183,7 @@ namespace Iseller.Pos.Core.Impresion
                 : item.Qty.ToString("0.##", CultureInfo.InvariantCulture);
 
             string izquierda = numero + "x" + cantidad + " " + (item.Name ?? "");
-            string derecha = moneda == "USD" ? "$" + Numero(monto) : Numero(monto);
+            string derecha = (moneda == "USD" ? "$" : "") + Numero(monto, moneda);
 
             if (izquierda.Length + derecha.Length + 1 > ancho)
             {
@@ -213,9 +213,10 @@ namespace Iseller.Pos.Core.Impresion
             return texto.Length <= ancho ? texto : texto.Substring(0, ancho);
         }
 
-        private static string Numero(double valor)
+        private static string Numero(double valor, string moneda)
         {
-            return valor.ToString("N2", Formato);
+            // Los pesos van sin decimales, igual que en el carrito del POS web.
+            return valor.ToString(moneda == "COP" ? "N0" : "N2", Formato);
         }
 
         /// <summary>ESC/POS básico: solo ASCII. Quita acentos y signos raros.</summary>

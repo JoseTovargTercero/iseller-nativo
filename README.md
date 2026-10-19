@@ -69,6 +69,8 @@ PLAN.md                 Plan por fases, contratos y decisiones
   disparan dos veces); con `Esc` se descarta.
 - **Colores por moneda:** igual que el POS web. Pesos en azul, bolívares en rojo y dólares en
   verde, tanto en el carrito, los totales y la tabla de búsqueda como en las ventas enviadas.
+  Los **pesos van sin decimales** (como el web) en carrito, buscador, totales, cambio y ticket;
+  bolívares y dólares mantienen dos decimales.
 - **Botones del carrito:** mismo orden y misma rejilla de 3 columnas que el POS web (crédito,
   descontar productos, reservar carrito, calcular cambio, vender, destruir) y se ajustan al ancho
   disponible. CERRAR CAJA quedó junto a BÚSQUEDA, como en el web.
