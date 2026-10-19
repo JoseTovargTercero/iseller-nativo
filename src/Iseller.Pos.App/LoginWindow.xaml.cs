@@ -138,15 +138,6 @@ namespace Iseller.Pos.App
             return true;
         }
 
-        private void Ajustes_Click(object sender, RoutedEventArgs e)
-        {
-            var ajustes = new VentanaAjustes(_config) { Owner = this };
-            if (ajustes.ShowDialog() == true)
-            {
-                Estado("Ajustes guardados.");
-            }
-        }
-
         private void Barra_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
             if (e.ButtonState == MouseButtonState.Pressed)

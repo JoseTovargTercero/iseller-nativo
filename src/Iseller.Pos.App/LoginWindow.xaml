@@ -65,9 +65,6 @@
 
                 <TextBlock x:Name="TextoEstado" Style="{StaticResource MutedText}" Margin="0,14,0,0"
                            TextWrapping="Wrap" />
-
-                <Button Content="AJUSTES DE SERVIDOR E IMPRESORA" Style="{StaticResource SecondaryButton}"
-                        Margin="0,18,0,0" Padding="14,10" Click="Ajustes_Click" />
             </StackPanel>
         </Grid>
     </Grid>

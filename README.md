@@ -76,7 +76,8 @@ PLAN.md                 Plan por fases, contratos y decisiones
   del carrito solo aceptan dígitos y **un** punto decimal. Se bloquean letras, comas, signos,
   espacios y el segundo punto, tanto al teclear como al pegar.
 - **Ajustes:** solo impresora (ancho, cajón, prueba). La URL y la clave de la API no se muestran
-  ni se editan desde la app; viven en `config.json`.
+  ni se editan desde la app; viven en `config.json`. Se abre desde la ventana principal, no desde
+  el login.
 - Login: los campos de usuario y contraseña comparten plantilla (mismo alto y radio). La entrada
   sin conexión es automática: si el servidor no responde, se valida la contraseña contra el
   acceso guardado de ese usuario (hasta 2 días).
