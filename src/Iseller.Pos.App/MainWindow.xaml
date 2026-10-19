@@ -17,15 +17,21 @@
     </WindowChrome.WindowChrome>
 
     <Window.Resources>
-        <!-- Colores por moneda, iguales al POS web (pesos, bolívares, dólares). -->
+        <!-- Colores por moneda, iguales al POS web, y valores centrados en su columna. -->
+        <Style x:Key="CeldaCantidad" TargetType="TextBlock">
+            <Setter Property="TextAlignment" Value="Center" />
+        </Style>
         <Style x:Key="CeldaCop" TargetType="TextBlock">
             <Setter Property="Foreground" Value="{StaticResource InfoBrush}" />
+            <Setter Property="TextAlignment" Value="Center" />
         </Style>
         <Style x:Key="CeldaBs" TargetType="TextBlock">
             <Setter Property="Foreground" Value="{StaticResource DangerBrush}" />
+            <Setter Property="TextAlignment" Value="Center" />
         </Style>
         <Style x:Key="CeldaUsd" TargetType="TextBlock">
             <Setter Property="Foreground" Value="{StaticResource MintBrush}" />
+            <Setter Property="TextAlignment" Value="Center" />
         </Style>
     </Window.Resources>
 
@@ -145,7 +151,9 @@
                                 <DataGrid x:Name="TablaCarrito" AutoGenerateColumns="False" IsReadOnly="True"
                                           BorderThickness="0" Background="Transparent" RowHeight="40">
                                     <DataGrid.Columns>
-                                        <DataGridTextColumn Header="CANT." Binding="{Binding Cantidad}" Width="60" />
+                                        <DataGridTextColumn Header="CANT." Binding="{Binding Cantidad}" Width="60"
+                                                            CellStyle="{StaticResource CeldaCentrada}"
+                                                            ElementStyle="{StaticResource CeldaCantidad}" />
                                         <DataGridTemplateColumn Header="PRODUCTO" Width="*">
                                             <DataGridTemplateColumn.CellTemplate>
                                                 <DataTemplate>
@@ -155,10 +163,13 @@
                                             </DataGridTemplateColumn.CellTemplate>
                                         </DataGridTemplateColumn>
                                         <DataGridTextColumn Header="PESO" Binding="{Binding Peso}" Width="118"
+                                                            CellStyle="{StaticResource CeldaCentrada}"
                                                             ElementStyle="{StaticResource CeldaCop}" />
                                         <DataGridTextColumn Header="BS" Binding="{Binding Bolivares}" Width="130"
+                                                            CellStyle="{StaticResource CeldaCentrada}"
                                                             ElementStyle="{StaticResource CeldaBs}" />
                                         <DataGridTextColumn Header="DÓLARES" Binding="{Binding Dolares}" Width="100"
+                                                            CellStyle="{StaticResource CeldaCentrada}"
                                                             ElementStyle="{StaticResource CeldaUsd}" />
                                         <DataGridTemplateColumn Header="ACCIONES" Width="185">
                                             <DataGridTemplateColumn.CellTemplate>

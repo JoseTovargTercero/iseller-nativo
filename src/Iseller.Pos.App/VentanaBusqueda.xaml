@@ -15,15 +15,18 @@
     </WindowChrome.WindowChrome>
 
     <Window.Resources>
-        <!-- Colores por moneda, iguales al POS web. -->
+        <!-- Colores por moneda, iguales al POS web, y valores centrados en su columna. -->
         <Style x:Key="CeldaCop" TargetType="TextBlock">
             <Setter Property="Foreground" Value="{StaticResource InfoBrush}" />
+            <Setter Property="TextAlignment" Value="Center" />
         </Style>
         <Style x:Key="CeldaBs" TargetType="TextBlock">
             <Setter Property="Foreground" Value="{StaticResource DangerBrush}" />
+            <Setter Property="TextAlignment" Value="Center" />
         </Style>
         <Style x:Key="CeldaUsd" TargetType="TextBlock">
             <Setter Property="Foreground" Value="{StaticResource MintBrush}" />
+            <Setter Property="TextAlignment" Value="Center" />
         </Style>
     </Window.Resources>
 
