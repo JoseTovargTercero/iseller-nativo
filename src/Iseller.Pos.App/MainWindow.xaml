@@ -68,8 +68,18 @@
                                Margin="0,0,16,0" />
                     <Button Content="AJUSTES" Style="{StaticResource SecondaryButton}" Padding="12,6"
                             Click="Ajustes_Click" />
-                    <Button Content="ACTUALIZAR" Style="{StaticResource SecondaryButton}" Padding="12,6"
-                            Margin="8,0,0,0" Click="Actualizar_Click" />
+                    <Button Style="{StaticResource SecondaryButton}" Padding="12,6"
+                            Margin="8,0,0,0" Click="Actualizar_Click"
+                            ToolTip="Buscar si hay una versión nueva del POS">
+                        <StackPanel Orientation="Horizontal">
+                            <Path Data="M12,3 L12,15 M6,9 L12,15 L18,9 M4,20 L20,20"
+                                  Stroke="{StaticResource TextBrush}" StrokeThickness="2.4"
+                                  StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"
+                                  Stretch="Uniform" Width="14" Height="14"
+                                  VerticalAlignment="Center" Margin="0,0,7,0" />
+                            <TextBlock Text="VERIFICAR ACTUALIZACIONES" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </Button>
                     <Button x:Name="BtnMinimizar" Style="{StaticResource WindowButton}" Margin="12,0,0,0"
                             ToolTip="Minimizar" Click="Minimizar_Click">
                         <Path Data="M0,0 L11,0" Stroke="White" StrokeThickness="1.2" />
