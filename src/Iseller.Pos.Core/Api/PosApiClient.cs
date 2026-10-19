@@ -78,6 +78,13 @@ namespace Iseller.Pos.Core.Api
         public string Error { get; set; }
     }
 
+    public sealed class ResultadoAnulacion
+    {
+        public bool Ok { get; set; }
+        public bool YaAnulada { get; set; }
+        public string Error { get; set; }
+    }
+
     /// <summary>Cliente de los endpoints api/pos_*.php (X-Api-Key + Bearer).</summary>
     public sealed class PosApiClient : IDisposable
     {
@@ -391,6 +398,31 @@ namespace Iseller.Pos.Core.Api
             }
         }
 
+        /// <summary>Anula en el servidor una venta ya sincronizada (devuelve el stock).</summary>
+        public async Task<ResultadoAnulacion> AnularVentaAsync(string token, string idPedido)
+        {
+            var cuerpo = new JObject
+            {
+                ["id_pedido"] = idPedido,
+            };
+
+            using (var respuesta = await EnviarAsync("pos_venta_anular.php", HttpMethod.Post, cuerpo, token))
+            {
+                string texto = await respuesta.Content.ReadAsStringAsync();
+                var dto = Deserializar<AnulacionDto>(texto);
+                if (dto == null)
+                {
+                    return new ResultadoAnulacion { Error = "Respuesta inválida del servidor" };
+                }
+                return new ResultadoAnulacion
+                {
+                    Ok = dto.Ok,
+                    YaAnulada = dto.YaAnulada,
+                    Error = dto.Error,
+                };
+            }
+        }
+
         /// <summary>Comprueba internet y que el token siga vivo. Null si falló.</summary>
         public async Task<DateTimeOffset?> HeartbeatAsync(string token)
         {
@@ -607,6 +639,13 @@ namespace Iseller.Pos.Core.Api
         {
             [JsonProperty("ok")] public bool Ok { get; set; }
             [JsonProperty("ya_estaba")] public bool YaEstaba { get; set; }
+            [JsonProperty("error")] public string Error { get; set; }
+        }
+
+        private sealed class AnulacionDto
+        {
+            [JsonProperty("ok")] public bool Ok { get; set; }
+            [JsonProperty("ya_anulada")] public bool YaAnulada { get; set; }
             [JsonProperty("error")] public string Error { get; set; }
         }
     }

@@ -69,21 +69,33 @@
                 <WrapPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right"
                            VerticalAlignment="Center">
                     <Ellipse x:Name="PuntoConexion" Width="8" Height="8"
-                             Fill="{StaticResource WarningBrush}" Margin="0,0,8,0"
-                             VerticalAlignment="Center" />
-                    <TextBlock x:Name="TextoEstadoConexion" Text="Comprobando…"
-                               Style="{StaticResource MutedText}" VerticalAlignment="Center"
-                               Margin="0,0,16,0" />
-                    <Button Content="SINCRONIZAR CATÁLOGO" Style="{StaticResource SecondaryButton}"
-                            Padding="12,6" Margin="0,3,0,3" Click="Sincronizar_Click" />
+                             Fill="{StaticResource WarningBrush}" Margin="14,0,10,0"
+                             VerticalAlignment="Center" ToolTip="Comprobando…" />
+                    <Button Style="{StaticResource SecondaryButton}" FontSize="11" Padding="10,5"
+                            Margin="0,3,0,3" Click="UltimasVentas_Click"
+                            AutomationProperties.Name="Últimas ventas"
+                            ToolTip="Ver tus últimas 5 ventas y deshacerlas">
+                        <StackPanel Orientation="Horizontal">
+                            <Path Data="M4,6 L20,6 M4,12 L20,12 M4,18 L13,18"
+                                  Stroke="{StaticResource TextBrush}" StrokeThickness="2.4"
+                                  StrokeStartLineCap="Round" StrokeEndLineCap="Round"
+                                  Stretch="Uniform" Width="14" Height="14"
+                                  VerticalAlignment="Center" Margin="0,0,7,0" />
+                            <TextBlock Text="ÚLTIMAS VENTAS" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </Button>
+                    <Button Content="SINCRONIZAR" Style="{StaticResource SecondaryButton}"
+                            FontSize="11" Padding="10,5" Margin="8,3,0,3" Click="Sincronizar_Click"
+                            ToolTip="Bajar catálogo, stock y tasas del servidor" />
                     <Button Content="ENVIAR PENDIENTES" Style="{StaticResource SecondaryButton}"
-                            Padding="12,6" Margin="8,3,0,3" Click="Enviar_Click" />
+                            FontSize="11" Padding="10,5" Margin="8,3,0,3" Click="Enviar_Click" />
                     <Button Content="VERIFICAR CONEXIÓN" Style="{StaticResource SecondaryButton}"
-                            Padding="12,6" Margin="8,3,0,3" Click="Verificar_Click" />
-                    <Button Content="AJUSTES" Style="{StaticResource SecondaryButton}" Padding="12,6"
-                            Margin="8,3,0,3" Click="Ajustes_Click" />
-                    <Button Style="{StaticResource SecondaryButton}" Padding="12,6"
+                            FontSize="11" Padding="10,5" Margin="8,3,0,3" Click="Verificar_Click" />
+                    <Button Content="AJUSTES" Style="{StaticResource SecondaryButton}"
+                            FontSize="11" Padding="10,5" Margin="8,3,0,3" Click="Ajustes_Click" />
+                    <Button Style="{StaticResource SecondaryButton}" FontSize="11" Padding="10,5"
                             Margin="8,3,0,3" Click="Actualizar_Click"
+                            AutomationProperties.Name="Verificar actualizaciones"
                             ToolTip="Buscar si hay una versión nueva del POS">
                         <StackPanel Orientation="Horizontal">
                             <Path Data="M12,3 L12,15 M6,9 L12,15 L18,9 M4,20 L20,20"
@@ -397,10 +409,21 @@
         <Border Grid.Row="4" Background="{StaticResource CardBrush}"
                 BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,1,0,0">
             <Grid Margin="20,0">
-                <TextBlock x:Name="TextoEstado" Style="{StaticResource MutedText}"
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <TextBlock x:Name="TextoEstado" Grid.Column="0" Style="{StaticResource MutedText}"
                            VerticalAlignment="Center" />
-                <TextBlock x:Name="TextoCatalogo" Style="{StaticResource MutedText}"
-                           HorizontalAlignment="Right" VerticalAlignment="Center" />
+                <TextBlock Grid.Column="1" Text="·" Style="{StaticResource MutedText}"
+                           Margin="10,0" VerticalAlignment="Center" />
+                <TextBlock x:Name="TextoEstadoConexion" Grid.Column="2" Text="Comprobando…"
+                           Style="{StaticResource MutedText}" VerticalAlignment="Center"
+                           TextTrimming="CharacterEllipsis" />
+                <TextBlock x:Name="TextoCatalogo" Grid.Column="3" Style="{StaticResource MutedText}"
+                           VerticalAlignment="Center" Margin="16,0,0,0" />
             </Grid>
         </Border>
     </Grid>

@@ -884,6 +884,74 @@ namespace Iseller.Pos.App
 
         // ── Eventos de UI ──────────────────────────────────────────────────────────
 
+        /// <summary>Últimas ventas del cajero, con la opción de deshacerlas.</summary>
+        private void UltimasVentas_Click(object sender, RoutedEventArgs e)
+        {
+            var ventas = _ventasRepo.Ultimas(_sesion.UsuarioId, 5);
+            var ventana = new VentanaUltimasVentas(ventas, DeshacerVentaAsync) { Owner = this };
+            ventana.ShowDialog();
+        }
+
+        /// <summary>
+        /// Deshace una venta: si sigue pendiente se quita de la cola; si ya se envió, se anula en
+        /// el servidor (que devuelve el stock) y después se quita de la caja. Devuelve null si
+        /// salió bien, o el motivo del fallo.
+        /// </summary>
+        private async Task<string> DeshacerVentaAsync(Venta venta)
+        {
+            if (venta == null)
+            {
+                return "Venta inválida.";
+            }
+
+            if (venta.Estado == EstadoVenta.Enviada)
+            {
+                var sesionCajero = _credenciales.BuscarPorId(venta.UsuarioId);
+                if (sesionCajero == null)
+                {
+                    return "El cajero " + venta.UsuarioNombre + " no tiene sesión guardada en este " +
+                           "equipo; debe entrar una vez con internet para poder anular su venta.";
+                }
+
+                try
+                {
+                    using (var api = new PosApiClient(_config.ApiBaseUrl, _config.ApiKey))
+                    {
+                        var resultado = await api.AnularVentaAsync(sesionCajero.Token, venta.IdPedido);
+                        if (!resultado.Ok)
+                        {
+                            return resultado.Error ?? "No se pudo anular la venta en el servidor.";
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    return "Para anular una venta ya enviada necesitas conexión: " + ex.Message;
+                }
+            }
+
+            try
+            {
+                _ventasRepo.Eliminar(venta.IdPedido);
+            }
+            catch (Exception ex)
+            {
+                return "No se pudo quitar la venta de la caja: " + ex.Message;
+            }
+
+            RefrescarPendientes();
+            RefrescarEnviados();
+            TextoCatalogo.Text = (_ventasRepo.ContarPendientes() + _cajaRepo.ContarPendientes()) + " por enviar";
+            Aviso("Venta deshecha.");
+
+            if (venta.Estado == EstadoVenta.Enviada)
+            {
+                // El servidor devolvió el stock: se refresca el catálogo local.
+                await SincronizarAsync();
+            }
+            return null;
+        }
+
         private void Ajustes_Click(object sender, RoutedEventArgs e)
         {
             var ajustes = new VentanaAjustes(_config) { Owner = this };
@@ -1200,12 +1268,19 @@ namespace Iseller.Pos.App
         private void Conexion(bool enLinea, string texto)
         {
             PuntoConexion.Fill = (Brush)FindResource(enLinea ? "MintBrush" : "DangerBrush");
-            TextoEstadoConexion.Text = texto;
+            EstadoConexion(texto);
         }
 
         private void Aviso(string mensaje)
         {
-            TextoEstadoConexion.Text = mensaje;
+            EstadoConexion(mensaje);
+        }
+
+        /// <summary>El texto del estado va en la barra inferior; el punto del topbar lo repite en su tooltip.</summary>
+        private void EstadoConexion(string texto)
+        {
+            TextoEstadoConexion.Text = texto;
+            PuntoConexion.ToolTip = texto;
         }
 
         private static string AntiguedadLegible(TimeSpan valor)

@@ -398,6 +398,59 @@ namespace Iseller.Pos.Tests
             Assert.Single(solo22);
             Assert.Equal(22, solo22[0].UsuarioId);
         }
+
+        [Fact]
+        public void Ultimas_devuelve_las_del_cajero_mas_nuevas_primero()
+        {
+            var repo = new VentasRepositorio(_ruta);
+            for (int i = 1; i <= 7; i++)
+            {
+                repo.Guardar(new Venta
+                {
+                    IdPedido = "uuid-u22-" + i,
+                    MetodoPago = "option4",
+                    Despacho = 1,
+                    UsuarioId = 22,
+                    CreadaEn = new DateTimeOffset(2026, 10, 18, 10 + i, 0, 0, TimeSpan.FromHours(-4)),
+                });
+            }
+            repo.Guardar(new Venta
+            {
+                IdPedido = "uuid-u23-1",
+                MetodoPago = "option4",
+                Despacho = 1,
+                UsuarioId = 23,
+                CreadaEn = new DateTimeOffset(2026, 10, 18, 23, 0, 0, TimeSpan.FromHours(-4)),
+            });
+
+            var ultimas = repo.Ultimas(22, 5);
+
+            Assert.Equal(5, ultimas.Count);
+            Assert.All(ultimas, v => Assert.Equal(22, v.UsuarioId));
+            Assert.Equal("uuid-u22-7", ultimas[0].IdPedido); // la más nueva primero
+            Assert.Equal("uuid-u22-3", ultimas[4].IdPedido);
+        }
+
+        [Fact]
+        public void Eliminar_quita_la_venta_de_la_caja()
+        {
+            var repo = new VentasRepositorio(_ruta);
+            repo.Guardar(new Venta
+            {
+                IdPedido = "uuid-borrar",
+                MetodoPago = "option4",
+                Despacho = 1,
+                UsuarioId = 22,
+                CreadaEn = DateTimeOffset.Now,
+            });
+            repo.MarcarEnviada("uuid-borrar", DateTimeOffset.Now);
+            Assert.Single(repo.Enviadas(DateTimeOffset.Now.AddDays(-1), DateTimeOffset.Now.AddDays(1), 22));
+
+            repo.Eliminar("uuid-borrar");
+
+            Assert.Null(repo.Obtener("uuid-borrar"));
+            Assert.Empty(repo.Enviadas(DateTimeOffset.Now.AddDays(-1), DateTimeOffset.Now.AddDays(1), 22));
+        }
     }
 
     public class TicketEscPosTests

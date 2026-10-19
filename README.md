@@ -74,6 +74,12 @@ PLAN.md                 Plan por fases, contratos y decisiones
 - **Botones del carrito:** mismo orden y misma rejilla de 3 columnas que el POS web (crédito,
   descontar productos, reservar carrito, calcular cambio, vender, destruir) y se ajustan al ancho
   disponible. CERRAR CAJA quedó junto a BÚSQUEDA, como en el web.
+- **Últimas ventas (topbar):** las últimas 5 ventas del cajero con un botón para deshacerlas.
+  Si la venta sigue en la cola local se quita de la caja; si ya se envió, se anula en el servidor
+  (`api/pos_venta_anular.php`), que devuelve los productos al stock (combos incluidos) y luego se
+  refresca el catálogo. Las ventas a crédito no se anulan desde aquí.
+- **El estado de conexión** vive en la barra inferior (texto y mensajes de sincronización); en el
+  topbar queda solo el punto de color, con el estado en su tooltip.
 - **Campos numéricos:** montos de apertura/cierre de caja, cantidad recibida (cambio) y cantidad
   del carrito solo aceptan dígitos y **un** punto decimal. Se bloquean letras, comas, signos,
   espacios y el segundo punto, tanto al teclear como al pegar.
@@ -95,4 +101,5 @@ PLAN.md                 Plan por fases, contratos y decisiones
   columna CAJERO), puede filtrar por cajero y sincronizar lo de los demás; cada venta conserva
   el id del usuario que la procesó.
 
-75 tests en verde (`dotnet test`).
+77 tests en verde (`dotnet test`).
+

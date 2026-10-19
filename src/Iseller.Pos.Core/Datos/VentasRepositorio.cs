@@ -155,6 +155,30 @@ namespace Iseller.Pos.Core.Datos
             });
         }
 
+        /// <summary>
+        /// Las últimas ventas de un cajero (enviadas o pendientes), de la más nueva a la más
+        /// vieja. Es lo que muestra "Últimas ventas" en el topbar para poder deshacerlas.
+        /// </summary>
+        public List<Venta> Ultimas(int usuarioId, int limite = 5)
+        {
+            return Consultar(
+                "WHERE usuario_id = @usuario ORDER BY creada_en DESC LIMIT " +
+                limite.ToString(CultureInfo.InvariantCulture),
+                cmd => cmd.Parameters.AddWithValue("@usuario", usuarioId));
+        }
+
+        /// <summary>Quita una venta de la caja (anulada o deshecha).</summary>
+        public void Eliminar(string idPedido)
+        {
+            using (var conexion = BasePos.Abrir(_ruta))
+            using (var cmd = conexion.CreateCommand())
+            {
+                cmd.CommandText = "DELETE FROM ventas WHERE id_pedido = @id";
+                cmd.Parameters.AddWithValue("@id", idPedido ?? "");
+                cmd.ExecuteNonQuery();
+            }
+        }
+
         private List<Venta> Consultar(string filtro, Action<SQLiteCommand> parametros)
         {
             var ventas = new List<Venta>();
