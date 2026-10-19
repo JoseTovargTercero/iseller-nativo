@@ -30,13 +30,15 @@
         </Style>
     </Window.Resources>
 
-    <Grid>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="38" />
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="*" />
-            <RowDefinition Height="32" />
-        </Grid.RowDefinitions>
+    <!-- Borde claro: el modal se abre sobre la ventana y así se distingue del fondo. -->
+    <Border BorderBrush="#80A8B4C2" BorderThickness="1">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="38" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+                <RowDefinition Height="32" />
+            </Grid.RowDefinitions>
 
         <!-- Barra superior -->
         <Border Grid.Row="0" Background="{StaticResource BgBrush}"
@@ -138,5 +140,6 @@
                            HorizontalAlignment="Right" VerticalAlignment="Center" />
             </Grid>
         </Border>
-    </Grid>
+        </Grid>
+    </Border>
 </Window>
