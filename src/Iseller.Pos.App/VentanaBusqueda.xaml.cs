@@ -15,6 +15,8 @@ namespace Iseller.Pos.App
     /// <summary>
     /// Buscador modal del POS (equivalente al modal del POS web): el nombre del producto
     /// se ve completo y desde aquí se agrega al carrito.
+    /// Si se abre con un código leído por el escáner, deja el producto a la vista y espera
+    /// el Enter del cajero antes de agregarlo (los lectores baratos disparan dos veces).
     /// </summary>
     public partial class VentanaBusqueda : Window
     {
@@ -25,10 +27,13 @@ namespace Iseller.Pos.App
         private readonly ImagenCache _imagenes;
         private readonly CalculadoraPrecios _calculadora;
         private readonly Action<Producto, double> _alAgregar;
+        private readonly bool _puedeMayor;
+        private readonly bool _cerrarAlAgregar;
         private readonly ObservableCollection<ProductoVista> _resultados = new ObservableCollection<ProductoVista>();
 
         public VentanaBusqueda(CatalogoRepositorio catalogo, ImagenCache imagenes,
-                               CalculadoraPrecios calculadora, Action<Producto, double> alAgregar)
+                               CalculadoraPrecios calculadora, Action<Producto, double> alAgregar,
+                               bool puedeMayor = true, string codigoInicial = null)
         {
             InitializeComponent();
 
@@ -36,22 +41,24 @@ namespace Iseller.Pos.App
             _imagenes = imagenes;
             _calculadora = calculadora;
             _alAgregar = alAgregar;
+            _puedeMayor = puedeMayor;
+            _cerrarAlAgregar = !string.IsNullOrWhiteSpace(codigoInicial);
 
             TablaResultados.ItemsSource = _resultados;
             new LectorBarras(this, CodigoLeido);
-            Loaded += (s, e) => CampoBusqueda.Focus();
-        }
 
-        /// <summary>Código escaneado con el foco fuera del buscador: se agrega igual que con Enter.</summary>
-        private void CodigoLeido(string codigo)
-        {
-            var producto = _catalogo.BuscarPorCodigo(codigo);
-            if (producto == null)
+            if (_cerrarAlAgregar)
             {
-                TextoEstado.Text = "El producto con código " + codigo + " no está en el catálogo.";
-                return;
+                CampoBusqueda.Text = codigoInicial.Trim();
+                TextoEstado.Text = "Escaneado: " + codigoInicial.Trim() +
+                                   " · Enter o AGREGAR para sumarlo al carrito.";
             }
-            Agregar(producto, 1);
+
+            Loaded += (s, e) =>
+            {
+                CampoBusqueda.Focus();
+                CampoBusqueda.CaretIndex = CampoBusqueda.Text.Length;
+            };
         }
 
         private void Barra_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
@@ -90,7 +97,7 @@ namespace Iseller.Pos.App
             string termino = CampoBusqueda.Text.Trim();
 
             // Enter = lectura de código de barras: si coincide exacto, entra al carrito.
-            var porCodigo = _catalogo.BuscarPorCodigo(termino);
+            var porCodigo = _catalogo.BuscarPorCodigo(termino, _puedeMayor);
             if (porCodigo != null)
             {
                 Agregar(porCodigo, 1);
@@ -121,6 +128,15 @@ namespace Iseller.Pos.App
             }
         }
 
+        /// <summary>Código escaneado con el foco fuera del buscador: se escribe y espera el Enter.</summary>
+        private void CodigoLeido(string codigo)
+        {
+            CampoBusqueda.Text = codigo;
+            CampoBusqueda.Focus();
+            CampoBusqueda.CaretIndex = CampoBusqueda.Text.Length;
+            TextoEstado.Text = "Escaneado: " + codigo + " · Enter o AGREGAR para sumarlo al carrito.";
+        }
+
         private void Agregar(Producto producto, double cantidad)
         {
             if (producto == null)
@@ -136,6 +152,12 @@ namespace Iseller.Pos.App
             if (_alAgregar != null)
             {
                 _alAgregar(producto, cantidad);
+            }
+
+            if (_cerrarAlAgregar)
+            {
+                Close();
+                return;
             }
 
             TextoEstado.Text = "Agregado: " + producto.Nombre + " x" + cantidad;
@@ -159,7 +181,7 @@ namespace Iseller.Pos.App
                 return;
             }
 
-            var productos = _catalogo.Buscar(limpio, Maximo);
+            var productos = _catalogo.Buscar(limpio, Maximo, _puedeMayor);
             Mostrar(productos);
             TextoResultados.Text = productos.Count + " resultado(s)";
         }

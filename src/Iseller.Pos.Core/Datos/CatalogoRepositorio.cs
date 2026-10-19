@@ -233,22 +233,26 @@ namespace Iseller.Pos.Core.Datos
             }
         }
 
-        public List<Producto> Productos()
+        public List<Producto> Productos(bool incluirMayor = true)
         {
             return ConsultarProductos(
                 "SELECT p.id, p.nombre, p.codigo_barras, p.origen, p.precio_compra, p.cantidad_unidades, " +
                 "p.porcentaje, p.mayor, p.es_combo, p.foto, COALESCE(s.cantidad, 0) " +
                 "FROM productos p LEFT JOIN stock s ON s.producto_id = p.id " +
-                "WHERE p.id IN (SELECT producto_id FROM stock WHERE sucursal_id = (SELECT valor FROM meta WHERE clave = 'sucursal_id'))",
+                "WHERE p.id IN (SELECT producto_id FROM stock WHERE sucursal_id = (SELECT valor FROM meta WHERE clave = 'sucursal_id'))" +
+                (incluirMayor ? "" : SoloNoMayor),
                 null);
         }
+
+        /// <summary>Filtro para quien no puede vender al mayor (el servidor ya lo aplica al descargar).</summary>
+        private const string SoloNoMayor = " AND COALESCE(p.mayor, '0') <> '1'";
 
         /// <summary>
         /// Búsqueda por nombre (sin acentos) o por código de barras.
         /// Si el término es solo dígitos y largo, se busca por código; si tiene letras, solo por
         /// nombre (antes, un dígito dentro del nombre arrastraba coincidencias de códigos).
         /// </summary>
-        public List<Producto> Buscar(string termino, int limite = 50)
+        public List<Producto> Buscar(string termino, int limite = 50, bool incluirMayor = true)
         {
             string limpio = (termino ?? "").Trim();
             if (limpio.Length == 0)
@@ -258,6 +262,7 @@ namespace Iseller.Pos.Core.Datos
 
             string soloDigitos = new string(limpio.Where(char.IsDigit).ToArray());
             bool pareceCodigo = soloDigitos.Length >= 6 && limpio.All(char.IsDigit);
+            string filtro = incluirMayor ? "" : SoloNoMayor;
 
             string columnas =
                 "SELECT p.id, p.nombre, p.codigo_barras, p.origen, p.precio_compra, p.cantidad_unidades, " +
@@ -267,8 +272,8 @@ namespace Iseller.Pos.Core.Datos
             if (pareceCodigo)
             {
                 return ConsultarProductos(
-                    columnas + "WHERE p.codigo_barras LIKE @codigo ESCAPE '\\' ORDER BY p.nombre " +
-                    "LIMIT " + limite.ToString(CultureInfo.InvariantCulture),
+                    columnas + "WHERE p.codigo_barras LIKE @codigo ESCAPE '\\'" + filtro +
+                    " ORDER BY p.nombre LIMIT " + limite.ToString(CultureInfo.InvariantCulture),
                     cmd => cmd.Parameters.AddWithValue("@codigo", "%" + Escapar(soloDigitos) + "%"));
             }
 
@@ -279,8 +284,8 @@ namespace Iseller.Pos.Core.Datos
             }
 
             return ConsultarProductos(
-                columnas + "WHERE p.nombre_busqueda LIKE @termino ESCAPE '\\' " +
-                "ORDER BY CASE WHEN p.codigo_barras = @exacto THEN 0 ELSE 1 END, p.nombre " +
+                columnas + "WHERE p.nombre_busqueda LIKE @termino ESCAPE '\\'" + filtro +
+                " ORDER BY CASE WHEN p.codigo_barras = @exacto THEN 0 ELSE 1 END, p.nombre " +
                 "LIMIT " + limite.ToString(CultureInfo.InvariantCulture),
                 cmd =>
                 {
@@ -289,7 +294,7 @@ namespace Iseller.Pos.Core.Datos
                 });
         }
 
-        public Producto BuscarPorCodigo(string codigo)
+        public Producto BuscarPorCodigo(string codigo, bool incluirMayor = true)
         {
             string limpio = (codigo ?? "").Trim();
             if (limpio.Length == 0)
@@ -300,7 +305,7 @@ namespace Iseller.Pos.Core.Datos
                 "SELECT p.id, p.nombre, p.codigo_barras, p.origen, p.precio_compra, p.cantidad_unidades, " +
                 "p.porcentaje, p.mayor, p.es_combo, p.foto, COALESCE(s.cantidad, 0) " +
                 "FROM productos p LEFT JOIN stock s ON s.producto_id = p.id " +
-                "WHERE p.codigo_barras = @codigo LIMIT 1",
+                "WHERE p.codigo_barras = @codigo" + (incluirMayor ? "" : SoloNoMayor) + " LIMIT 1",
                 cmd => cmd.Parameters.AddWithValue("@codigo", limpio));
             return lista.FirstOrDefault();
         }

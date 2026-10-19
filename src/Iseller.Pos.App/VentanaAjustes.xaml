@@ -7,13 +7,7 @@
         Style="{StaticResource PosWindow}">
 
     <StackPanel Margin="24">
-        <TextBlock Text="Servidor" Style="{StaticResource SectionTitle}" />
-        <TextBlock Text="URL de la API" Style="{StaticResource MutedText}" Margin="0,8,0,4" />
-        <TextBox x:Name="CampoUrl" Padding="10,8" />
-        <TextBlock Text="Clave de la API (POS_API_KEY)" Style="{StaticResource MutedText}" Margin="0,10,0,4" />
-        <TextBox x:Name="CampoApiKey" Padding="10,8" />
-
-        <TextBlock Text="Impresora de tickets" Style="{StaticResource SectionTitle}" Margin="0,22,0,0" />
+        <TextBlock Text="Impresora de tickets" Style="{StaticResource SectionTitle}" />
         <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
             <ComboBox x:Name="ComboImpresoras" Width="330" Height="32" />
             <Button Content="Refrescar" Style="{StaticResource SecondaryButton}" Margin="8,0,0,0"

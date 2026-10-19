@@ -17,8 +17,6 @@ namespace Iseller.Pos.App
             InitializeComponent();
             _config = config;
 
-            CampoUrl.Text = config.ApiBaseUrl;
-            CampoApiKey.Text = config.ApiKey;
             Ancho58.IsChecked = config.AnchoMm < 80;
             Ancho80.IsChecked = config.AnchoMm >= 80;
             CheckCajon.IsChecked = config.AbrirCajon ?? true;
@@ -93,8 +91,7 @@ namespace Iseller.Pos.App
 
         private void Volcar()
         {
-            _config.ApiBaseUrl = CampoUrl.Text.Trim();
-            _config.ApiKey = CampoApiKey.Text.Trim();
+            // La URL y la clave de la API no se editan desde aquí: van en config.json.
             _config.Impresora = ComboImpresoras.SelectedItem as string ?? "";
             _config.AnchoMm = Ancho80.IsChecked == true ? 80 : 58;
             _config.AbrirCajon = CheckCajon.IsChecked == true;

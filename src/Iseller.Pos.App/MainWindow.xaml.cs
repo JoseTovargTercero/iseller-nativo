@@ -78,6 +78,10 @@ namespace Iseller.Pos.App
             BotonCredito.Visibility = TienePermiso(11) ? Visibility.Visible : Visibility.Collapsed;
             BotonDescuento.Visibility = TienePermiso(12) ? Visibility.Visible : Visibility.Collapsed;
 
+            // El administrador ve y sincroniza lo de todos los cajeros; cada cajero solo lo suyo.
+            AccionesPendientes.Visibility = _sesion.Nivel == 1 ? Visibility.Visible : Visibility.Collapsed;
+            AccionesEnviados.Visibility = _sesion.Nivel == 1 ? Visibility.Visible : Visibility.Collapsed;
+
             _relojEnvio.Tick += (s, e) =>
             {
                 if (_ventasRepo.ContarPendientes() + _cajaRepo.ContarPendientes() > 0)
@@ -92,6 +96,15 @@ namespace Iseller.Pos.App
         private bool TienePermiso(int idMenu)
         {
             return _sesion.Nivel == 1 || _sesion.Permisos.Contains(idMenu);
+        }
+
+        /// <summary>
+        /// Productos "al mayor": el servidor ya los filtra al descargar, pero el catálogo local
+        /// es del equipo (lo puede haber bajado un administrador), así que se filtra otra vez.
+        /// </summary>
+        private bool PuedeMayor
+        {
+            get { return _sesion.Nivel == 1 || _sesion.PuedeVenderAlMayor; }
         }
 
         private async void MainWindow_Loaded(object sender, RoutedEventArgs e)
@@ -196,14 +209,19 @@ namespace Iseller.Pos.App
             if (_carrito.Vacio)
             {
                 TextoTotales.Text = "Carrito vacío";
+                TextoTotales.Visibility = Visibility.Visible;
+                PanelTotales.Visibility = Visibility.Collapsed;
                 TablaCarrito.Visibility = Visibility.Collapsed;
                 CarritoVacio.Visibility = Visibility.Visible;
             }
             else
             {
-                TextoTotales.Text = "TOTAL:   " + _carrito.TotalPeso.ToString("N0", Formato) + " Cop    " +
-                                    _carrito.TotalBs.ToString("N2", Formato) + " Bs    $" +
-                                    _carrito.TotalUsd.ToString("N2", Formato);
+                // Cada moneda con su color, igual que el POS web.
+                TotalCop.Text = _carrito.TotalPeso.ToString("N0", Formato) + " Cop";
+                TotalBs.Text = _carrito.TotalBs.ToString("N2", Formato) + " Bs";
+                TotalUsd.Text = "$" + _carrito.TotalUsd.ToString("N2", Formato);
+                TextoTotales.Visibility = Visibility.Collapsed;
+                PanelTotales.Visibility = Visibility.Visible;
                 TablaCarrito.Visibility = Visibility.Visible;
                 CarritoVacio.Visibility = Visibility.Collapsed;
             }
@@ -254,13 +272,22 @@ namespace Iseller.Pos.App
         /// <summary>Búsqueda modal, igual que el POS web: se ve el nombre completo y se agrega.</summary>
         private void Buscar_Click(object sender, RoutedEventArgs e)
         {
+            AbrirBusqueda(null);
+        }
+
+        /// <summary>
+        /// Abre el buscador. Con <paramref name="codigo"/> (lectura del escáner) deja el producto
+        /// a la vista y espera el Enter del cajero: los lectores baratos a veces disparan dos veces.
+        /// </summary>
+        private void AbrirBusqueda(string codigo)
+        {
             if (_calculadora == null)
             {
                 Aviso("Sincroniza el catálogo antes de vender.");
                 return;
             }
 
-            var ventana = new VentanaBusqueda(_catalogo, _imagenes, _calculadora, Agregar)
+            var ventana = new VentanaBusqueda(_catalogo, _imagenes, _calculadora, Agregar, PuedeMayor, codigo)
             {
                 Owner = this,
             };
@@ -407,10 +434,10 @@ namespace Iseller.Pos.App
         private void RefrescarEnviados()
         {
             _enviados.Clear();
-            // Solo lo enviado por el cajero de esta sesión: el POS puede haber sido usado por
-            // varios cajeros el mismo día y "Enviados" no debe mezclar sus ventas.
+            // El administrador ve lo enviado por todos los cajeros (para supervisar); cada cajero
+            // solo ve lo suyo, porque el POS puede haber sido usado por varios el mismo día.
             var lista = _ventasRepo.Enviadas(DateTimeOffset.Now.AddDays(-7), DateTimeOffset.Now.AddDays(1),
-                                             _sesion.UsuarioId);
+                                             _sesion.Nivel == 1 ? (int?)null : _sesion.UsuarioId);
             foreach (var venta in lista)
             {
                 _enviados.Add(new VentaVista { Venta = venta });
@@ -706,10 +733,16 @@ namespace Iseller.Pos.App
 
         private void RefrescarPendientes()
         {
+            bool admin = _sesion.Nivel == 1;
             _pendientesTodas.Clear();
             foreach (var venta in _ventasRepo.Pendientes())
             {
-                _pendientesTodas.Add(new VentaVista { Venta = venta });
+                // Cada cajero solo ve lo suyo; el administrador ve la cola completa del equipo
+                // y puede enviarla (cada venta conserva el usuario que la hizo).
+                if (admin || venta.UsuarioId == _sesion.UsuarioId)
+                {
+                    _pendientesTodas.Add(new VentaVista { Venta = venta });
+                }
             }
 
             var opciones = new List<CajeroOpcion>
@@ -837,16 +870,16 @@ namespace Iseller.Pos.App
             RefrescarCarrito();
         }
 
-        /// <summary>Código de barras leído: busca el código exacto y lo agrega al carrito.</summary>
+        /// <summary>Código de barras leído: muestra el producto y espera el Enter del cajero.</summary>
         private void CodigoLeido(string codigo)
         {
-            var producto = _catalogo.BuscarPorCodigo(codigo);
+            var producto = _catalogo.BuscarPorCodigo(codigo, PuedeMayor);
             if (producto == null)
             {
                 Aviso("El producto con código " + codigo + " no está en el catálogo.");
                 return;
             }
-            Agregar(producto, 1);
+            AbrirBusqueda(codigo);
         }
 
         // ── Eventos de UI ──────────────────────────────────────────────────────────
@@ -864,7 +897,8 @@ namespace Iseller.Pos.App
 
         private async void Enviar_Click(object sender, RoutedEventArgs e)
         {
-            await EnviarPendientesAsync();
+            // El cajero solo sube lo suyo; el administrador sube la cola completa.
+            await EnviarPendientesAsync(_sesion.Nivel == 1 ? (int?)null : _sesion.UsuarioId);
         }
 
         private async void Sincronizar_Click(object sender, RoutedEventArgs e)

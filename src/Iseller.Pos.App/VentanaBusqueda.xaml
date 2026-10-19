@@ -14,6 +14,19 @@
                       CornerRadius="0" UseAeroCaptionButtons="False" />
     </WindowChrome.WindowChrome>
 
+    <Window.Resources>
+        <!-- Colores por moneda, iguales al POS web. -->
+        <Style x:Key="CeldaCop" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="{StaticResource InfoBrush}" />
+        </Style>
+        <Style x:Key="CeldaBs" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="{StaticResource DangerBrush}" />
+        </Style>
+        <Style x:Key="CeldaUsd" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="{StaticResource MintBrush}" />
+        </Style>
+    </Window.Resources>
+
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="38" />
@@ -77,9 +90,12 @@
                             </DataGridTemplateColumn.CellTemplate>
                         </DataGridTemplateColumn>
                         <DataGridTextColumn Header="STOCK" Binding="{Binding Stock}" Width="72" />
-                        <DataGridTextColumn Header="DÓLARES" Binding="{Binding PrecioDolar}" Width="92" />
-                        <DataGridTextColumn Header="BOLÍVARES" Binding="{Binding PrecioBs}" Width="120" />
-                        <DataGridTextColumn Header="PESOS" Binding="{Binding PrecioPeso}" Width="120" />
+                        <DataGridTextColumn Header="DÓLARES" Binding="{Binding PrecioDolar}" Width="92"
+                                            ElementStyle="{StaticResource CeldaUsd}" />
+                        <DataGridTextColumn Header="BOLÍVARES" Binding="{Binding PrecioBs}" Width="120"
+                                            ElementStyle="{StaticResource CeldaBs}" />
+                        <DataGridTextColumn Header="PESOS" Binding="{Binding PrecioPeso}" Width="120"
+                                            ElementStyle="{StaticResource CeldaCop}" />
                         <DataGridTemplateColumn Header="CANT." Width="76">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>

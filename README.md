@@ -64,23 +64,32 @@ PLAN.md                 Plan por fases, contratos y decisiones
   código de barras agrega el producto exacto; `Esc` cierra. Un número dentro del nombre no arrastra
   códigos.
 - **Lector de código de barras:** funciona en toda la ventana (ráfaga de dígitos y `Enter`, con
-  pausa máxima de 100 ms entre teclas, igual que el POS web). También al escribir el código en el
-  buscador del modal. A diferencia del web (que muestra el producto y pide un segundo `Enter`),
-  aquí el producto entra al carrito directamente con la última lectura.
+  pausa máxima de 100 ms entre teclas, igual que el POS web). El producto escaneado **se muestra
+  primero** y espera el `Enter` del cajero para entrar al carrito (los lectores baratos a veces
+  disparan dos veces); con `Esc` se descarta.
+- **Colores por moneda:** igual que el POS web. Pesos en azul, bolívares en rojo y dólares en
+  verde, tanto en el carrito, los totales y la tabla de búsqueda como en las ventas enviadas.
+- **Botones del carrito:** mismo orden y misma rejilla de 3 columnas que el POS web (crédito,
+  descontar productos, reservar carrito, calcular cambio, vender, destruir) y se ajustan al ancho
+  disponible. CERRAR CAJA quedó junto a BÚSQUEDA, como en el web.
 - **Campos numéricos:** montos de apertura/cierre de caja, cantidad recibida (cambio) y cantidad
   del carrito solo aceptan dígitos y **un** punto decimal. Se bloquean letras, comas, signos,
   espacios y el segundo punto, tanto al teclear como al pegar.
+- **Ajustes:** solo impresora (ancho, cajón, prueba). La URL y la clave de la API no se muestran
+  ni se editan desde la app; viven en `config.json`.
 - Login: los campos de usuario y contraseña comparten plantilla (mismo alto y radio). La entrada
   sin conexión es automática: si el servidor no responde, se valida la contraseña contra el
   acceso guardado de ese usuario (hasta 2 días).
+- **Permisos por usuario:** al iniciar sesión se guardan los permisos que devuelve el servidor
+  (crédito = menú 11, descuento = menú 12, venta al mayor). Se refrescan en cada inicio con
+  conexión y siguen valiendo sin conexión con la sesión guardada. Sin permiso, los botones no
+  aparecen y los productos "al mayor" se filtran también en el catálogo local.
 - **Varios cajeros por POS:** se guarda una sesión por usuario (usuario, `bss_id`, `sucursal_id`,
   token y hash de la clave). Cada venta y cada caja se sincronizan con el token del cajero que
   las hizo, aunque otro cajero esté usando la caja en ese momento.
-- **Pendientes por cajero:** la pestaña "No guardados" lista las ventas sin enviar de **todos**
-  los cajeros con su columna CAJERO, permite filtrar por cajero y enviarlas con
-  "ENVIAR DEL CAJERO" o "ENVIAR TODOS". Si un cajero nunca inició sesión en el equipo, sus
-  ventas quedan pendientes con el motivo visible.
-- **"Enviados" es solo del cajero de la sesión:** aunque el POS lo hayan usado varios cajeros el
-  mismo día, cada uno ve únicamente las ventas que él envió (nada de información cruzada).
+- **Cada rol ve lo suyo:** el **cajero** solo ve sus ventas pendientes y enviadas, y solo sube
+  las suyas. El **administrador** ve la cola completa del equipo (pendientes y enviadas, con la
+  columna CAJERO), puede filtrar por cajero y sincronizar lo de los demás; cada venta conserva
+  el id del usuario que la procesó.
 
-76 tests en verde (`dotnet test`).
+75 tests en verde (`dotnet test`).

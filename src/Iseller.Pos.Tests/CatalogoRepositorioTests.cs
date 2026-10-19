@@ -169,5 +169,34 @@ namespace Iseller.Pos.Tests
             Assert.Contains(combos[0].ComboItems, i => i.Nombre == "Harina Pan" && i.Cantidad == 1);
             Assert.Contains(combos[0].ComboItems, i => i.Nombre == "Galleta Babo" && i.Cantidad == 2);
         }
+
+        [Fact]
+        public void Oculta_los_productos_al_mayor_si_no_tiene_permiso()
+        {
+            var repo = new CatalogoRepositorio(_ruta);
+            var productos = ProductosDePrueba();
+            productos.Add(new Producto
+            {
+                Id = 3,
+                Nombre = "Harina al mayor",
+                CodigoBarras = "7595550001111",
+                Origen = "v",
+                PrecioCompra = 10,
+                CantidadUnidades = 12,
+                Porcentaje = 10,
+                Mayor = "1",
+                Stock = 5,
+            });
+            repo.GuardarCatalogo(productos, new List<Cliente>(), TasasDePrueba(),
+                new ConfiguracionNegocio(), 9, "v2", DateTimeOffset.Now);
+
+            // El servidor ya los filtra al descargar; esto cubre el catálogo bajado por otro usuario.
+            Assert.Equal(3, repo.Productos().Count);
+            Assert.Equal(2, repo.Productos(false).Count);
+            Assert.Single(repo.Buscar("harina al mayor"));
+            Assert.Empty(repo.Buscar("harina al mayor", 50, false));
+            Assert.NotNull(repo.BuscarPorCodigo("7595550001111"));
+            Assert.Null(repo.BuscarPorCodigo("7595550001111", false));
+        }
     }
 }
