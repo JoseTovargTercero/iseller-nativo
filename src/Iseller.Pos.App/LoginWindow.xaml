@@ -56,8 +56,15 @@
 
                 <StackPanel x:Name="PanelSucursal" Visibility="Collapsed" Margin="0,16,0,0">
                     <TextBlock Text="Sucursal" Style="{StaticResource MutedText}" Margin="0,0,0,4" />
-                    <ComboBox x:Name="ComboSucursal" DisplayMemberPath="Nombre" SelectedValuePath="Id"
-                              Height="36" />
+                    <!-- ItemTemplate explícito: con la plantilla propia del tema, DisplayMemberPath
+                         no llega a la caja de selección y se ve el nombre del tipo. -->
+                    <ComboBox x:Name="ComboSucursal" SelectedValuePath="Id" Height="36">
+                        <ComboBox.ItemTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding Nombre}" />
+                            </DataTemplate>
+                        </ComboBox.ItemTemplate>
+                    </ComboBox>
                 </StackPanel>
 
                 <Button x:Name="BotonEntrar" Content="ENTRAR" Style="{StaticResource PrimaryButton}"
