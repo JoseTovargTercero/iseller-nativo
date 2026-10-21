@@ -24,23 +24,31 @@
             <Border Grid.Row="0" Background="{StaticResource BgBrush}"
                     BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,0,0,1">
                 <Grid Margin="22,0,10,0">
-                    <TextBlock Text="Consulta de precios" Style="{StaticResource MutedText}"
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+
+                    <TextBlock Grid.Column="0" Text="Consulta de precios" Style="{StaticResource MutedText}"
                                VerticalAlignment="Center" />
 
-                    <!-- Nombre del sistema arriba a la derecha, junto al logo y al cerrar. -->
-                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right"
+                    <!-- Nombre del sistema centrado arriba; el logo lo acompaña. -->
+                    <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Center"
                                 VerticalAlignment="Center">
                         <Image Source="Assets/logo1-inv-compact-128.png" Width="26" Height="26"
                                Margin="0,0,10,0" RenderOptions.BitmapScalingMode="HighQuality" />
                         <TextBlock Text="iSELLER" FontSize="15" FontWeight="Bold"
                                    Foreground="{StaticResource MintBrush}" VerticalAlignment="Center" />
-                        <TextBlock Text="POS" FontSize="15" FontWeight="Bold" Margin="5,0,10,0"
+                        <TextBlock Text="POS" FontSize="15" FontWeight="Bold" Margin="5,0,0,0"
                                    VerticalAlignment="Center" />
-                        <Button x:Name="BtnCerrar" Style="{StaticResource WindowCloseButton}"
-                                VerticalAlignment="Center" ToolTip="Cerrar (Esc)" Click="Cerrar_Click">
-                            <Path Data="M0,0 L11,11 M11,0 L0,11" Stroke="White" StrokeThickness="1.2" />
-                        </Button>
                     </StackPanel>
+
+                    <Button Grid.Column="2" x:Name="BtnCerrar" Style="{StaticResource WindowCloseButton}"
+                            HorizontalAlignment="Right" VerticalAlignment="Center"
+                            ToolTip="Cerrar (Esc)" Click="Cerrar_Click">
+                        <Path Data="M0,0 L11,11 M11,0 L0,11" Stroke="White" StrokeThickness="1.2" />
+                    </Button>
                 </Grid>
             </Border>
 
