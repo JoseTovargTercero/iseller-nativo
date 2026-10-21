@@ -52,8 +52,9 @@ PLAN.md                 Plan por fases, contratos y decisiones
 
 - Logo del sistema (`logo1-inv-compact.png`) en el login y en la cabecera.
 - Color primario = color del logo, **#00C0C4** (el POS web usa el mint #2dd4a0; aquí manda el logo).
-- **Barra superior propia** (mismo color que el fondo del sistema) con el logo, arrastre para mover
-  y iconos blancos de minimizar y cerrar. El icono de la ventana (barra de tareas/Alt+Tab) es el logo.
+- **Barra superior propia** (mismo color que el fondo del sistema) con el logo, arrastre para mover,
+  doble clic para maximizar y iconos blancos de minimizar, maximizar/restaurar y cerrar. El icono
+  de la ventana (barra de tareas/Alt+Tab) es el logo.
 - Textos, botones y miniaturas de las tablas quedan centrados verticalmente.
 - **Imágenes:** descarga bajo demanda y caché local en `%LOCALAPPDATA%\iSeller\img`; se guarda
   una **versión reducida** (máx. 200 px para las que GDI+ puede decodificar: PNG/JPEG; los webp

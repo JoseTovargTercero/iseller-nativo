@@ -8,7 +8,8 @@
         WindowStyle="None"
         Icon="Assets/logo1-inv-compact-128.png"
         Style="{StaticResource PosWindow}"
-        PreviewKeyDown="Window_PreviewKeyDown">
+        PreviewKeyDown="Window_PreviewKeyDown"
+        StateChanged="Window_StateChanged">
 
     <!-- Mantiene el redimensionado nativo aunque la barra del sistema esté oculta. -->
     <WindowChrome.WindowChrome>
@@ -107,7 +108,14 @@
                             ToolTip="Minimizar" Click="Minimizar_Click">
                         <Path Data="M0,0 L11,0" Stroke="White" StrokeThickness="1.2" />
                     </Button>
-                    <Button x:Name="BtnCerrar" Style="{StaticResource WindowCloseButton}" Margin="0,3,0,3"
+                    <Button x:Name="BtnMaximizar" Style="{StaticResource WindowButton}" Margin="2,3,0,3"
+                            ToolTip="Maximizar" Click="Maximizar_Click"
+                            AutomationProperties.Name="Maximizar">
+                        <Path x:Name="IconoMaximizar" Data="M0,0 L10,0 L10,10 L0,10 Z"
+                              Stroke="White" StrokeThickness="1.2" Stretch="Uniform"
+                              Width="11" Height="11" />
+                    </Button>
+                    <Button x:Name="BtnCerrar" Style="{StaticResource WindowCloseButton}" Margin="2,3,0,3"
                             ToolTip="Cerrar" Click="Cerrar_Click">
                         <Path Data="M0,0 L11,11 M11,0 L0,11" Stroke="White" StrokeThickness="1.2" />
                     </Button>
