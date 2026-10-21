@@ -387,6 +387,7 @@
     <!-- Texto de las celdas centrado (se usa junto con CeldaCentrada). -->
     <Style x:Key="TextoEnCelda" TargetType="{x:Type TextBlock}">
         <Setter Property="TextAlignment" Value="Center" />
+            <Setter Property="VerticalAlignment" Value="Center" />
     </Style>
 
     <!-- Botones de la barra superior propia (minimizar / cerrar) -->

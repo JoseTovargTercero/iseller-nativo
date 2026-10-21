@@ -19,14 +19,17 @@
         <Style x:Key="CeldaCop" TargetType="TextBlock">
             <Setter Property="Foreground" Value="{StaticResource InfoBrush}" />
             <Setter Property="TextAlignment" Value="Center" />
+            <Setter Property="VerticalAlignment" Value="Center" />
         </Style>
         <Style x:Key="CeldaBs" TargetType="TextBlock">
             <Setter Property="Foreground" Value="{StaticResource DangerBrush}" />
             <Setter Property="TextAlignment" Value="Center" />
+            <Setter Property="VerticalAlignment" Value="Center" />
         </Style>
         <Style x:Key="CeldaUsd" TargetType="TextBlock">
             <Setter Property="Foreground" Value="{StaticResource MintBrush}" />
             <Setter Property="TextAlignment" Value="Center" />
+            <Setter Property="VerticalAlignment" Value="Center" />
         </Style>
     </Window.Resources>
 
