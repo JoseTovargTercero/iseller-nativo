@@ -100,38 +100,108 @@
 
                 <StackPanel Grid.Row="0" Grid.Column="0" Margin="0,0,8,10">
                     <TextBlock Text="Punto (Bs)" Style="{StaticResource MutedText}" FontSize="10" />
-                    <TextBox x:Name="FracPunto" Padding="8,6" app:Numerico.Decimales="True"
-                             TextChanged="Fraccion_TextChanged" />
+                    <Grid>
+                        <TextBox x:Name="FracPunto" Padding="8,6,32,6" app:Numerico.Decimales="True"
+                                 TextChanged="Fraccion_TextChanged" />
+                        <Button Style="{StaticResource BotonRellenar}" Tag="punto"
+                                ToolTip="Completar el restante en Bs"
+                                AutomationProperties.Name="Completar punto"
+                                Click="Completar_Click">
+                            <Path Data="M6,2 L6,9 M2,5 L6,9 L10,5 M2,12 L10,12"
+                                  Stroke="{StaticResource MintBrush}" StrokeThickness="1.4"
+                                  Stretch="Uniform" Width="11" Height="11" />
+                        </Button>
+                    </Grid>
                 </StackPanel>
                 <StackPanel Grid.Row="0" Grid.Column="1" Margin="8,0,0,10">
                     <TextBlock Text="BioPago (Bs)" Style="{StaticResource MutedText}" FontSize="10" />
-                    <TextBox x:Name="FracBioPago" Padding="8,6" app:Numerico.Decimales="True"
-                             TextChanged="Fraccion_TextChanged" />
+                    <Grid>
+                        <TextBox x:Name="FracBioPago" Padding="8,6,32,6" app:Numerico.Decimales="True"
+                                 TextChanged="Fraccion_TextChanged" />
+                        <Button Style="{StaticResource BotonRellenar}" Tag="bioPago"
+                                ToolTip="Completar el restante en Bs"
+                                AutomationProperties.Name="Completar bioPago"
+                                Click="Completar_Click">
+                            <Path Data="M6,2 L6,9 M2,5 L6,9 L10,5 M2,12 L10,12"
+                                  Stroke="{StaticResource MintBrush}" StrokeThickness="1.4"
+                                  Stretch="Uniform" Width="11" Height="11" />
+                        </Button>
+                    </Grid>
                 </StackPanel>
                 <StackPanel Grid.Row="1" Grid.Column="0" Margin="0,0,8,10">
                     <TextBlock Text="Pago móvil (Bs)" Style="{StaticResource MutedText}" FontSize="10" />
-                    <TextBox x:Name="FracPagoMovil" Padding="8,6" app:Numerico.Decimales="True"
-                             TextChanged="Fraccion_TextChanged" />
+                    <Grid>
+                        <TextBox x:Name="FracPagoMovil" Padding="8,6,32,6" app:Numerico.Decimales="True"
+                                 TextChanged="Fraccion_TextChanged" />
+                        <Button Style="{StaticResource BotonRellenar}" Tag="pagoMovil"
+                                ToolTip="Completar el restante en Bs"
+                                AutomationProperties.Name="Completar pagoMovil"
+                                Click="Completar_Click">
+                            <Path Data="M6,2 L6,9 M2,5 L6,9 L10,5 M2,12 L10,12"
+                                  Stroke="{StaticResource MintBrush}" StrokeThickness="1.4"
+                                  Stretch="Uniform" Width="11" Height="11" />
+                        </Button>
+                    </Grid>
                 </StackPanel>
                 <StackPanel Grid.Row="1" Grid.Column="1" Margin="8,0,0,10">
                     <TextBlock Text="Transferencia (Bs)" Style="{StaticResource MutedText}" FontSize="10" />
-                    <TextBox x:Name="FracTransferencia" Padding="8,6" app:Numerico.Decimales="True"
-                             TextChanged="Fraccion_TextChanged" />
+                    <Grid>
+                        <TextBox x:Name="FracTransferencia" Padding="8,6,32,6" app:Numerico.Decimales="True"
+                                 TextChanged="Fraccion_TextChanged" />
+                        <Button Style="{StaticResource BotonRellenar}" Tag="transferencia"
+                                ToolTip="Completar el restante en Bs"
+                                AutomationProperties.Name="Completar transferencia"
+                                Click="Completar_Click">
+                            <Path Data="M6,2 L6,9 M2,5 L6,9 L10,5 M2,12 L10,12"
+                                  Stroke="{StaticResource MintBrush}" StrokeThickness="1.4"
+                                  Stretch="Uniform" Width="11" Height="11" />
+                        </Button>
+                    </Grid>
                 </StackPanel>
                 <StackPanel Grid.Row="2" Grid.Column="0" Margin="0,0,8,10">
                     <TextBlock Text="Efectivo (Bs)" Style="{StaticResource MutedText}" FontSize="10" />
-                    <TextBox x:Name="FracEfectivo" Padding="8,6" app:Numerico.Decimales="True"
-                             TextChanged="Fraccion_TextChanged" />
+                    <Grid>
+                        <TextBox x:Name="FracEfectivo" Padding="8,6,32,6" app:Numerico.Decimales="True"
+                                 TextChanged="Fraccion_TextChanged" />
+                        <Button Style="{StaticResource BotonRellenar}" Tag="efectivo"
+                                ToolTip="Completar el restante en Bs"
+                                AutomationProperties.Name="Completar efectivo"
+                                Click="Completar_Click">
+                            <Path Data="M6,2 L6,9 M2,5 L6,9 L10,5 M2,12 L10,12"
+                                  Stroke="{StaticResource MintBrush}" StrokeThickness="1.4"
+                                  Stretch="Uniform" Width="11" Height="11" />
+                        </Button>
+                    </Grid>
                 </StackPanel>
                 <StackPanel Grid.Row="2" Grid.Column="1" Margin="8,0,0,10">
                     <TextBlock Text="Dólares (USD)" Style="{StaticResource MutedText}" FontSize="10" />
-                    <TextBox x:Name="FracDolares" Padding="8,6" app:Numerico.Decimales="True"
-                             TextChanged="Fraccion_TextChanged" />
+                    <Grid>
+                        <TextBox x:Name="FracDolares" Padding="8,6,32,6" app:Numerico.Decimales="True"
+                                 TextChanged="Fraccion_TextChanged" />
+                        <Button Style="{StaticResource BotonRellenar}" Tag="dolares"
+                                ToolTip="Completar el restante en USD"
+                                AutomationProperties.Name="Completar dolares"
+                                Click="Completar_Click">
+                            <Path Data="M6,2 L6,9 M2,5 L6,9 L10,5 M2,12 L10,12"
+                                  Stroke="{StaticResource MintBrush}" StrokeThickness="1.4"
+                                  Stretch="Uniform" Width="11" Height="11" />
+                        </Button>
+                    </Grid>
                 </StackPanel>
                 <StackPanel Grid.Row="3" Grid.Column="0" Margin="0,0,8,0">
                     <TextBlock Text="Pesos (COP)" Style="{StaticResource MutedText}" FontSize="10" />
-                    <TextBox x:Name="FracPesos" Padding="8,6" app:Numerico.Decimales="True"
-                             TextChanged="Fraccion_TextChanged" />
+                    <Grid>
+                        <TextBox x:Name="FracPesos" Padding="8,6,32,6" app:Numerico.Decimales="True"
+                                 TextChanged="Fraccion_TextChanged" />
+                        <Button Style="{StaticResource BotonRellenar}" Tag="pesos"
+                                ToolTip="Completar el restante en COP"
+                                AutomationProperties.Name="Completar pesos"
+                                Click="Completar_Click">
+                            <Path Data="M6,2 L6,9 M2,5 L6,9 L10,5 M2,12 L10,12"
+                                  Stroke="{StaticResource MintBrush}" StrokeThickness="1.4"
+                                  Stretch="Uniform" Width="11" Height="11" />
+                        </Button>
+                    </Grid>
                 </StackPanel>
                 <Button Grid.Row="3" Grid.Column="1" Content="Limpiar" Style="{StaticResource SecondaryButton}"
                         Padding="12,6" HorizontalAlignment="Right" VerticalAlignment="Bottom"

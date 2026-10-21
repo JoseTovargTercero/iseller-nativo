@@ -100,8 +100,9 @@ PLAN.md                 Plan por fases, contratos y decisiones
   Pesos. Arriba se ve lo que **falta por pagar** en las tres monedas y abajo el estado (falta /
   cuenta cubierta / vuelto). No deja confirmar si falta dinero. Cada medio cubre la fracción que
   representa dentro del total de su propia moneda (igual que el POS web), y el vuelto se descuenta
-  del efectivo de esa moneda antes de guardar. Se envía como `option8` con el desglose y el
-  servidor lo guarda en `fracciones`; el cierre de caja suma cada medio.
+  del efectivo de esa moneda antes de guardar. Cada campo tiene un botón (flecha) que **suma lo
+  que falta de su moneda**, para completar el pago de un toque. Se envía como `option8` con el
+  desglose y el servidor lo guarda en `fracciones`; el cierre de caja suma cada medio.
 - **Ajustes:** impresora (ancho, cajón, prueba) y **buscar actualización** (muestra la versión
   instalada). La URL y la clave de la API no se muestran ni se editan desde la app; viven en
   `config.json`. Se abre desde el engranaje del topbar, no desde el login.

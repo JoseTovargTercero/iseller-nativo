@@ -489,6 +489,20 @@
         </Setter>
     </Style>
 
+    <!-- Botón pequeño dentro de un campo: completa el restante de esa moneda. -->
+    <Style x:Key="BotonRellenar" TargetType="{x:Type Button}" BasedOn="{StaticResource BaseButton}">
+        <Setter Property="Width" Value="24" />
+        <Setter Property="Height" Value="22" />
+        <Setter Property="Padding" Value="0" />
+        <Setter Property="Margin" Value="0,0,4,0" />
+        <Setter Property="HorizontalAlignment" Value="Right" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="Focusable" Value="False" />
+        <Setter Property="ToolTip" Value="Completar el restante" />
+    </Style>
+
     <!-- Botones pequeños de acción, equivalentes a los btn-outline-* del POS web. -->
     <Style x:Key="MiniOutlineSuccess" TargetType="{x:Type Button}" BasedOn="{StaticResource BaseButton}">
         <Setter Property="Background" Value="Transparent" />

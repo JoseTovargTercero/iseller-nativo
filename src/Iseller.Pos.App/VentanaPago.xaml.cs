@@ -354,6 +354,64 @@ namespace Iseller.Pos.App
             DialogResult = true;
         }
 
+        private void Completar_Click(object sender, RoutedEventArgs e)
+        {
+            var boton = sender as System.Windows.Controls.Button;
+            string clave = boton != null ? boton.Tag as string : null;
+            if (string.IsNullOrEmpty(clave) || _resultado == null)
+            {
+                return;
+            }
+
+            var campo = CampoDe(clave);
+            if (campo == null)
+            {
+                return;
+            }
+
+            double restante = RestanteDe(CalculadoraFraccionado.Moneda(clave));
+            if (restante <= 0)
+            {
+                return;
+            }
+
+            // Se suma lo que falta: así este medio cierra el hueco de su moneda aunque
+            // otros medios de la misma moneda ya tengan monto, o se haya pagado parte
+            // de la cuenta en otra moneda.
+            double actual = Monto(campo.Text);
+            campo.Text = (actual + restante).ToString("0.##", CultureInfo.InvariantCulture);
+            campo.CaretIndex = campo.Text.Length;
+            campo.Focus();
+        }
+
+        private System.Windows.Controls.TextBox CampoDe(string clave)
+        {
+            switch (clave)
+            {
+                case CalculadoraFraccionado.Punto: return FracPunto;
+                case CalculadoraFraccionado.BioPago: return FracBioPago;
+                case CalculadoraFraccionado.PagoMovil: return FracPagoMovil;
+                case CalculadoraFraccionado.Transferencia: return FracTransferencia;
+                case CalculadoraFraccionado.Efectivo: return FracEfectivo;
+                case CalculadoraFraccionado.Dolares: return FracDolares;
+                case CalculadoraFraccionado.Pesos: return FracPesos;
+                default: return null;
+            }
+        }
+
+        private double RestanteDe(string moneda)
+        {
+            if (moneda == "usd")
+            {
+                return _resultado.RestanteUsd;
+            }
+            if (moneda == "cop")
+            {
+                return _resultado.RestanteCop;
+            }
+            return _resultado.RestanteBs;
+        }
+
         private void Cancelar_Click(object sender, RoutedEventArgs e)
         {
             DialogResult = false;
