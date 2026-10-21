@@ -14,12 +14,14 @@ packages/
 
 ## Artefactos de publicacion
 publish/
-dist/
+dist/*
 *.msi
 *.exe
 *.pdb
 *.dll
 *.config
+# El instalador sí se versiona: es un entregable, no basura de build.
+!dist/iSellerPOS-Setup-*.exe
 
 ## Base de datos local (datos reales de caja)
 *.db
