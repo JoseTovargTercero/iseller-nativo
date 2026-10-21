@@ -283,7 +283,7 @@ namespace Iseller.Pos.Core.Api
             var lote = new JArray();
             foreach (var venta in ventas)
             {
-                lote.Add(new JObject
+                var item = new JObject
                 {
                     ["id_pedido"] = venta.IdPedido,
                     ["fecha_local"] = venta.FechaLocal.ToString("o"),
@@ -301,7 +301,15 @@ namespace Iseller.Pos.Core.Api
                     ["usuario_id"] = venta.UsuarioId,
                     ["tasas"] = string.IsNullOrWhiteSpace(venta.TasasJson) ? new JObject() : JObject.Parse(venta.TasasJson),
                     ["productos"] = string.IsNullOrWhiteSpace(venta.ProductosJson) ? new JArray() : JArray.Parse(venta.ProductosJson),
-                });
+                };
+
+                // Pago fraccionado (option8): el desglose por medio de pago.
+                if (!string.IsNullOrWhiteSpace(venta.PagosJson))
+                {
+                    item["pagos_fraccionados"] = JObject.Parse(venta.PagosJson);
+                }
+
+                lote.Add(item);
             }
 
             var cuerpo = new JObject

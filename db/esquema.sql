@@ -2,7 +2,7 @@
 -- Todo lo que la caja necesita para vender sin internet.
 -- La nube sigue siendo la autoridad final; esta base es la copia de trabajo.
 
-PRAGMA user_version = 1;
+PRAGMA user_version = 2;
 
 CREATE TABLE IF NOT EXISTS meta (
     clave TEXT PRIMARY KEY,
@@ -90,6 +90,7 @@ CREATE TABLE IF NOT EXISTS ventas (
     ultimo_error     TEXT,
     tasas_json       TEXT    NOT NULL, -- tasas y banderas usadas al cobrar
     productos_json   TEXT    NOT NULL, -- items con precios congelados
+    pagos_json       TEXT,             -- desglose del pago fraccionado (option8)
     creada_en        TEXT    NOT NULL,
     enviada_en       TEXT
 );

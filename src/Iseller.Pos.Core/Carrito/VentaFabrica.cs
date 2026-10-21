@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Iseller.Pos.Core.Modelos;
 using Newtonsoft.Json;
 
@@ -14,7 +15,8 @@ namespace Iseller.Pos.Core.Carrito
             Cliente cliente,
             SesionLocal sesion,
             Tasas tasas,
-            DateTimeOffset ahora)
+            DateTimeOffset ahora,
+            IDictionary<string, double> pagosFraccionados = null)
         {
             if (carrito == null || carrito.Vacio)
             {
@@ -43,6 +45,7 @@ namespace Iseller.Pos.Core.Carrito
                 Intentos = 0,
                 TasasJson = Venta.SerializarTasas(tasas),
                 ProductosJson = JsonConvert.SerializeObject(carrito.Items),
+                PagosJson = pagosFraccionados == null ? null : JsonConvert.SerializeObject(pagosFraccionados),
                 CreadaEn = ahora,
             };
         }

@@ -43,6 +43,7 @@ namespace Iseller.Pos.App
                     case "option5": return "Dólares";
                     case "option6": return "Pesos";
                     case "option7": return "BioPago";
+                    case "option8": return "Fraccionado";
                     default: return "—";
                 }
             }

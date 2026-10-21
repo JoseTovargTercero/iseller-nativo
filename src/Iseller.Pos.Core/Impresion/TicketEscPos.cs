@@ -152,6 +152,7 @@ namespace Iseller.Pos.Core.Impresion
                 case "option5": return "Dolares";
                 case "option6": return "Pesos";
                 case "option7": return "BioPago";
+                case "option8": return "Fraccionado";
                 default: return metodoPago == "0" ? "Descuento" : "N/D";
             }
         }

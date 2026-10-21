@@ -59,6 +59,39 @@ namespace Iseller.Pos.Core.Datos
                 cmd.CommandText = LeerEsquema();
                 cmd.ExecuteNonQuery();
             }
+
+            // Migraciones aditivas para bases ya creadas (el CREATE TABLE IF NOT EXISTS
+            // no agrega columnas nuevas).
+            AgregarColumnaSiFalta(conexion, "ventas", "pagos_json", "TEXT");
+        }
+
+        private static void AgregarColumnaSiFalta(SQLiteConnection conexion, string tabla, string columna, string tipo)
+        {
+            bool existe = false;
+            using (var cmd = conexion.CreateCommand())
+            {
+                cmd.CommandText = "PRAGMA table_info(" + tabla + ")";
+                using (var lector = cmd.ExecuteReader())
+                {
+                    while (lector.Read())
+                    {
+                        if (string.Equals(lector.GetString(1), columna, StringComparison.OrdinalIgnoreCase))
+                        {
+                            existe = true;
+                            break;
+                        }
+                    }
+                }
+            }
+
+            if (!existe)
+            {
+                using (var cmd = conexion.CreateCommand())
+                {
+                    cmd.CommandText = "ALTER TABLE " + tabla + " ADD COLUMN " + columna + " " + tipo;
+                    cmd.ExecuteNonQuery();
+                }
+            }
         }
 
         private static string LeerEsquema()

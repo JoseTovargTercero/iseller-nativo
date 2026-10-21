@@ -40,6 +40,38 @@ namespace Iseller.Pos.Core.Carrito
                 return Falla("Pedido [" + venta.IdPedido + "]: el listado de productos está vacío.");
             }
 
+            if (venta.MetodoPago == "option8")
+            {
+                var pagos = venta.PagosFraccionados();
+                if (pagos == null)
+                {
+                    return Falla("Pedido [" + venta.IdPedido + "]: falta el desglose del pago fraccionado.");
+                }
+
+                bool positivo = false;
+                foreach (string clave in CalculadoraFraccionado.Claves)
+                {
+                    double valor;
+                    if (!pagos.TryGetValue(clave, out valor))
+                    {
+                        valor = 0;
+                    }
+                    if (double.IsNaN(valor) || double.IsInfinity(valor) || valor < 0)
+                    {
+                        return Falla("Pedido [" + venta.IdPedido + "]: monto fraccionado inválido en '" + clave + "'.");
+                    }
+                    if (valor > 0)
+                    {
+                        positivo = true;
+                    }
+                }
+
+                if (!positivo)
+                {
+                    return Falla("Pedido [" + venta.IdPedido + "]: el pago fraccionado no tiene montos.");
+                }
+            }
+
             for (int i = 0; i < productos.Count; i++)
             {
                 ItemCarrito p = productos[i];

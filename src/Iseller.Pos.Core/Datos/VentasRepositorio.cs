@@ -12,7 +12,7 @@ namespace Iseller.Pos.Core.Datos
         private const string Columnas =
             "id_pedido, fecha_local, metodo_pago, despacho, total_usd, total_bs, total_cop, " +
             "cliente_cedula, cliente_nombre, cliente_telefono, usuario_id, usuario_nombre, " +
-            "estado, intentos, ultimo_error, tasas_json, productos_json, creada_en, enviada_en";
+            "estado, intentos, ultimo_error, tasas_json, productos_json, creada_en, enviada_en, pagos_json";
 
         private readonly string _ruta;
 
@@ -35,7 +35,8 @@ namespace Iseller.Pos.Core.Datos
                     "INSERT OR REPLACE INTO ventas (" + Columnas + ") VALUES (" +
                     "@id_pedido, @fecha_local, @metodo_pago, @despacho, @total_usd, @total_bs, @total_cop, " +
                     "@cliente_cedula, @cliente_nombre, @cliente_telefono, @usuario_id, @usuario_nombre, " +
-                    "@estado, @intentos, @ultimo_error, @tasas_json, @productos_json, @creada_en, @enviada_en)";
+                    "@estado, @intentos, @ultimo_error, @tasas_json, @productos_json, @creada_en, @enviada_en, " +
+                    "@pagos_json)";
                 cmd.Parameters.AddWithValue("@id_pedido", venta.IdPedido);
                 cmd.Parameters.AddWithValue("@fecha_local", venta.FechaLocal.ToString("o"));
                 cmd.Parameters.AddWithValue("@metodo_pago", venta.MetodoPago);
@@ -53,6 +54,7 @@ namespace Iseller.Pos.Core.Datos
                 cmd.Parameters.AddWithValue("@ultimo_error", (object)venta.UltimoError ?? DBNull.Value);
                 cmd.Parameters.AddWithValue("@tasas_json", venta.TasasJson ?? "{}");
                 cmd.Parameters.AddWithValue("@productos_json", venta.ProductosJson ?? "[]");
+                cmd.Parameters.AddWithValue("@pagos_json", (object)venta.PagosJson ?? DBNull.Value);
                 cmd.Parameters.AddWithValue("@creada_en", venta.CreadaEn.ToString("o"));
                 cmd.Parameters.AddWithValue("@enviada_en",
                     venta.EnviadaEn.HasValue ? (object)venta.EnviadaEn.Value.ToString("o") : DBNull.Value);
@@ -224,6 +226,7 @@ namespace Iseller.Pos.Core.Datos
                 ProductosJson = lector.IsDBNull(16) ? "[]" : lector.GetString(16),
                 CreadaEn = Fecha(lector, 17),
                 EnviadaEn = lector.IsDBNull(18) ? (DateTimeOffset?)null : Fecha(lector, 18),
+                PagosJson = lector.IsDBNull(19) ? null : lector.GetString(19),
             };
         }
 

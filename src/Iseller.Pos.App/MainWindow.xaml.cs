@@ -516,7 +516,7 @@ namespace Iseller.Pos.App
             };
             if (dialogo.ShowDialog() == true)
             {
-                ProcesarVenta(dialogo.MetodoPago, Despacho.Venta, dialogo.Cliente);
+                ProcesarVenta(dialogo.MetodoPago, Despacho.Venta, dialogo.Cliente, dialogo.PagosFraccionados);
             }
         }
 
@@ -548,12 +548,13 @@ namespace Iseller.Pos.App
             ProcesarVenta("0", Despacho.Descuento, new Cliente());
         }
 
-        private void ProcesarVenta(string metodoPago, int despacho, Cliente cliente)
+        private void ProcesarVenta(string metodoPago, int despacho, Cliente cliente,
+                                   System.Collections.Generic.Dictionary<string, double> pagos = null)
         {
             Venta venta;
             try
             {
-                venta = VentaFabrica.Crear(_carrito, metodoPago, despacho, cliente, _sesion, _tasas, DateTimeOffset.Now);
+                venta = VentaFabrica.Crear(_carrito, metodoPago, despacho, cliente, _sesion, _tasas, DateTimeOffset.Now, pagos);
             }
             catch (Exception ex)
             {

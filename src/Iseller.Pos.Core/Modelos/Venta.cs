@@ -28,6 +28,8 @@ namespace Iseller.Pos.Core.Modelos
         [JsonProperty("ultimo_error")] public string UltimoError { get; set; }
         [JsonProperty("tasas_json")] public string TasasJson { get; set; }
         [JsonProperty("productos_json")] public string ProductosJson { get; set; }
+        /// <summary>Desglose del pago fraccionado (option8), o null si no lo es.</summary>
+        [JsonProperty("pagos_json")] public string PagosJson { get; set; }
         [JsonProperty("creada_en")] public DateTimeOffset CreadaEn { get; set; }
         [JsonProperty("enviada_en")] public DateTimeOffset? EnviadaEn { get; set; }
 
@@ -52,6 +54,16 @@ namespace Iseller.Pos.Core.Modelos
                 return new List<ItemCarrito>();
             }
             return JsonConvert.DeserializeObject<List<ItemCarrito>>(ProductosJson) ?? new List<ItemCarrito>();
+        }
+
+        /// <summary>Desglose del pago fraccionado, o null si la venta no lo es.</summary>
+        public Dictionary<string, double> PagosFraccionados()
+        {
+            if (string.IsNullOrWhiteSpace(PagosJson))
+            {
+                return null;
+            }
+            return JsonConvert.DeserializeObject<Dictionary<string, double>>(PagosJson);
         }
 
         /// <summary>Tasas usadas, en el mismo formato del contrato.</summary>

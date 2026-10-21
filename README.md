@@ -95,6 +95,13 @@ PLAN.md                 Plan por fases, contratos y decisiones
 - **Campos numéricos:** montos de apertura/cierre de caja, cantidad recibida (cambio) y cantidad
   del carrito solo aceptan dígitos y **un** punto decimal. Se bloquean letras, comas, signos,
   espacios y el segundo punto, tanto al teclear como al pegar.
+- **Pago fraccionado (8):** en el diálogo de pago se elige "(8) Fraccionado" y se pasa al paso 2,
+  donde se reparte el cobro entre Punto, BioPago, Pago móvil, Transferencia, Efectivo, Dólares y
+  Pesos. Arriba se ve lo que **falta por pagar** en las tres monedas y abajo el estado (falta /
+  cuenta cubierta / vuelto). No deja confirmar si falta dinero. Cada medio cubre la fracción que
+  representa dentro del total de su propia moneda (igual que el POS web), y el vuelto se descuenta
+  del efectivo de esa moneda antes de guardar. Se envía como `option8` con el desglose y el
+  servidor lo guarda en `fracciones`; el cierre de caja suma cada medio.
 - **Ajustes:** impresora (ancho, cajón, prueba) y **buscar actualización** (muestra la versión
   instalada). La URL y la clave de la API no se muestran ni se editan desde la app; viven en
   `config.json`. Se abre desde el engranaje del topbar, no desde el login.
@@ -113,5 +120,5 @@ PLAN.md                 Plan por fases, contratos y decisiones
   columna CAJERO), puede filtrar por cajero y sincronizar lo de los demás; cada venta conserva
   el id del usuario que la procesó.
 
-77 tests en verde (`dotnet test`).
+90 tests en verde (`dotnet test`).
 
