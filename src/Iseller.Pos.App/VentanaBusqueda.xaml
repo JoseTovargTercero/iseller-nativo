@@ -90,17 +90,18 @@
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
                                     <TextBlock Text="{Binding Nombre}" TextWrapping="Wrap"
-                                               ToolTip="{Binding Nombre}" VerticalAlignment="Center" />
+                                               ToolTip="{Binding Nombre}" VerticalAlignment="Center"
+                                               TextAlignment="Center" />
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>
                         </DataGridTemplateColumn>
-                        <DataGridTextColumn Header="STOCK" Binding="{Binding Stock}" Width="72" />
+                        <DataGridTextColumn Header="STOCK" Binding="{Binding Stock}" Width="72" CellStyle="{StaticResource CeldaCentrada}" ElementStyle="{StaticResource TextoEnCelda}" />
                         <DataGridTextColumn Header="DÓLARES" Binding="{Binding PrecioDolar}" Width="92"
-                                            ElementStyle="{StaticResource CeldaUsd}" />
+                                            ElementStyle="{StaticResource CeldaUsd}" CellStyle="{StaticResource CeldaCentrada}" />
                         <DataGridTextColumn Header="BOLÍVARES" Binding="{Binding PrecioBs}" Width="120"
-                                            ElementStyle="{StaticResource CeldaBs}" />
+                                            ElementStyle="{StaticResource CeldaBs}" CellStyle="{StaticResource CeldaCentrada}" />
                         <DataGridTextColumn Header="PESOS" Binding="{Binding PrecioPeso}" Width="120"
-                                            ElementStyle="{StaticResource CeldaCop}" />
+                                            ElementStyle="{StaticResource CeldaCop}" CellStyle="{StaticResource CeldaCentrada}" />
                         <DataGridTemplateColumn Header="CANT." Width="76">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
@@ -110,12 +111,20 @@
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>
                         </DataGridTemplateColumn>
-                        <DataGridTemplateColumn Header="" Width="100">
+                        <DataGridTemplateColumn Header="" Width="72">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
-                                    <Button Content="AGREGAR" Style="{StaticResource PrimaryButton}"
-                                            Padding="10,5" FontSize="11" VerticalAlignment="Center"
-                                            Click="Agregar_Click" />
+                                    <!-- Botón cuadrado con icono de carrito, como en el POS web. -->
+                                    <Button Style="{StaticResource PrimaryButton}" Width="34" Height="34"
+                                            Padding="0" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                            ToolTip="Agregar al carrito"
+                                            AutomationProperties.Name="AGREGAR"
+                                            Click="Agregar_Click">
+                                        <Path Data="M2,3 L5,3 L7.5,14 L17,14 L19,6 L6,6 M8,18 A1.2,1.2 0 1 0 8,18.01 M16,18 A1.2,1.2 0 1 0 16,18.01"
+                                              Stroke="White" StrokeThickness="1.5" StrokeLineJoin="Round"
+                                              StrokeStartLineCap="Round" StrokeEndLineCap="Round"
+                                              Stretch="Uniform" Width="17" Height="17" />
+                                    </Button>
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>
                         </DataGridTemplateColumn>

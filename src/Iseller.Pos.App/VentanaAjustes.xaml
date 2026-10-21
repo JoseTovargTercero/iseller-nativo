@@ -9,8 +9,9 @@
     <StackPanel Margin="24">
         <TextBlock Text="Impresora de tickets" Style="{StaticResource SectionTitle}" />
         <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
-            <ComboBox x:Name="ComboImpresoras" Width="330" Height="32" />
-            <Button Content="Refrescar" Style="{StaticResource SecondaryButton}" Margin="8,0,0,0"
+            <ComboBox x:Name="ComboImpresoras" Width="330" Height="34" />
+            <Button Content="Refrescar" Style="{StaticResource SecondaryButton}" Height="34"
+                    Padding="14,0" Margin="8,0,0,0" VerticalAlignment="Center"
                     Click="Refrescar_Click" />
         </StackPanel>
 

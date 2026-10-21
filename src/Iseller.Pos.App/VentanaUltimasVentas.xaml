@@ -65,11 +65,11 @@
                           BorderThickness="0" Background="Transparent" RowHeight="44">
                     <DataGrid.Columns>
                         <DataGridTextColumn Header="FECHA" Binding="{Binding Fecha}" Width="120"
-                                            CellStyle="{StaticResource CeldaCentrada}" />
+                                            CellStyle="{StaticResource CeldaCentrada}" ElementStyle="{StaticResource TextoEnCelda}" />
                         <DataGridTextColumn Header="TIPO" Binding="{Binding Tipo}" Width="110"
-                                            CellStyle="{StaticResource CeldaCentrada}" />
+                                            CellStyle="{StaticResource CeldaCentrada}" ElementStyle="{StaticResource TextoEnCelda}" />
                         <DataGridTextColumn Header="MÉTODO" Binding="{Binding Metodo}" Width="140"
-                                            CellStyle="{StaticResource CeldaCentrada}" />
+                                            CellStyle="{StaticResource CeldaCentrada}" ElementStyle="{StaticResource TextoEnCelda}" />
                         <DataGridTextColumn Header="PESOS" Binding="{Binding Pesos}" Width="140"
                                             CellStyle="{StaticResource CeldaCentrada}"
                                             ElementStyle="{StaticResource CeldaCop}" />
@@ -80,12 +80,13 @@
                                             CellStyle="{StaticResource CeldaCentrada}"
                                             ElementStyle="{StaticResource CeldaUsd}" />
                         <DataGridTextColumn Header="ESTADO" Binding="{Binding Estado}" Width="*"
-                                            CellStyle="{StaticResource CeldaCentrada}" />
+                                            CellStyle="{StaticResource CeldaCentrada}" ElementStyle="{StaticResource TextoEnCelda}" />
                         <DataGridTemplateColumn Header="" Width="120">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
                                     <Button Content="DESHACER" Style="{StaticResource MiniOutlineDanger}"
-                                            VerticalAlignment="Center" Click="Deshacer_Click" />
+                                            VerticalAlignment="Center" HorizontalAlignment="Center"
+                                            Click="Deshacer_Click" />
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>
                         </DataGridTemplateColumn>

@@ -59,9 +59,10 @@
                             ClipToBounds="True">
                     <Image Source="Assets/logo1-inv-compact-128.png" Width="30" Height="30"
                            Margin="0,0,10,0" RenderOptions.BitmapScalingMode="HighQuality" />
-                    <TextBlock Text="iSELLER" FontSize="16" FontWeight="Bold"
-                               Foreground="{StaticResource MintBrush}" />
-                    <TextBlock Text="POS" FontSize="16" FontWeight="Bold" Margin="6,0,0,0" />
+                    <TextBlock Text="iSELLER" FontSize="16" FontWeight="Bold" Margin="0,2,0,0"
+                               VerticalAlignment="Center" Foreground="{StaticResource MintBrush}" />
+                    <TextBlock Text="POS" FontSize="16" FontWeight="Bold" Margin="6,2,0,0"
+                               VerticalAlignment="Center" />
                     <TextBlock x:Name="TextoSucursal" Style="{StaticResource MutedText}"
                                Margin="24,0,0,0" VerticalAlignment="Center"
                                TextTrimming="CharacterEllipsis" />
@@ -195,7 +196,8 @@
                                             <DataGridTemplateColumn.CellTemplate>
                                                 <DataTemplate>
                                                     <TextBlock Text="{Binding Nombre}" TextTrimming="CharacterEllipsis"
-                                                               ToolTip="{Binding Nombre}" VerticalAlignment="Center" />
+                                                               ToolTip="{Binding Nombre}" VerticalAlignment="Center"
+                                                               HorizontalAlignment="Center" TextAlignment="Center" />
                                                 </DataTemplate>
                                             </DataGridTemplateColumn.CellTemplate>
                                         </DataGridTemplateColumn>
@@ -211,7 +213,8 @@
                                         <DataGridTemplateColumn Header="ACCIONES" Width="185">
                                             <DataGridTemplateColumn.CellTemplate>
                                                 <DataTemplate>
-                                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center"
+                                                                HorizontalAlignment="Center">
                                                         <Button Content="+" Style="{StaticResource MiniOutlineSuccess}"
                                                                 Click="Sumar_Click" />
                                                         <Button Content="−" Style="{StaticResource MiniOutlineMuted}"
@@ -322,15 +325,15 @@
                         <DataGrid x:Name="TablaPendientes" AutoGenerateColumns="False" IsReadOnly="True"
                                   BorderThickness="0" Background="Transparent" RowHeight="40">
                             <DataGrid.Columns>
-                                <DataGridTextColumn Header="FECHA" Binding="{Binding Fecha}" Width="105" />
-                                <DataGridTextColumn Header="CAJERO" Binding="{Binding Cajero}" Width="150" />
-                                <DataGridTextColumn Header="TIPO" Binding="{Binding Tipo}" Width="85" />
-                                <DataGridTextColumn Header="MÉTODO" Binding="{Binding Metodo}" Width="115" />
-                                <DataGridTextColumn Header="PESOS" Binding="{Binding Pesos}" Width="110" />
-                                <DataGridTextColumn Header="BOLÍVARES" Binding="{Binding Bolivares}" Width="125" />
-                                <DataGridTextColumn Header="DÓLARES" Binding="{Binding Dolares}" Width="95" />
-                                <DataGridTextColumn Header="ESTADO" Binding="{Binding Estado}" Width="105" />
-                                <DataGridTextColumn Header="DETALLE" Binding="{Binding Detalle}" Width="*" />
+                                <DataGridTextColumn Header="FECHA" Binding="{Binding Fecha}" Width="105" CellStyle="{StaticResource CeldaCentrada}" ElementStyle="{StaticResource TextoEnCelda}" />
+                                <DataGridTextColumn Header="CAJERO" Binding="{Binding Cajero}" Width="150" CellStyle="{StaticResource CeldaCentrada}" ElementStyle="{StaticResource TextoEnCelda}" />
+                                <DataGridTextColumn Header="TIPO" Binding="{Binding Tipo}" Width="85" CellStyle="{StaticResource CeldaCentrada}" ElementStyle="{StaticResource TextoEnCelda}" />
+                                <DataGridTextColumn Header="MÉTODO" Binding="{Binding Metodo}" Width="115" CellStyle="{StaticResource CeldaCentrada}" ElementStyle="{StaticResource TextoEnCelda}" />
+                                <DataGridTextColumn Header="PESOS" Binding="{Binding Pesos}" Width="110" CellStyle="{StaticResource CeldaCentrada}" ElementStyle="{StaticResource TextoEnCelda}" />
+                                <DataGridTextColumn Header="BOLÍVARES" Binding="{Binding Bolivares}" Width="125" CellStyle="{StaticResource CeldaCentrada}" ElementStyle="{StaticResource TextoEnCelda}" />
+                                <DataGridTextColumn Header="DÓLARES" Binding="{Binding Dolares}" Width="95" CellStyle="{StaticResource CeldaCentrada}" ElementStyle="{StaticResource TextoEnCelda}" />
+                                <DataGridTextColumn Header="ESTADO" Binding="{Binding Estado}" Width="105" CellStyle="{StaticResource CeldaCentrada}" ElementStyle="{StaticResource TextoEnCelda}" />
+                                <DataGridTextColumn Header="DETALLE" Binding="{Binding Detalle}" Width="*" CellStyle="{StaticResource CeldaCentrada}" ElementStyle="{StaticResource TextoEnCelda}" />
                             </DataGrid.Columns>
                         </DataGrid>
                     </Border>
@@ -346,16 +349,17 @@
                         <DataGrid x:Name="TablaReservados" AutoGenerateColumns="False" IsReadOnly="True"
                                   BorderThickness="0" Background="Transparent" RowHeight="40">
                             <DataGrid.Columns>
-                                <DataGridTextColumn Header="FECHA" Binding="{Binding Fecha}" Width="110" />
-                                <DataGridTextColumn Header="CLIENTE" Binding="{Binding Cliente}" Width="*" />
-                                <DataGridTextColumn Header="PRODUCTOS" Binding="{Binding Productos}" Width="120" />
-                                <DataGridTextColumn Header="PESOS" Binding="{Binding Pesos}" Width="120" />
-                                <DataGridTextColumn Header="BOLÍVARES" Binding="{Binding Bolivares}" Width="130" />
-                                <DataGridTextColumn Header="DÓLARES" Binding="{Binding Dolares}" Width="100" />
+                                <DataGridTextColumn Header="FECHA" Binding="{Binding Fecha}" Width="110" CellStyle="{StaticResource CeldaCentrada}" ElementStyle="{StaticResource TextoEnCelda}" />
+                                <DataGridTextColumn Header="CLIENTE" Binding="{Binding Cliente}" Width="*" CellStyle="{StaticResource CeldaCentrada}" ElementStyle="{StaticResource TextoEnCelda}" />
+                                <DataGridTextColumn Header="PRODUCTOS" Binding="{Binding Productos}" Width="120" CellStyle="{StaticResource CeldaCentrada}" ElementStyle="{StaticResource TextoEnCelda}" />
+                                <DataGridTextColumn Header="PESOS" Binding="{Binding Pesos}" Width="120" CellStyle="{StaticResource CeldaCentrada}" ElementStyle="{StaticResource TextoEnCelda}" />
+                                <DataGridTextColumn Header="BOLÍVARES" Binding="{Binding Bolivares}" Width="130" CellStyle="{StaticResource CeldaCentrada}" ElementStyle="{StaticResource TextoEnCelda}" />
+                                <DataGridTextColumn Header="DÓLARES" Binding="{Binding Dolares}" Width="100" CellStyle="{StaticResource CeldaCentrada}" ElementStyle="{StaticResource TextoEnCelda}" />
                                 <DataGridTemplateColumn Header="ACCIONES" Width="190">
                                     <DataGridTemplateColumn.CellTemplate>
                                         <DataTemplate>
-                                            <StackPanel Orientation="Horizontal">
+                                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center"
+                                                        HorizontalAlignment="Center">
                                                 <Button Content="Retomar" Style="{StaticResource MiniOutlineSuccess}"
                                                         Click="Retomar_Click" />
                                                 <Button Content="Eliminar" Style="{StaticResource MiniOutlineDanger}"
@@ -394,17 +398,17 @@
                         <DataGrid x:Name="TablaEnviados" AutoGenerateColumns="False" IsReadOnly="True"
                                   BorderThickness="0" Background="Transparent" RowHeight="40">
                             <DataGrid.Columns>
-                                <DataGridTextColumn Header="FECHA" Binding="{Binding Fecha}" Width="110" />
-                                <DataGridTextColumn Header="CAJERO" Binding="{Binding Venta.UsuarioNombre}" Width="150" />
-                                <DataGridTextColumn Header="TIPO" Binding="{Binding Tipo}" Width="90" />
-                                <DataGridTextColumn Header="MÉTODO" Binding="{Binding Metodo}" Width="120" />
+                                <DataGridTextColumn Header="FECHA" Binding="{Binding Fecha}" Width="110" CellStyle="{StaticResource CeldaCentrada}" ElementStyle="{StaticResource TextoEnCelda}" />
+                                <DataGridTextColumn Header="CAJERO" Binding="{Binding Venta.UsuarioNombre}" Width="150" CellStyle="{StaticResource CeldaCentrada}" ElementStyle="{StaticResource TextoEnCelda}" />
+                                <DataGridTextColumn Header="TIPO" Binding="{Binding Tipo}" Width="90" CellStyle="{StaticResource CeldaCentrada}" ElementStyle="{StaticResource TextoEnCelda}" />
+                                <DataGridTextColumn Header="MÉTODO" Binding="{Binding Metodo}" Width="120" CellStyle="{StaticResource CeldaCentrada}" ElementStyle="{StaticResource TextoEnCelda}" />
                                 <DataGridTextColumn Header="PESOS" Binding="{Binding Pesos}" Width="120"
-                                                    ElementStyle="{StaticResource CeldaCop}" />
+                                                    ElementStyle="{StaticResource CeldaCop}" CellStyle="{StaticResource CeldaCentrada}" />
                                 <DataGridTextColumn Header="BOLÍVARES" Binding="{Binding Bolivares}" Width="140"
-                                                    ElementStyle="{StaticResource CeldaBs}" />
+                                                    ElementStyle="{StaticResource CeldaBs}" CellStyle="{StaticResource CeldaCentrada}" />
                                 <DataGridTextColumn Header="DÓLARES" Binding="{Binding Dolares}" Width="110"
-                                                    ElementStyle="{StaticResource CeldaUsd}" />
-                                <DataGridTextColumn Header="ESTADO" Binding="{Binding Estado}" Width="*" />
+                                                    ElementStyle="{StaticResource CeldaUsd}" CellStyle="{StaticResource CeldaCentrada}" />
+                                <DataGridTextColumn Header="ESTADO" Binding="{Binding Estado}" Width="*" CellStyle="{StaticResource CeldaCentrada}" ElementStyle="{StaticResource TextoEnCelda}" />
                             </DataGrid.Columns>
                         </DataGrid>
                     </Border>

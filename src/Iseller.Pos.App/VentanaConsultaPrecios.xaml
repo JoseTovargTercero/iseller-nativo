@@ -38,9 +38,9 @@
                                 VerticalAlignment="Center">
                         <Image Source="Assets/logo1-inv-compact-128.png" Width="26" Height="26"
                                Margin="0,0,10,0" RenderOptions.BitmapScalingMode="HighQuality" />
-                        <TextBlock Text="iSELLER" FontSize="15" FontWeight="Bold"
+                        <TextBlock Text="iSELLER" FontSize="15" FontWeight="Bold" Margin="0,2,0,0"
                                    Foreground="{StaticResource MintBrush}" VerticalAlignment="Center" />
-                        <TextBlock Text="POS" FontSize="15" FontWeight="Bold" Margin="5,0,0,0"
+                        <TextBlock Text="POS" FontSize="15" FontWeight="Bold" Margin="5,2,0,0"
                                    VerticalAlignment="Center" />
                     </StackPanel>
 

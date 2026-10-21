@@ -101,7 +101,7 @@
                 <StackPanel Grid.Row="0" Grid.Column="0" Margin="0,0,8,10">
                     <TextBlock Text="Punto (Bs)" Style="{StaticResource MutedText}" FontSize="10" />
                     <Grid>
-                        <TextBox x:Name="FracPunto" Padding="8,6,32,6" app:Numerico.Decimales="True"
+                        <TextBox x:Name="FracPunto" Padding="8,6,32,6" Height="34" app:Numerico.Decimales="True"
                                  TextChanged="Fraccion_TextChanged" />
                         <Button Style="{StaticResource BotonRellenar}" Tag="punto"
                                 ToolTip="Completar el restante en Bs"
@@ -116,7 +116,7 @@
                 <StackPanel Grid.Row="0" Grid.Column="1" Margin="8,0,0,10">
                     <TextBlock Text="BioPago (Bs)" Style="{StaticResource MutedText}" FontSize="10" />
                     <Grid>
-                        <TextBox x:Name="FracBioPago" Padding="8,6,32,6" app:Numerico.Decimales="True"
+                        <TextBox x:Name="FracBioPago" Padding="8,6,32,6" Height="34" app:Numerico.Decimales="True"
                                  TextChanged="Fraccion_TextChanged" />
                         <Button Style="{StaticResource BotonRellenar}" Tag="bioPago"
                                 ToolTip="Completar el restante en Bs"
@@ -131,7 +131,7 @@
                 <StackPanel Grid.Row="1" Grid.Column="0" Margin="0,0,8,10">
                     <TextBlock Text="Pago móvil (Bs)" Style="{StaticResource MutedText}" FontSize="10" />
                     <Grid>
-                        <TextBox x:Name="FracPagoMovil" Padding="8,6,32,6" app:Numerico.Decimales="True"
+                        <TextBox x:Name="FracPagoMovil" Padding="8,6,32,6" Height="34" app:Numerico.Decimales="True"
                                  TextChanged="Fraccion_TextChanged" />
                         <Button Style="{StaticResource BotonRellenar}" Tag="pagoMovil"
                                 ToolTip="Completar el restante en Bs"
@@ -146,7 +146,7 @@
                 <StackPanel Grid.Row="1" Grid.Column="1" Margin="8,0,0,10">
                     <TextBlock Text="Transferencia (Bs)" Style="{StaticResource MutedText}" FontSize="10" />
                     <Grid>
-                        <TextBox x:Name="FracTransferencia" Padding="8,6,32,6" app:Numerico.Decimales="True"
+                        <TextBox x:Name="FracTransferencia" Padding="8,6,32,6" Height="34" app:Numerico.Decimales="True"
                                  TextChanged="Fraccion_TextChanged" />
                         <Button Style="{StaticResource BotonRellenar}" Tag="transferencia"
                                 ToolTip="Completar el restante en Bs"
@@ -161,7 +161,7 @@
                 <StackPanel Grid.Row="2" Grid.Column="0" Margin="0,0,8,10">
                     <TextBlock Text="Efectivo (Bs)" Style="{StaticResource MutedText}" FontSize="10" />
                     <Grid>
-                        <TextBox x:Name="FracEfectivo" Padding="8,6,32,6" app:Numerico.Decimales="True"
+                        <TextBox x:Name="FracEfectivo" Padding="8,6,32,6" Height="34" app:Numerico.Decimales="True"
                                  TextChanged="Fraccion_TextChanged" />
                         <Button Style="{StaticResource BotonRellenar}" Tag="efectivo"
                                 ToolTip="Completar el restante en Bs"
@@ -176,7 +176,7 @@
                 <StackPanel Grid.Row="2" Grid.Column="1" Margin="8,0,0,10">
                     <TextBlock Text="Dólares (USD)" Style="{StaticResource MutedText}" FontSize="10" />
                     <Grid>
-                        <TextBox x:Name="FracDolares" Padding="8,6,32,6" app:Numerico.Decimales="True"
+                        <TextBox x:Name="FracDolares" Padding="8,6,32,6" Height="34" app:Numerico.Decimales="True"
                                  TextChanged="Fraccion_TextChanged" />
                         <Button Style="{StaticResource BotonRellenar}" Tag="dolares"
                                 ToolTip="Completar el restante en USD"
@@ -191,7 +191,7 @@
                 <StackPanel Grid.Row="3" Grid.Column="0" Margin="0,0,8,0">
                     <TextBlock Text="Pesos (COP)" Style="{StaticResource MutedText}" FontSize="10" />
                     <Grid>
-                        <TextBox x:Name="FracPesos" Padding="8,6,32,6" app:Numerico.Decimales="True"
+                        <TextBox x:Name="FracPesos" Padding="8,6,32,6" Height="34" app:Numerico.Decimales="True"
                                  TextChanged="Fraccion_TextChanged" />
                         <Button Style="{StaticResource BotonRellenar}" Tag="pesos"
                                 ToolTip="Completar el restante en COP"
@@ -204,7 +204,7 @@
                     </Grid>
                 </StackPanel>
                 <Button Grid.Row="3" Grid.Column="1" Content="Limpiar" Style="{StaticResource SecondaryButton}"
-                        Padding="12,6" HorizontalAlignment="Right" VerticalAlignment="Bottom"
+                        Height="34" Padding="14,0" HorizontalAlignment="Right" VerticalAlignment="Bottom"
                         Margin="8,0,0,0" Click="Limpiar_Click" />
             </Grid>
 

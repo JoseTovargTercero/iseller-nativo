@@ -61,9 +61,9 @@ PLAN.md                 Plan por fases, contratos y decisiones
   ya vienen pequeños). La clave incluye el id y la ruta de la foto, así un cambio de foto no
   sirve la vieja. Sin conexión se usan las que ya están en disco.
 - **Búsqueda:** es un **modal** igual que en el POS web (botón `(B) BÚSQUEDA` o la tecla `B`):
-  buscador arriba y tabla con nombre completo, stock, precios, cantidad y AGREGAR. `Enter` con un
-  código de barras agrega el producto exacto; `Esc` cierra. Un número dentro del nombre no arrastra
-  códigos.
+  buscador arriba y tabla con nombre completo, stock, precios, cantidad y un botón cuadrado con
+  icono de carrito para agregar. `Enter` con un código de barras agrega el producto exacto; `Esc`
+  cierra. Un número dentro del nombre no arrastra códigos.
 - **Lector de código de barras:** funciona en toda la ventana (ráfaga de dígitos y `Enter`, con
   pausa máxima de 100 ms entre teclas, igual que el POS web). El producto escaneado **se muestra
   primero** y espera el `Enter` del cajero para entrar al carrito (los lectores baratos a veces

@@ -384,6 +384,11 @@
         <Setter Property="HorizontalContentAlignment" Value="Center" />
     </Style>
 
+    <!-- Texto de las celdas centrado (se usa junto con CeldaCentrada). -->
+    <Style x:Key="TextoEnCelda" TargetType="{x:Type TextBlock}">
+        <Setter Property="TextAlignment" Value="Center" />
+    </Style>
+
     <!-- Botones de la barra superior propia (minimizar / cerrar) -->
     <Style x:Key="WindowButton" TargetType="{x:Type Button}">
         <Setter Property="Width" Value="44" />
