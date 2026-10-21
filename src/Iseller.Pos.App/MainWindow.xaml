@@ -161,27 +161,12 @@
         </Border>
 
         <!-- Venta / pendientes -->
-        <TabControl x:Name="TabControlPrincipal" Grid.Row="3" Margin="20,16,20,12"
-                    SelectionChanged="Tabs_SelectionChanged">
+        <Grid Grid.Row="3" Margin="20,16,20,12">
+            <TabControl x:Name="TabControlPrincipal" SelectionChanged="Tabs_SelectionChanged">
             <TabItem Header="Venta">
                 <Grid Margin="0,16,0,0">
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="*" />
-                    </Grid.RowDefinitions>
-
-                    <Grid Grid.Row="0" Margin="0,0,0,12">
-                        <StackPanel Orientation="Horizontal">
-                            <Button Content="(B) BÚSQUEDA" Style="{StaticResource PrimaryButton}"
-                                    Padding="18,10" Click="Buscar_Click" />
-                        </StackPanel>
-                        <Button x:Name="BotonCerrarCaja" Content="CERRAR CAJA"
-                                Style="{StaticResource DangerButton}" Padding="16,10"
-                                HorizontalAlignment="Right" Visibility="Collapsed" Click="CerrarCaja_Click" />
-                    </Grid>
-
                     <!-- Carrito -->
-                    <Grid Grid.Row="1">
+                    <Grid>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="*" />
                             <RowDefinition Height="Auto" />
@@ -418,7 +403,18 @@
                     </Border>
                 </Grid>
             </TabItem>
-        </TabControl>
+            </TabControl>
+
+            <!-- En la misma línea de las pestañas: primero cerrar caja, luego búsqueda. -->
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Top"
+                        Margin="0,3,0,0">
+                <Button x:Name="BotonCerrarCaja" Content="CERRAR CAJA"
+                        Style="{StaticResource DangerButton}" Padding="14,7"
+                        Visibility="Collapsed" Click="CerrarCaja_Click" />
+                <Button Content="(B) BÚSQUEDA" Style="{StaticResource PrimaryButton}"
+                        Padding="16,7" Margin="8,0,0,0" Click="Buscar_Click" />
+            </StackPanel>
+        </Grid>
 
         <!-- Barra de estado -->
         <Border Grid.Row="4" Background="{StaticResource CardBrush}"
