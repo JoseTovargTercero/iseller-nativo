@@ -475,6 +475,20 @@
         </Setter>
     </Style>
 
+    <Style TargetType="{x:Type Separator}">
+        <Setter Property="Background" Value="{StaticResource BorderBrush}" />
+        <Setter Property="Height" Value="1" />
+        <Setter Property="Margin" Value="6,4" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type Separator}">
+                    <Border Background="{TemplateBinding Background}" Height="1"
+                            Margin="{TemplateBinding Margin}" />
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
     <!-- Botones pequeños de acción, equivalentes a los btn-outline-* del POS web. -->
     <Style x:Key="MiniOutlineSuccess" TargetType="{x:Type Button}" BasedOn="{StaticResource BaseButton}">
         <Setter Property="Background" Value="Transparent" />

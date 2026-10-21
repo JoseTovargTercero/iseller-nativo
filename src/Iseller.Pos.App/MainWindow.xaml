@@ -86,12 +86,14 @@
                         </StackPanel>
                     </Button>
                     <Button x:Name="BtnMenu" Style="{StaticResource WindowButton}" Margin="10,3,0,3"
-                            Click="Menu_Click" ToolTip="Sincronización"
-                            AutomationProperties.Name="Sincronización">
+                            Click="Menu_Click" ToolTip="Herramientas"
+                            AutomationProperties.Name="Herramientas">
                         <Path Data="M0,0 L14,0 M0,5 L14,5 M0,10 L14,10" Stroke="White"
                               StrokeThickness="1.4" StrokeStartLineCap="Round" StrokeEndLineCap="Round" />
                         <Button.ContextMenu>
                             <ContextMenu>
+                                <MenuItem Header="Consulta de precios" Click="ConsultaPrecios_Click" />
+                                <Separator />
                                 <MenuItem Header="Sincronizar catálogo" Click="Sincronizar_Click" />
                                 <MenuItem Header="Enviar pendientes" Click="Enviar_Click" />
                                 <MenuItem Header="Verificar conexión" Click="Verificar_Click" />

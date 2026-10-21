@@ -1,0 +1,101 @@
+<Window x:Class="Iseller.Pos.App.VentanaConsultaPrecios"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Consulta de precios" WindowStartupLocation="CenterOwner"
+        WindowStyle="None" WindowState="Maximized"
+        Icon="Assets/logo1-inv-compact-128.png"
+        Style="{StaticResource PosWindow}"
+        PreviewKeyDown="Window_PreviewKeyDown">
+
+    <WindowChrome.WindowChrome>
+        <WindowChrome CaptionHeight="0" ResizeBorderThickness="0" GlassFrameThickness="0"
+                      CornerRadius="0" UseAeroCaptionButtons="False" />
+    </WindowChrome.WindowChrome>
+
+    <!-- Solo se cierra con la X o Esc: no hay botón de "Atrás". -->
+    <Border BorderBrush="#80A8B4C2" BorderThickness="1">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="52" />
+                <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+
+            <Border Grid.Row="0" Background="{StaticResource BgBrush}"
+                    BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,0,0,1">
+                <Grid Margin="22,0,10,0">
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                        <Image Source="Assets/logo1-inv-compact-128.png" Width="26" Height="26"
+                               Margin="0,0,10,0" RenderOptions.BitmapScalingMode="HighQuality" />
+                        <TextBlock Text="Consulta de precios" Style="{StaticResource MutedText}" />
+                    </StackPanel>
+                    <Button x:Name="BtnCerrar" Style="{StaticResource WindowCloseButton}"
+                            HorizontalAlignment="Right" VerticalAlignment="Center"
+                            ToolTip="Cerrar (Esc)" Click="Cerrar_Click">
+                        <Path Data="M0,0 L11,11 M11,0 L0,11" Stroke="White" StrokeThickness="1.2" />
+                    </Button>
+                </Grid>
+            </Border>
+
+            <!-- Todo centrado en pantalla -->
+            <Grid Grid.Row="1" Margin="40,20">
+                <StackPanel x:Name="PanelEspera" VerticalAlignment="Center" HorizontalAlignment="Center">
+                    <Path Data="M2,4 L2,20 M6,4 L6,20 M10,4 L10,20 M14,4 L14,20 M18,4 L18,20 M22,4 L22,20 M2,12 L22,12"
+                          Stroke="{StaticResource MutedBrush}" StrokeThickness="1.5"
+                          Stretch="Uniform" Width="130" Height="130" HorizontalAlignment="Center" />
+                    <TextBlock Text="Escanea el código del producto" FontSize="34" FontWeight="Bold"
+                               HorizontalAlignment="Center" Margin="0,32,0,0" />
+                    <TextBlock Text="Acerca el producto al lector para ver su precio."
+                               Style="{StaticResource MutedText}" FontSize="17"
+                               HorizontalAlignment="Center" Margin="0,14,0,0" />
+                </StackPanel>
+
+                <StackPanel x:Name="PanelProducto" VerticalAlignment="Center" HorizontalAlignment="Center"
+                            Visibility="Collapsed">
+                    <Border Width="320" Height="320" CornerRadius="18" Background="#0AFFFFFF"
+                            ClipToBounds="True" HorizontalAlignment="Center">
+                        <Grid>
+                            <Path Data="M4,10 L9,14 L13,9 L17,14 M4,6 A1.2,1.2 0 1 0 4,6.01 M3,3 L19,3 L19,19 L3,19 Z"
+                                  Stroke="#4D8892A0" StrokeThickness="1.2" Stretch="Uniform" Margin="90"
+                                  HorizontalAlignment="Center" VerticalAlignment="Center" />
+                            <Image x:Name="ImagenProducto" Stretch="UniformToFill" />
+                        </Grid>
+                    </Border>
+
+                    <TextBlock x:Name="NombreProducto" FontSize="34" FontWeight="Bold"
+                               TextWrapping="Wrap" TextAlignment="Center" MaxWidth="1000"
+                               HorizontalAlignment="Center" Margin="0,28,0,0" />
+
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,22,0,0">
+                        <TextBlock x:Name="PrecioDolar" FontSize="30" FontWeight="Bold"
+                                   Foreground="{StaticResource MintBrush}" VerticalAlignment="Center" />
+                        <TextBlock x:Name="PrecioBs" FontSize="30" FontWeight="Bold"
+                                   Foreground="{StaticResource DangerBrush}" VerticalAlignment="Center"
+                                   Margin="34,0,0,0" />
+                        <TextBlock x:Name="PrecioPeso" FontSize="30" FontWeight="Bold"
+                                   Foreground="{StaticResource InfoBrush}" VerticalAlignment="Center"
+                                   Margin="34,0,0,0" />
+                    </StackPanel>
+
+                    <TextBlock x:Name="DetalleProducto" Style="{StaticResource MutedText}" FontSize="16"
+                               HorizontalAlignment="Center" Margin="0,18,0,0" />
+                </StackPanel>
+
+                <StackPanel x:Name="PanelNoEncontrado" VerticalAlignment="Center" HorizontalAlignment="Center"
+                            Visibility="Collapsed">
+                    <TextBlock Text="Producto no encontrado" FontSize="30" FontWeight="Bold"
+                               HorizontalAlignment="Center" />
+                    <TextBlock x:Name="TextoNoEncontrado" Style="{StaticResource MutedText}" FontSize="17"
+                               HorizontalAlignment="Center" Margin="0,12,0,0" TextWrapping="Wrap"
+                               MaxWidth="800" TextAlignment="Center" />
+                </StackPanel>
+            </Grid>
+
+            <Border Grid.Row="2" Background="{StaticResource CardBrush}"
+                    BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,1,0,0" Padding="20,12">
+                <TextBlock Text="Escanea otro producto cuando quieras  ·  Esc para cerrar"
+                           Style="{StaticResource MutedText}" HorizontalAlignment="Center" />
+            </Border>
+        </Grid>
+    </Border>
+</Window>

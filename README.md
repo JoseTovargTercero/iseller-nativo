@@ -86,6 +86,10 @@ PLAN.md                 Plan por fases, contratos y decisiones
   vuelve), la app envía sola lo pendiente, sincroniza el catálogo y busca actualización. Al
   arrancar con internet también consulta si hay versión nueva (silenciosa, pide confirmación
   para instalar).
+- **Consulta de precios (menú ☰):** pantalla para el cliente. Se escanea el producto y muestra
+  centrados la imagen, el nombre y los precios (dólares, bolívares y pesos con su color), más el
+  código y el stock. Se cierra solo con la **X** o **Esc** (sin botón de "Atrás") y se puede
+  escanear otro producto sin salir. Funciona sin conexión: usa el catálogo local.
 - **El estado de conexión** vive en la barra inferior (texto y mensajes de sincronización); en el
   topbar queda solo el punto de color, con el estado en su tooltip.
 - **Campos numéricos:** montos de apertura/cierre de caja, cantidad recibida (cambio) y cantidad

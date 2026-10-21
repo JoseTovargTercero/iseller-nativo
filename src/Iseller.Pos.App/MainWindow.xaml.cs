@@ -5,13 +5,11 @@ using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
-using System.Windows.Interop;
 using System.Windows.Media;
 using System.Windows.Threading;
 using Iseller.Pos.Core.Actualizacion;
@@ -89,6 +87,8 @@ namespace Iseller.Pos.App
             AccionesEnviados.Visibility = _sesion.Nivel == 1 ? Visibility.Visible : Visibility.Collapsed;
 
             _relojConexion.Tick += (s, e) => { _ = RevisarConexionAsync(); };
+
+            VentanaMaximizada.Aplicar(this);
 
             Loaded += MainWindow_Loaded;
         }
@@ -933,6 +933,22 @@ namespace Iseller.Pos.App
 
         // ── Eventos de UI ──────────────────────────────────────────────────────────
 
+        /// <summary>Pantalla de consulta de precios: el cliente escanea y ve el precio.</summary>
+        private void ConsultaPrecios_Click(object sender, RoutedEventArgs e)
+        {
+            if (_calculadora == null)
+            {
+                Aviso("Sincroniza el catálogo antes de consultar precios.");
+                return;
+            }
+
+            var ventana = new VentanaConsultaPrecios(_catalogo, _imagenes, _calculadora, PuedeMayor)
+            {
+                Owner = this,
+            };
+            ventana.ShowDialog();
+        }
+
         /// <summary>Últimas ventas del cajero, con la opción de deshacerlas.</summary>
         private void UltimasVentas_Click(object sender, RoutedEventArgs e)
         {
@@ -1226,97 +1242,6 @@ namespace Iseller.Pos.App
         private void AlternarMaximizar()
         {
             WindowState = WindowState == WindowState.Maximized ? WindowState.Normal : WindowState.Maximized;
-        }
-
-        // ── Maximizar sin tapar la barra de tareas ────────────────────────────────
-        // Con WindowStyle=None, Windows maximiza a toda la pantalla. Se limita al área
-        // de trabajo del monitor donde está la ventana.
-
-        private const int WmGetMinMaxInfo = 0x0024;
-        private const int MonitorDefaultToNearest = 0x0002;
-
-        [StructLayout(LayoutKind.Sequential)]
-        private struct PuntoEntero
-        {
-            public int X;
-            public int Y;
-        }
-
-        [StructLayout(LayoutKind.Sequential)]
-        private struct RectEntero
-        {
-            public int Left;
-            public int Top;
-            public int Right;
-            public int Bottom;
-        }
-
-        [StructLayout(LayoutKind.Sequential)]
-        private struct InfoMonitor
-        {
-            public int Tamanio;
-            public RectEntero Monitor;
-            public RectEntero Trabajo;
-            public int Banderas;
-        }
-
-        [StructLayout(LayoutKind.Sequential)]
-        private struct InfoMinMax
-        {
-            public PuntoEntero Reservado;
-            public PuntoEntero MaximizarTamanio;
-            public PuntoEntero MaximizarPosicion;
-            public PuntoEntero MinimoArrastre;
-            public PuntoEntero MaximoArrastre;
-        }
-
-        [DllImport("user32.dll")]
-        private static extern IntPtr MonitorFromWindow(IntPtr ventana, int banderas);
-
-        [DllImport("user32.dll")]
-        private static extern bool GetMonitorInfo(IntPtr monitor, ref InfoMonitor info);
-
-        [DllImport("user32.dll")]
-        private static extern IntPtr DefWindowProc(IntPtr ventana, int mensaje, IntPtr wParam, IntPtr lParam);
-
-        protected override void OnSourceInitialized(EventArgs e)
-        {
-            base.OnSourceInitialized(e);
-
-            var fuente = PresentationSource.FromVisual(this) as HwndSource;
-            if (fuente != null)
-            {
-                fuente.AddHook(AlRecibirMensaje);
-            }
-        }
-
-        private IntPtr AlRecibirMensaje(IntPtr ventana, int mensaje, IntPtr wParam, IntPtr lParam, ref bool manejado)
-        {
-            if (mensaje != WmGetMinMaxInfo)
-            {
-                return IntPtr.Zero;
-            }
-
-            IntPtr monitor = MonitorFromWindow(ventana, MonitorDefaultToNearest);
-            if (monitor == IntPtr.Zero)
-            {
-                return IntPtr.Zero;
-            }
-
-            var infoMonitor = new InfoMonitor { Tamanio = Marshal.SizeOf(typeof(InfoMonitor)) };
-            if (!GetMonitorInfo(monitor, ref infoMonitor))
-            {
-                return IntPtr.Zero;
-            }
-
-            var info = (InfoMinMax)Marshal.PtrToStructure(lParam, typeof(InfoMinMax));
-            info.MaximizarPosicion.X = infoMonitor.Trabajo.Left - infoMonitor.Monitor.Left;
-            info.MaximizarPosicion.Y = infoMonitor.Trabajo.Top - infoMonitor.Monitor.Top;
-            info.MaximizarTamanio.X = infoMonitor.Trabajo.Right - infoMonitor.Trabajo.Left;
-            info.MaximizarTamanio.Y = infoMonitor.Trabajo.Bottom - infoMonitor.Trabajo.Top;
-            Marshal.StructureToPtr(info, lParam, true);
-
-            return IntPtr.Zero;
         }
 
         /// <summary>El icono del botón cambia entre maximizar y restaurar.</summary>
