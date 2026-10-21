@@ -23,9 +23,12 @@ namespace Iseller.Pos.App
             _config = config;
             _credenciales = credenciales;
 
-            Estado(_credenciales.CargarTodas().Count > 0
-                ? "Si no hay conexión, puedes entrar con tu contraseña: este equipo recuerda a los usuarios que ya iniciaron sesión."
-                : "Primer acceso: se necesita conexión a internet.");
+            Estado(_config.AvisoConfiguracion
+                ?? (string.IsNullOrWhiteSpace(_config.ApiKey)
+                    ? "Este POS no tiene configurada la clave de la API. Pide el archivo config.json al administrador."
+                    : (_credenciales.CargarTodas().Count > 0
+                        ? "Si no hay conexión, puedes entrar con tu contraseña: este equipo recuerda a los usuarios que ya iniciaron sesión."
+                        : "Primer acceso: se necesita conexión a internet.")));
 
             Loaded += (s, e) => CampoUsuario.Focus();
         }
