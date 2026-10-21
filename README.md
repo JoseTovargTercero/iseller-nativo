@@ -22,6 +22,24 @@ dotnet test  IsellerPos.sln
 dotnet run --project src/Iseller.Pos.App/Iseller.Pos.App.csproj
 ```
 
+## Instalador
+
+```powershell
+powershell -ExecutionPolicy Bypass -File installer\compilar.ps1
+```
+
+- Compila en **Release** y genera `dist\iSellerPOS-Setup-<version>.exe`. La versión se lee de
+  `App.VersionApp` (no hay que escribirla dos veces).
+- Requiere **Inno Setup 6** (`winget install JRSoftware.InnoSetup`); si no está, el script avisa.
+- El instalador es **por usuario** (`%LOCALAPPDATA%\Programs\iSeller POS`), no pide administrador
+  y deja accesos directos en el menú Inicio y (opcional) en el escritorio. Comprueba que esté
+  **.NET Framework 4.8** y, si falta, muestra el enlace de descarga.
+- Al reinstalar sobre una versión anterior pide cerrar el POS si está abierto. La desinstalación
+  se hace desde "Aplicaciones instaladas" y **no borra** los datos de la caja
+  (`%LOCALAPPDATA%\iSeller`: configuración, sesiones, catálogo y ventas pendientes).
+- Para actualizaciones de día a día está el actualizador propio (ZIP desde `api/pos_version.php`);
+  el instalador es para la primera instalación o reinstalar limpio.
+
 ## Estructura
 
 ```
@@ -35,6 +53,7 @@ src/Iseller.Pos.Core    Dominio y servicios:
                         Impresion/  ticket ESC/POS + spooler de Windows
 src/Iseller.Pos.Tests   Tests (xUnit)
 db/esquema.sql          Esquema SQLite local
+installer/              Inno Setup (.iss) y script para compilar el instalador
 PLAN.md                 Plan por fases, contratos y decisiones
 ```
 
