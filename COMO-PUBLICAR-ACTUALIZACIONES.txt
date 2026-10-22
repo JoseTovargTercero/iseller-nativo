@@ -1,0 +1,118 @@
+﻿CÓMO PUBLICAR UNA ACTUALIZACIÓN DEL POS NATIVO
+===============================================
+(última revisión: 21/10/2026)
+
+Carpetas que se usan aquí:
+  Proyecto POS ...... C:\xampp\pos-nativo
+  API local ......... C:\xampp\htdocs\iseller-tiendas.com\api
+  Hosting ........... https://iseller-tiendas.com/inventario/api/
+
+
+A) CÓMO FUNCIONA (para entender el mecanismo)
+---------------------------------------------
+El POS consulta el archivo pos_version.php del hosting:
+  1. al arrancar (después del login),
+  2. cuando vuelve el internet,
+  3. a mano desde el engranaje -> BUSCAR ACTUALIZACIÓN.
+
+Compara la "version" publicada con la versión del exe (App.xaml.cs, VersionApp).
+  - Si la publicada es MAYOR: muestra "Hay una versión nueva", descarga
+    pos_update.zip, verifica su SHA-256, se cierra y se descomprime sobre su
+    propia carpeta, y se vuelve a abrir.
+  - Si es IGUAL: no hace nada (aunque el código haya cambiado).
+Por eso, siempre hay que subir el número de versión.
+
+
+B) PUBLICAR UNA VERSIÓN NUEVA (paso a paso)
+-------------------------------------------
+1) Subir el número de versión en:
+      C:\xampp\pos-nativo\src\Iseller.Pos.App\App.xaml.cs
+   Buscar:  public const string VersionApp = "1.0.0";
+   Dejar:   public const string VersionApp = "1.0.1";
+   (usar siempre 3 números: 1.0.1, 1.0.2, 1.1.0 ...)
+
+2) Compilar y probar (con el POS cerrado):
+      cd C:\xampp\pos-nativo
+      dotnet build IsellerPos.sln
+      dotnet test IsellerPos.sln
+   Tienen que pasar todos los tests.
+
+3) Compilar en Release:
+      cd C:\xampp\pos-nativo
+      dotnet build IsellerPos.sln -c Release
+
+4) Armar el ZIP de actualización (copiar y pegar en PowerShell):
+      $out = "C:\xampp\pos-nativo\src\Iseller.Pos.App\bin\Release\net48"
+      $tmp = "$env:TEMP\pos_update"
+      Remove-Item $tmp -Recurse -Force -ErrorAction SilentlyContinue
+      New-Item -ItemType Directory $tmp | Out-Null
+      Copy-Item "$out\IsellerPos.exe","$out\IsellerPos.exe.config","$out\Iseller.Pos.Core.dll","$out\Newtonsoft.Json.dll","$out\System.Data.SQLite.dll" $tmp
+      Copy-Item "$out\x86" $tmp -Recurse
+      Copy-Item "$out\x64" $tmp -Recurse
+      Compress-Archive -Path "$tmp\*" -DestinationPath "C:\xampp\htdocs\iseller-tiendas.com\api\pos_update.zip" -Force
+
+   IMPORTANTE: el ZIP lleva los archivos en la RAÍZ, sin carpeta que los
+   contenga. Si se arma con carpeta, la actualización no reemplaza nada.
+
+5) Calcular la firma SHA-256 (en minúsculas):
+      (Get-FileHash "C:\xampp\htdocs\iseller-tiendas.com\api\pos_update.zip" -Algorithm SHA256).Hash.ToLower()
+
+6) Editar C:\xampp\htdocs\iseller-tiendas.com\api\pos_version.json:
+      {
+        "version": "1.0.1",
+        "sha256": "pegar-aqui-el-hash-del-paso-5",
+        "archivo": "pos_update.zip",
+        "notas": "Qué cambia, en una línea (lo ve el cajero)"
+      }
+
+7) Subir al hosting, a la carpeta /inventario/api/, reemplazando los que hay:
+      - pos_update.zip
+      - pos_version.json
+   (los dos tienen que estar en la MISMA carpeta que pos_version.php)
+
+8) Comprobar que quedó publicado:
+      Abrir en el navegador:
+      https://iseller-tiendas.com/inventario/api/pos_version.json
+      Debe mostrar la versión y el hash nuevos.
+
+9) En la caja: abrir el POS (o engranaje -> BUSCAR ACTUALIZACIÓN).
+   Aparece "Hay una versión nueva 1.0.1" -> Sí -> se descarga, se cierra,
+   se actualiza y se vuelve a abrir sola. Tarda unos segundos.
+
+   La actualización solo reemplaza los archivos del programa
+   (%LOCALAPPDATA%\Programs\iSeller POS). NO toca los datos:
+   base local, configuración, sesiones ni ventas pendientes.
+
+
+C) INSTALADOR .EXE (para cajas nuevas, no para actualizar)
+----------------------------------------------------------
+      powershell -ExecutionPolicy Bypass -File C:\xampp\pos-nativo\installer\compilar.ps1
+   Genera: C:\xampp\pos-nativo\dist\iSellerPOS-Setup-1.0.0.exe
+   (la versión sale de VersionApp, así que conviene compilarlo después del paso 1)
+
+   Las cajas ya instaladas NO necesitan el .exe: se actualizan solas con el ZIP.
+
+
+D) PROBLEMAS COMUNES
+--------------------
+- "Ya tienes la última versión (1.0.0)":
+    no se subió el número en App.xaml.cs (paso 1).
+- "El archivo descargado no coincide con la firma esperada":
+    el sha256 de pos_version.json no es el del ZIP subido. Recalcular (paso 5)
+    y subir otra vez pos_version.json.
+- No encuentra actualización y antes funcionaba:
+    revisar que pos_version.php responda (no 500/503) y que el ZIP esté en
+    /inventario/api/. Si el servidor no conecta a la base, el POS tampoco
+    consulta (ver el error de configurar/configuracion.php y el .env).
+- Se descarga pero la app sigue igual:
+    el ZIP tiene una carpeta adentro. Volver a armarlo como en el paso 4.
+- La app no se reinicia sola:
+    el actualizador hace taskkill del exe; si el POS quedó abierto en otra
+    sesión de Windows, cerrarlo a mano y abrirlo de nuevo.
+
+
+E) QUÉ NO SUBIR NUNCA
+---------------------
+- config.json (lleva la clave de la API)
+- el .env (credenciales de la base de datos)
+- ninguna carpeta de datos local (%LOCALAPPDATA%\iSeller)

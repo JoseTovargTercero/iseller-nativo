@@ -38,7 +38,8 @@ powershell -ExecutionPolicy Bypass -File installer\compilar.ps1
   se hace desde "Aplicaciones instaladas" y **no borra** los datos de la caja
   (`%LOCALAPPDATA%\iSeller`: configuración, sesiones, catálogo y ventas pendientes).
 - Para actualizaciones de día a día está el actualizador propio (ZIP desde `api/pos_version.php`);
-  el instalador es para la primera instalación o reinstalar limpio.
+  el instalador es para la primera instalación o reinstalar limpio. El procedimiento completo,
+  paso a paso, está en **`COMO-PUBLICAR-ACTUALIZACIONES.txt`**.
 
 ## Estructura
 
