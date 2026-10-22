@@ -12,7 +12,8 @@ namespace Iseller.Pos.Tests
         [InlineData("12.5", true)]
         [InlineData(".5", true)]
         [InlineData("12.5.6", false)]
-        [InlineData("12,5", false)]   // la coma no se escribe: se escribe el punto
+        [InlineData("12,5", true)]    // la coma tambien vale: se normaliza al convertir
+        [InlineData("12,5.6", false)] // un solo separador, sea punto o coma
         [InlineData("12a", false)]
         [InlineData("1 000", false)]
         [InlineData("-5", false)]
@@ -26,6 +27,7 @@ namespace Iseller.Pos.Tests
         [Theory]
         [InlineData("123", true)]
         [InlineData("12.5", false)]
+        [InlineData("12,5", false)]
         [InlineData("", true)]
         public void En_modo_entero_no_acepta_punto(string texto, bool esperado)
         {

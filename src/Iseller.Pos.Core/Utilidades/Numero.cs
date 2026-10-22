@@ -4,7 +4,8 @@ namespace Iseller.Pos.Core.Utilidades
 {
     /// <summary>
     /// Validación y conversión de números escritos por el cajero.
-    /// Solo se admiten dígitos y, si se permite, un único punto decimal.
+    /// Se admiten dígitos y, si se permite, un único separador decimal: punto o coma
+    /// (el teclado en español escribe coma; ADouble la normaliza).
     /// </summary>
     public static class Numero
     {
@@ -15,17 +16,17 @@ namespace Iseller.Pos.Core.Utilidades
                 return true;
             }
 
-            int puntos = 0;
+            int separadores = 0;
             foreach (char c in texto)
             {
                 if (c >= '0' && c <= '9')
                 {
                     continue;
                 }
-                if (decimales && c == '.')
+                if (decimales && (c == '.' || c == ','))
                 {
-                    puntos++;
-                    if (puntos > 1)
+                    separadores++;
+                    if (separadores > 1)
                     {
                         return false;
                     }
