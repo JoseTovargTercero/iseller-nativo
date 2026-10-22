@@ -84,11 +84,22 @@ B) PUBLICAR UNA VERSIÓN NUEVA (paso a paso)
    base local, configuración, sesiones ni ventas pendientes.
 
 
-C) INSTALADOR .EXE (para cajas nuevas, no para actualizar)
-----------------------------------------------------------
+C) INSTALADOR .EXE (para cajas nuevas)
+--------------------------------------
       powershell -ExecutionPolicy Bypass -File C:\xampp\pos-nativo\installer\compilar.ps1
    Genera: C:\xampp\pos-nativo\dist\iSellerPOS-Setup-1.0.0.exe
    (la versión sale de VersionApp, así que conviene compilarlo después del paso 1)
+
+   El instalador deja el POS LISTO PARA USAR: además de copiar los archivos,
+   escribe %LOCALAPPDATA%\iSeller\config.json con el servidor
+   (https://iseller-tiendas.com/inventario/api) y la clave de la API.
+   Esa clave la toma del .env (POS_API_KEY) al compilar, no está en el código.
+   En el primer arranque el POS la cifra con DPAPI.
+
+   - Si ya existe un config.json (reinstalación), NO se toca.
+   - Para compilar para otro servidor:
+        ... compilar.ps1 -ApiBase "https://otro-dominio/api"
+   - Si falta POS_API_KEY en el .env, el script falla a propósito.
 
    Las cajas ya instaladas NO necesitan el .exe: se actualizan solas con el ZIP.
 

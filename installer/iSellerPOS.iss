@@ -6,6 +6,15 @@
   #define AppVersion "1.0.0"
 #endif
 
+; Servidor y clave de la API: los pasa compilar.ps1 desde el .env local.
+; Si se compila sin ellos, el instalador no escribe config.json (caja sin configurar).
+#ifndef ApiBase
+  #define ApiBase ""
+#endif
+#ifndef ApiKey
+  #define ApiKey ""
+#endif
+
 #define AppName "iSeller POS"
 #define AppExe "IsellerPos.exe"
 #define AppPublisher "iSeller"
@@ -57,6 +66,41 @@ Name: "{autodesktop}\{#AppName}"; Filename: "{app}\{#AppExe}"; Tasks: desktopico
 Filename: "{app}\{#AppExe}"; Description: "Abrir {#AppName}"; Flags: nowait postinstall skipifsilent
 
 [Code]
+// Deja el POS configurado sin intervención del usuario: escribe
+// %LOCALAPPDATA%\iSeller\config.json con el servidor y la clave de la API.
+// Si ya existe (reinstalación) no se toca, para no pisar otra configuración.
+procedure CrearConfigInicial();
+var
+  carpeta, archivo, contenido: string;
+begin
+  if '{#ApiBase}' = '' then
+    exit;
+
+  carpeta := ExpandConstant('{localappdata}\iSeller');
+  archivo := carpeta + '\config.json';
+  if FileExists(archivo) then
+    exit;
+
+  ForceDirectories(carpeta);
+  contenido :=
+    '{' + #13#10 +
+    '  "api_base_url": "{#ApiBase}",' + #13#10 +
+    '  "api_key": "{#ApiKey}",' + #13#10 +
+    '  "impresora": "",' + #13#10 +
+    '  "ancho_mm": 58' + #13#10 +
+    '}' + #13#10;
+
+  // El POS cifra la clave con DPAPI en el primer arranque y borra el texto plano.
+  // Contenido solo ASCII (URL + clave), así que no hace falta UTF-8.
+  SaveStringToFile(archivo, contenido, False);
+end;
+
+procedure CurStepChanged(CurStep: TSetupStep);
+begin
+  if CurStep = ssPostInstall then
+    CrearConfigInicial();
+end;
+
 // .NET Framework 4.8 es obligatorio. Release >= 528040 = 4.8 (528372 = 4.8 en Win7).
 function TieneNet48(): Boolean;
 var

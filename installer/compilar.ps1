@@ -4,6 +4,11 @@
 # Requiere .NET SDK y Inno Setup 6 (winget install JRSoftware.InnoSetup).
 # El .exe resultante queda en dist\iSellerPOS-Setup-<version>.exe
 
+param(
+    [string]$ApiBase,
+    [string]$ApiKey
+)
+
 $ErrorActionPreference = 'Stop'
 $raiz = Split-Path $PSScriptRoot -Parent
 
@@ -24,8 +29,24 @@ try {
     dotnet build IsellerPos.sln -c Release --nologo -v q
     if ($LASTEXITCODE -ne 0) { throw "Falló el build Release." }
 
+    # Servidor y clave de la API salen del .env (C:\xampp\.env), así no quedan en el repo.
+    # El instalador los escribe en %LOCALAPPDATA%\iSeller\config.json para que la caja
+    # quede lista al instalar. Se pueden pasar a mano: -ApiBase ... -ApiKey ...
+    $archivoEnv = Join-Path (Split-Path $raiz -Parent) '.env'
+    $clave = ''
+    if (Test-Path $archivoEnv) {
+        foreach ($linea in Get-Content $archivoEnv) {
+            if ($linea -match '^\s*POS_API_KEY\s*=\s*(.+?)\s*$') { $clave = $Matches[1] }
+        }
+    }
+    if (-not $ApiKey) { $ApiKey = $clave }
+    if (-not $ApiKey) {
+        throw "Falta la clave de la API. Añade POS_API_KEY al .env o pasa -ApiKey."
+    }
+    if (-not $ApiBase) { $ApiBase = 'https://iseller-tiendas.com/inventario/api' }
+
     Write-Output "Generando el instalador…"
-    & $iscc "/DAppVersion=$version" (Join-Path $PSScriptRoot 'iSellerPOS.iss')
+    & $iscc "/DAppVersion=$version" "/DApiBase=$ApiBase" "/DApiKey=$ApiKey" (Join-Path $PSScriptRoot 'iSellerPOS.iss')
     if ($LASTEXITCODE -ne 0) { throw "Falló Inno Setup." }
 }
 finally {

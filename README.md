@@ -126,12 +126,11 @@ PLAN.md                 Plan por fases, contratos y decisiones
 - **Ajustes:** impresora (ancho, cajón, prueba) y **buscar actualización** (muestra la versión
   instalada). La URL y la clave de la API no se muestran ni se editan desde la app; el ejecutable
   **no incluye** la clave.
-- **Clave de la API:** se guarda en `config.json` **cifrada con DPAPI** del usuario de Windows
-  (`api_key_protegida`), nunca en texto plano, y solo se puede descifrar en esa cuenta y equipo.
-  Al arrancar, si encuentra un `api_key` viejo en claro lo cifra y lo borra del archivo.
-  Para provisionar una caja nueva se deja un `config.json` con `api_base_url` y `api_key` y el
-  primer arranque la cifra; después ese archivo ya no sirve en otra máquina (hay que volver a
-  poner la clave). Ajustes se abre desde el engranaje del topbar, no desde el login.
+- **Clave de la API:** el instalador deja `config.json` con la clave en claro y el POS la cifra
+  con DPAPI del usuario de Windows en el primer arranque (`api_key_protegida`); después solo se
+  puede descifrar en esa cuenta y equipo. Si se instala de otra forma, se deja un `config.json`
+  con `api_base_url` y `api_key` y el primer arranque la cifra. Ajustes se abre desde el
+  engranaje del topbar, no desde el login.
 - Login: los campos de usuario y contraseña comparten plantilla (mismo alto y radio). La entrada
   sin conexión es automática: si el servidor no responde, se valida la contraseña contra el
   acceso guardado de ese usuario (hasta 2 días).
