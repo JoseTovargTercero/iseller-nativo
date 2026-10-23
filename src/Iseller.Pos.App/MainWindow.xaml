@@ -70,6 +70,9 @@
                     <TextBlock x:Name="TextoSucursal" Style="{StaticResource MutedText}"
                                Margin="24,0,0,0" VerticalAlignment="Center"
                                TextTrimming="CharacterEllipsis" />
+                    <TextBlock Style="{StaticResource MutedText}"
+                               Margin="10,0,0,0" VerticalAlignment="Center" FontSize="11"
+                               ToolTip="Versión del POS"><Run Text="v" /><Run Text="{x:Static app:App.VersionApp}" /></TextBlock>
                 </StackPanel>
 
                 <WrapPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right"
