@@ -1365,6 +1365,14 @@ namespace Iseller.Pos.App
                             catalogo.ServidorEn);
                     }
 
+                    // Las tasas se actualizan aparte del catálogo (el BCV cambia durante el día):
+                    // se piden siempre al entrar, aunque el catálogo no haya cambiado.
+                    var tasas = await api.DescargarTasasAsync(_sesion.Token);
+                    if (tasas != null)
+                    {
+                        _catalogo.GuardarTasas(tasas);
+                    }
+
                     CargarDesdeDisco();
                 }
             }
