@@ -425,6 +425,7 @@
                     <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
                 <TextBlock x:Name="TextoEstado" Grid.Column="0" Style="{StaticResource MutedText}"
                            VerticalAlignment="Center" />
@@ -433,7 +434,9 @@
                 <TextBlock x:Name="TextoEstadoConexion" Grid.Column="2" Text="Comprobando…"
                            Style="{StaticResource MutedText}" VerticalAlignment="Center"
                            TextTrimming="CharacterEllipsis" />
-                <TextBlock x:Name="TextoCatalogo" Grid.Column="3" Style="{StaticResource MutedText}"
+                <TextBlock x:Name="TextoTasas" Grid.Column="3" Style="{StaticResource MutedText}"
+                           VerticalAlignment="Center" Margin="16,0,0,0" Visibility="Collapsed" />
+                <TextBlock x:Name="TextoCatalogo" Grid.Column="4" Style="{StaticResource MutedText}"
                            VerticalAlignment="Center" Margin="16,0,0,0" />
             </Grid>
         </Border>

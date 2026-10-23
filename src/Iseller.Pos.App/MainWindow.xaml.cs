@@ -213,6 +213,7 @@ namespace Iseller.Pos.App
             {
                 AvisoTasas.Visibility = Visibility.Visible;
                 TextoAvisoTasas.Text = "No hay tasas de cambio descargadas. Conecta para obtenerlas.";
+                TextoTasas.Visibility = Visibility.Collapsed;
                 return;
             }
 
@@ -232,6 +233,15 @@ namespace Iseller.Pos.App
 
             TextoEstado.Text = _sesion.Nombre + " · " + (_sesion.Nivel == 1 ? "administrador" : "cajero") +
                                " · tasa " + texto;
+
+            // Tasas vigentes a la vista, con el mismo formato que los precios.
+            TextoTasas.Text = "1$ = " + tasas.DolarBolivar.ToString("N2", Formato) + " Bs · 1$ = " +
+                              tasas.PesoDolar.ToString("N0", Formato) + " Cop";
+            TextoTasas.ToolTip = "BCV: " + tasas.Bcv.ToString("N2", Formato) + " Bs por dólar\n" +
+                                 "Dólar: " + tasas.DolarBolivar.ToString("N2", Formato) + " Bs por dólar\n" +
+                                 "Peso: " + tasas.PesoDolar.ToString("N0", Formato) + " Cop por dólar\n" +
+                                 "1 Bs = " + tasas.BolivarPeso.ToString("N4", Formato) + " Cop";
+            TextoTasas.Visibility = Visibility.Visible;
         }
 
         // ── Carrito ────────────────────────────────────────────────────────────────
