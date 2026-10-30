@@ -1,10 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Globalization;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using System.Windows.Threading;
 using Iseller.Pos.Core.Datos;
 using Iseller.Pos.Core.Imagenes;
 using Iseller.Pos.Core.Modelos;
@@ -31,6 +33,15 @@ namespace Iseller.Pos.App
         private readonly bool _cerrarAlAgregar;
         private readonly ObservableCollection<ProductoVista> _resultados = new ObservableCollection<ProductoVista>();
 
+        // Antiduplicado del lector: tras un escaneo se ignora el mismo código durante 2 s.
+        private readonly DispatcherTimer _relojEscaneo = new DispatcherTimer
+        {
+            Interval = TimeSpan.FromSeconds(2),
+        };
+
+        private string _ultimoEscaneo;
+        private DateTime _bloqueoEscaneo = DateTime.MinValue;
+
         public VentanaBusqueda(CatalogoRepositorio catalogo, ImagenCache imagenes,
                                CalculadoraPrecios calculadora, Action<Producto, double> alAgregar,
                                bool puedeMayor = true, string codigoInicial = null)
@@ -47,11 +58,20 @@ namespace Iseller.Pos.App
             TablaResultados.ItemsSource = _resultados;
             new LectorBarras(this, CodigoLeido);
 
+            _relojEscaneo.Tick += (s, e) =>
+            {
+                _relojEscaneo.Stop();
+                RelojEscaneo.Visibility = Visibility.Collapsed;
+            };
+
             if (_cerrarAlAgregar)
             {
-                CampoBusqueda.Text = codigoInicial.Trim();
-                TextoEstado.Text = "Escaneado: " + codigoInicial.Trim() +
+                string codigo = codigoInicial.Trim();
+                CampoBusqueda.Text = codigo;
+                TextoEstado.Text = "Escaneado: " + codigo +
                                    " · Enter o AGREGAR para sumarlo al carrito.";
+                // Solo el reloj: el bloqueo empieza al agregar, para que el Enter del cajero funcione.
+                MostrarReloj();
             }
 
             Loaded += (s, e) =>
@@ -100,6 +120,14 @@ namespace Iseller.Pos.App
             var porCodigo = _catalogo.BuscarPorCodigo(termino, _puedeMayor);
             if (porCodigo != null)
             {
+                // Doble disparo del lector: el mismo código dentro de los 2 s no suma otra unidad.
+                if (termino == _ultimoEscaneo && DateTime.Now < _bloqueoEscaneo)
+                {
+                    CampoBusqueda.Text = "";
+                    return;
+                }
+
+                MarcarEscaneo(termino);
                 Agregar(porCodigo, 1);
                 return;
             }
@@ -107,15 +135,6 @@ namespace Iseller.Pos.App
             if (_resultados.Count == 1)
             {
                 Agregar(_resultados[0].Modelo, Core.Utilidades.Numero.ADouble(_resultados[0].CantidadTexto));
-            }
-        }
-
-        private void TablaResultados_MouseDoubleClick(object sender, MouseButtonEventArgs e)
-        {
-            var vista = TablaResultados.SelectedItem as ProductoVista;
-            if (vista != null)
-            {
-                Agregar(vista.Modelo, Core.Utilidades.Numero.ADouble(vista.CantidadTexto));
             }
         }
 
@@ -131,10 +150,55 @@ namespace Iseller.Pos.App
         /// <summary>Código escaneado con el foco fuera del buscador: se escribe y espera el Enter.</summary>
         private void CodigoLeido(string codigo)
         {
+            // Los lectores baratos disparan dos veces: el segundo disparo se ignora.
+            if (codigo == _ultimoEscaneo && DateTime.Now < _bloqueoEscaneo)
+            {
+                return;
+            }
+            MarcarEscaneo(codigo);
+
             CampoBusqueda.Text = codigo;
             CampoBusqueda.Focus();
             CampoBusqueda.CaretIndex = CampoBusqueda.Text.Length;
             TextoEstado.Text = "Escaneado: " + codigo + " · Enter o AGREGAR para sumarlo al carrito.";
+        }
+
+        /// <summary>Deja el reloj 2 s en la barra: durante ese tiempo se ignora el mismo código.</summary>
+        private void MarcarEscaneo(string codigo)
+        {
+            _ultimoEscaneo = codigo;
+            _bloqueoEscaneo = DateTime.Now.AddSeconds(2);
+            MostrarReloj();
+        }
+
+        private void MostrarReloj()
+        {
+            RelojEscaneo.Visibility = Visibility.Visible;
+            _relojEscaneo.Stop();
+            _relojEscaneo.Start();
+        }
+
+        private void Cantidad_Menos(object sender, RoutedEventArgs e)
+        {
+            CambiarCantidad(sender, -1);
+        }
+
+        private void Cantidad_Mas(object sender, RoutedEventArgs e)
+        {
+            CambiarCantidad(sender, 1);
+        }
+
+        private void CambiarCantidad(object sender, int delta)
+        {
+            var vista = (sender as FrameworkElement)?.DataContext as ProductoVista;
+            if (vista == null)
+            {
+                return;
+            }
+
+            double actual = Core.Utilidades.Numero.ADouble(vista.CantidadTexto);
+            double nueva = Math.Max(1, Math.Round(actual, 2) + delta);
+            vista.CantidadTexto = nueva.ToString("0.##", CultureInfo.InvariantCulture);
         }
 
         private void Agregar(Producto producto, double cantidad)

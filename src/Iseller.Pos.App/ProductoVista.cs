@@ -15,6 +15,7 @@ namespace Iseller.Pos.App
         private static readonly CultureInfo Formato = CultureInfo.GetCultureInfo("es-VE");
 
         private ImageSource _imagen;
+        private string _cantidadTexto;
 
         public int Id { get; set; }
         public string Nombre { get; set; }
@@ -26,7 +27,23 @@ namespace Iseller.Pos.App
         public string Foto { get; set; }
 
         /// <summary>Cantidad a agregar (texto del campo en la fila; por defecto 1).</summary>
-        public string CantidadTexto { get; set; }
+        public string CantidadTexto
+        {
+            get { return _cantidadTexto; }
+            set
+            {
+                if (_cantidadTexto == value)
+                {
+                    return;
+                }
+                _cantidadTexto = value;
+                var handler = PropertyChanged;
+                if (handler != null)
+                {
+                    handler(this, new PropertyChangedEventArgs("CantidadTexto"));
+                }
+            }
+        }
 
         /// <summary>Producto original, para agregarlo al carrito.</summary>
         public Core.Modelos.Producto Modelo { get; set; }
