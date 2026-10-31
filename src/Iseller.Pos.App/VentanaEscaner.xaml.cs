@@ -22,6 +22,7 @@ namespace Iseller.Pos.App
         private readonly DispatcherTimer _reloj;
 
         private DateTime _inicio;
+        private DateTime _abiertoEn;
         private bool _agregado;
         private bool _cuentaActiva;
 
@@ -61,10 +62,11 @@ namespace Iseller.Pos.App
 
             _cuentaActiva = true;
             _inicio = DateTime.Now;
+            _abiertoEn = DateTime.Now;
             BarraTiempo.Width = 0;
             PistaBarra.Visibility = Visibility.Visible;
             _reloj.Start();
-            TextoAyuda.Text = "Se agrega solo en " + _segundos + " s · pulsa una tecla para detenerlo.";
+            TextoAyuda.Text = "Se agrega solo en " + _segundos + " s · pulsa una tecla o mueve el mouse para detenerlo.";
         }
 
         private void Avanzar()
@@ -100,10 +102,12 @@ namespace Iseller.Pos.App
                     return;
                 case Key.Up:
                     e.Handled = true;
+                    DetenerCuenta();
                     Cambiar(1);
                     return;
                 case Key.Down:
                     e.Handled = true;
+                    DetenerCuenta();
                     Cambiar(-1);
                     return;
                 case Key.Escape:
@@ -168,6 +172,29 @@ namespace Iseller.Pos.App
             {
                 DragMove();
             }
+        }
+
+        /// <summary>Clic o movimiento del mouse también abortan la cuenta (salvo el primer instante).</summary>
+        private void AbortarPorRaton()
+        {
+            if ((DateTime.Now - _abiertoEn).TotalMilliseconds < 300)
+            {
+                return;
+            }
+            if (_cuentaActiva)
+            {
+                DetenerCuenta();
+            }
+        }
+
+        private void Ventana_PreviewMouseMove(object sender, MouseEventArgs e)
+        {
+            AbortarPorRaton();
+        }
+
+        private void Ventana_PreviewMouseDown(object sender, MouseButtonEventArgs e)
+        {
+            AbortarPorRaton();
         }
 
         private void Cerrar_Click(object sender, RoutedEventArgs e)

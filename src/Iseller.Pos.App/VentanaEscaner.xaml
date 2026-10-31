@@ -7,7 +7,9 @@
         WindowStyle="None" Focusable="True"
         Icon="Assets/logo1-inv-compact-128.png"
         Style="{StaticResource PosWindow}"
-        PreviewKeyDown="Ventana_PreviewKeyDown">
+        PreviewKeyDown="Ventana_PreviewKeyDown"
+        PreviewMouseMove="Ventana_PreviewMouseMove"
+        PreviewMouseDown="Ventana_PreviewMouseDown">
 
     <WindowChrome.WindowChrome>
         <WindowChrome CaptionHeight="0" ResizeBorderThickness="0" GlassFrameThickness="0"
