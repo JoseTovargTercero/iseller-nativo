@@ -4,6 +4,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using Iseller.Pos.Core.Modelos;
 using Newtonsoft.Json;
@@ -99,8 +100,18 @@ namespace Iseller.Pos.Core.Api
 
             _baseUrl = (baseUrl ?? "").TrimEnd('/');
             _apiKey = apiKey ?? "";
-            _http = handler == null ? new HttpClient() : new HttpClient(handler);
-            _http.Timeout = TimeSpan.FromSeconds(30);
+            if (handler == null)
+            {
+                // El catálogo (con todos los clientes) se pide comprimido.
+                handler = new HttpClientHandler
+                {
+                    AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate,
+                };
+            }
+            _http = new HttpClient(handler);
+            // El límite se pone por petición: descargar el catálogo en una conexión lenta
+            // tarda más de 30 s y antes se cancelaba dejando el catálogo viejo.
+            _http.Timeout = Timeout.InfiniteTimeSpan;
         }
 
         public async Task<ResultadoLogin> LoginAsync(string usuario, string password, int? sucursalId)
@@ -184,7 +195,7 @@ namespace Iseller.Pos.Core.Api
                 url += "?v=" + Uri.EscapeDataString(versionActual);
             }
 
-            using (var respuesta = await EnviarAsync(url, HttpMethod.Get, null, token))
+            using (var respuesta = await EnviarAsync(url, HttpMethod.Get, null, token, 300))
             {
                 if (respuesta.StatusCode == HttpStatusCode.NotModified)
                 {
@@ -477,7 +488,7 @@ namespace Iseller.Pos.Core.Api
             };
         }
 
-        private async Task<HttpResponseMessage> EnviarAsync(string ruta, HttpMethod metodo, JObject cuerpo, string token)
+        private async Task<HttpResponseMessage> EnviarAsync(string ruta, HttpMethod metodo, JObject cuerpo, string token, int segundos = 30)
         {
             var peticion = new HttpRequestMessage(metodo, _baseUrl + "/" + ruta);
             if (!string.IsNullOrEmpty(_apiKey))
@@ -492,7 +503,11 @@ namespace Iseller.Pos.Core.Api
             {
                 peticion.Content = new StringContent(cuerpo.ToString(Formatting.None), Encoding.UTF8, "application/json");
             }
-            return await _http.SendAsync(peticion);
+
+            using (var limite = new CancellationTokenSource(TimeSpan.FromSeconds(segundos)))
+            {
+                return await _http.SendAsync(peticion, limite.Token);
+            }
         }
 
         private static T Deserializar<T>(string texto) where T : class

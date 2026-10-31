@@ -117,7 +117,7 @@ namespace Iseller.Pos.App
             AplicarEstadoCaja(true);
 
             await EnviarPendientesAsync();
-            await SincronizarAsync();
+            await SincronizarAsync(true);
             _relojConexion.Start();
             // Arranque con internet: se busca actualización (silenciosa).
             await BuscarActualizacionAsync(true);
@@ -1333,7 +1333,7 @@ namespace Iseller.Pos.App
             }
         }
 
-        private async Task SincronizarAsync()
+        private async Task SincronizarAsync(bool forzar = false)
         {
             if (_sincronizando)
             {
@@ -1356,7 +1356,10 @@ namespace Iseller.Pos.App
 
                     Conexion(true, "En línea");
 
-                    var catalogo = await api.DescargarCatalogoAsync(_sesion.Token, _catalogo.Version());
+                    // Al iniciar sesión se baja el catálogo completo: la versión guardada puede
+                    // ser de otra sesión y el servidor contestaría "sin cambios" con datos viejos.
+                    var catalogo = await api.DescargarCatalogoAsync(
+                        _sesion.Token, forzar ? null : _catalogo.Version());
                     if (!catalogo.Ok)
                     {
                         TextoEstadoConexion.Text = "En línea · " + catalogo.Error;
