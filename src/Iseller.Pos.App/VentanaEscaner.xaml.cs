@@ -101,11 +101,15 @@ namespace Iseller.Pos.App
                     Agregar();
                     return;
                 case Key.Up:
+                case Key.Add:
+                case Key.OemPlus:
                     e.Handled = true;
                     DetenerCuenta();
                     Cambiar(1);
                     return;
                 case Key.Down:
+                case Key.Subtract:
+                case Key.OemMinus:
                     e.Handled = true;
                     DetenerCuenta();
                     Cambiar(-1);

@@ -82,7 +82,7 @@
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
                     <Button Style="{StaticResource SecondaryButton}" Width="44" Height="42" Padding="0"
                             FontSize="20" Content="&#x2212;" VerticalAlignment="Center"
-                            ToolTip="Menos (flecha abajo)" AutomationProperties.Name="Menos"
+                            ToolTip="Menos (flecha abajo o tecla −)" AutomationProperties.Name="Menos"
                             Click="Cantidad_Menos" />
                     <TextBox x:Name="CampoCantidad" Width="110" Margin="10,0" Padding="8,10" FontSize="19"
                              HorizontalContentAlignment="Center" VerticalAlignment="Center"
@@ -90,7 +90,7 @@
                              app:Numerico.Decimales="True" />
                     <Button Style="{StaticResource SecondaryButton}" Width="44" Height="42" Padding="0"
                             FontSize="20" Content="+" VerticalAlignment="Center"
-                            ToolTip="Más (flecha arriba)" AutomationProperties.Name="Mas"
+                            ToolTip="Más (flecha arriba o tecla +)" AutomationProperties.Name="Mas"
                             Click="Cantidad_Mas" />
                 </StackPanel>
 
