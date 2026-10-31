@@ -48,13 +48,26 @@ namespace Iseller.Pos.App
             {
                 List<string> impresoras = ImpresoraRaw.Instaladas();
                 ComboImpresoras.ItemsSource = impresoras;
+
+                // Si no hay una válida guardada, se propone la predeterminada de Windows
+                // (antes se elegía la primera de la lista, que suele ser una virtual).
+                string predeterminada = ImpresoraRaw.Predeterminada();
+                string elegida = null;
                 if (!string.IsNullOrWhiteSpace(_config.Impresora) && impresoras.Contains(_config.Impresora))
                 {
-                    ComboImpresoras.SelectedItem = _config.Impresora;
+                    elegida = _config.Impresora;
+                }
+                else if (impresoras.Contains(predeterminada))
+                {
+                    elegida = predeterminada;
                 }
                 else if (impresoras.Count > 0)
                 {
-                    ComboImpresoras.SelectedIndex = 0;
+                    elegida = impresoras[0];
+                }
+                if (elegida != null)
+                {
+                    ComboImpresoras.SelectedItem = elegida;
                 }
                 TextoEstado.Text = impresoras.Count + " impresora(s) instalada(s).";
             }

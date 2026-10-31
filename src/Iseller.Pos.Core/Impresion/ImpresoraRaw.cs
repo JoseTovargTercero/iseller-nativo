@@ -22,6 +22,18 @@ namespace Iseller.Pos.Core.Impresion
             return nombres;
         }
 
+        public static string Predeterminada()
+        {
+            try
+            {
+                return new PrinterSettings().PrinterName ?? "";
+            }
+            catch (Exception)
+            {
+                return "";
+            }
+        }
+
         public static void Enviar(string impresora, byte[] datos)
         {
             if (string.IsNullOrWhiteSpace(impresora))
@@ -41,14 +53,9 @@ namespace Iseller.Pos.Core.Impresion
                     throw new InvalidOperationException("No se pudo abrir la impresora \"" + impresora + "\".");
                 }
 
-                var info = new DOC_INFO_1
-                {
-                    pDocName = "iSeller POS",
-                    pDatatype = "RAW",
-                    pOutputFile = null,
-                };
-
-                if (StartDocPrinter(handle, 1, ref info) == 0)
+                // Algunos drivers (los POS-58, por ejemplo) rechazan el tipo "RAW" con
+                // acceso denegado; en ese caso se reintenta con el tipo del propio driver.
+                if (!IniciarDocumento(handle, "RAW") && !IniciarDocumento(handle, null))
                 {
                     throw new InvalidOperationException("No se pudo iniciar el documento de impresión.");
                 }
@@ -84,6 +91,17 @@ namespace Iseller.Pos.Core.Impresion
                     ClosePrinter(handle);
                 }
             }
+        }
+
+        private static bool IniciarDocumento(IntPtr handle, string tipo)
+        {
+            var info = new DOC_INFO_1
+            {
+                pDocName = "iSeller POS",
+                pDatatype = tipo,
+                pOutputFile = null,
+            };
+            return StartDocPrinter(handle, 1, ref info) != 0;
         }
 
         [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]

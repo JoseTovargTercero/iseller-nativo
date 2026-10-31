@@ -600,25 +600,37 @@ namespace Iseller.Pos.App
             {
                 Imprimir(venta);
             }
-
-            Aviso("Venta guardada. Queda como pendiente de enviar.");
+            else
+            {
+                Aviso("Venta guardada. Queda como pendiente de enviar.");
+            }
         }
 
         private void Imprimir(Venta venta)
         {
+            var opciones = _config.ComoOpcionesImpresion();
+            string impresora = opciones.Impresora;
+            if (string.IsNullOrWhiteSpace(impresora))
+            {
+                impresora = ImpresoraRaw.Predeterminada();
+            }
+
+            if (string.IsNullOrWhiteSpace(impresora))
+            {
+                Aviso("Venta guardada, pero no hay impresora configurada (Ajustes).");
+                return;
+            }
+
             try
             {
-                var opciones = _config.ComoOpcionesImpresion();
-                if (!opciones.ImprimirTickets)
-                {
-                    return;
-                }
+                opciones.Impresora = impresora;
                 byte[] datos = TicketEscPos.Generar(venta, _sesion.SucursalNombre, opciones);
-                ImpresoraRaw.Enviar(opciones.Impresora, datos);
+                ImpresoraRaw.Enviar(impresora, datos);
+                Aviso("Venta guardada e impresa en \"" + impresora + "\".");
             }
             catch (Exception ex)
             {
-                Aviso("La venta se guardó, pero no se pudo imprimir: " + ex.Message);
+                Aviso("Venta guardada, pero no se imprimió: " + ex.Message);
             }
         }
 
