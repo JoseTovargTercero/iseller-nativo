@@ -36,6 +36,24 @@ namespace Iseller.Pos.Core.Configuracion
         [JsonProperty("api_key", NullValueHandling = NullValueHandling.Ignore)]
         public string ApiKeyEnClaro { get; set; }
 
+        /// <summary>Segundos que tarda en agregarse solo el producto escaneado (0 = desactivado).</summary>
+        [JsonProperty("segundos_escaner", NullValueHandling = NullValueHandling.Ignore)]
+        public int? SegundosEscanerGuardado { get; set; }
+
+        [JsonIgnore]
+        public int SegundosEscaner
+        {
+            get
+            {
+                if (!SegundosEscanerGuardado.HasValue)
+                {
+                    return 4;
+                }
+                return Math.Max(0, Math.Min(30, SegundosEscanerGuardado.Value));
+            }
+            set { SegundosEscanerGuardado = value; }
+        }
+
         [JsonProperty("impresora")]
         public string Impresora { get; set; }
 

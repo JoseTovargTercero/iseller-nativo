@@ -939,7 +939,18 @@ namespace Iseller.Pos.App
                 Aviso("El producto con código " + codigo + " no está en el catálogo.");
                 return;
             }
-            AbrirBusqueda(codigo);
+            if (_calculadora == null)
+            {
+                Aviso("Sincroniza el catálogo antes de vender.");
+                return;
+            }
+
+            // El escaneo usa su propio modal (no el buscador): cantidad y cuenta de 4 s.
+            var ventana = new VentanaEscaner(producto, _imagenes, _calculadora, _config.SegundosEscaner, Agregar)
+            {
+                Owner = this,
+            };
+            ventana.ShowDialog();
         }
 
         // ── Eventos de UI ──────────────────────────────────────────────────────────

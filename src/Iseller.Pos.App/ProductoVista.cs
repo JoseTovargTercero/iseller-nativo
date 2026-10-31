@@ -21,6 +21,11 @@ namespace Iseller.Pos.App
         public string Nombre { get; set; }
         public double Stock { get; set; }
         public bool EsCombo { get; set; }
+
+        public string StockTexto
+        {
+            get { return "Stock: " + Stock.ToString("0.##", Formato); }
+        }
         public string PrecioDolar { get; set; }
         public string PrecioBs { get; set; }
         public string PrecioPeso { get; set; }

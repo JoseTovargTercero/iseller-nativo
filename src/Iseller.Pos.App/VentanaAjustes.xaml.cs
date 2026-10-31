@@ -23,6 +23,7 @@ namespace Iseller.Pos.App
             Ancho58.IsChecked = config.AnchoMm < 80;
             Ancho80.IsChecked = config.AnchoMm >= 80;
             CheckCajon.IsChecked = config.AbrirCajon ?? true;
+            CampoSegundos.Text = config.SegundosEscaner.ToString();
             TextoVersion.Text = "Versión instalada: " + App.VersionApp;
             Refrescar();
         }
@@ -108,6 +109,7 @@ namespace Iseller.Pos.App
             _config.Impresora = ComboImpresoras.SelectedItem as string ?? "";
             _config.AnchoMm = Ancho80.IsChecked == true ? 80 : 58;
             _config.AbrirCajon = CheckCajon.IsChecked == true;
+            _config.SegundosEscaner = (int)Core.Utilidades.Numero.ADouble(CampoSegundos.Text);
         }
     }
 }
