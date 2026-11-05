@@ -100,6 +100,36 @@ namespace Iseller.Pos.Tests
         }
 
         [Fact]
+        public void El_filtro_del_buscador_respeta_el_modo()
+        {
+            var repo = new CatalogoRepositorio(_ruta);
+            var productos = ProductosDePrueba();
+            productos.Add(new Producto
+            {
+                Id = 3,
+                Nombre = "Jabon al mayor",
+                CodigoBarras = "7590000000003",
+                Origen = "v",
+                PrecioCompra = 8,
+                CantidadUnidades = 12,
+                Porcentaje = 10,
+                Mayor = "1",
+                Stock = 5,
+            });
+            repo.GuardarCatalogo(productos, new List<Cliente>(), TasasDePrueba(),
+                new ConfiguracionNegocio(), 9, "v", DateTimeOffset.Now);
+
+            var detal = repo.Buscar("jabon", 50, FiltroCatalogo.SoloDetal);
+            var todos = repo.Buscar("jabon", 50, FiltroCatalogo.Todos);
+            var mayor = repo.Buscar("jabon", 50, FiltroCatalogo.SoloMayor);
+
+            Assert.DoesNotContain(detal, p => p.Id == 3);
+            Assert.Contains(todos, p => p.Id == 3);
+            Assert.Single(mayor);
+            Assert.Equal(3, mayor[0].Id);
+        }
+
+        [Fact]
         public void Guarda_y_recupera_el_catalogo()
         {
             var repo = new CatalogoRepositorio(_ruta);

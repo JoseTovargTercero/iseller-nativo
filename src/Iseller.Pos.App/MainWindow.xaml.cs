@@ -115,14 +115,19 @@ namespace Iseller.Pos.App
             get { return _sesion.Nivel == 1 || _sesion.PuedeVenderAlMayor; }
         }
 
-        /// <summary>El buscador solo muestra el modo activo; sin permiso siempre es detal.</summary>
+        /// <summary>
+        /// Con el suiche en "al detal" se ven todos los productos (los al mayor incluidos);
+        /// en "al mayor" solo esos. Sin permiso, siempre solo detal.
+        /// </summary>
         private FiltroCatalogo FiltroBusqueda
         {
             get
             {
-                return PuedeMayor && _sesion.ModoMayor
-                    ? FiltroCatalogo.SoloMayor
-                    : FiltroCatalogo.SoloDetal;
+                if (!PuedeMayor)
+                {
+                    return FiltroCatalogo.SoloDetal;
+                }
+                return _sesion.ModoMayor ? FiltroCatalogo.SoloMayor : FiltroCatalogo.Todos;
             }
         }
 
