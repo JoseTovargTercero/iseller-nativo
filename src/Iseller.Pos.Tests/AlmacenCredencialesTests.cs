@@ -46,7 +46,9 @@ namespace Iseller.Pos.Tests
         public void Guarda_varios_cajeros_en_el_mismo_pos()
         {
             var almacen = new AlmacenCredenciales(_ruta);
-            almacen.Guardar(Sesion(15, "ricardo", "Ricardo"));
+            var ricardo = Sesion(15, "ricardo", "Ricardo");
+            ricardo.ModoMayor = false;
+            almacen.Guardar(ricardo);
             almacen.Guardar(Sesion(24, "fely", "Fely"));
 
             Assert.Equal(2, almacen.CargarTodas().Count);
@@ -54,6 +56,8 @@ namespace Iseller.Pos.Tests
             Assert.Equal(15, almacen.BuscarPorId(15).UsuarioId);
             Assert.Equal(3, almacen.Buscar("fely").BssId);
             Assert.Equal(9, almacen.Buscar("fely").SucursalId);
+            Assert.False(almacen.BuscarPorId(15).ModoMayor);
+            Assert.True(almacen.Buscar("fely").ModoMayor);
             Assert.Null(almacen.Buscar("noexiste"));
         }
 

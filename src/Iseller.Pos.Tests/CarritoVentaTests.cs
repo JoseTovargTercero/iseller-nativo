@@ -478,6 +478,23 @@ namespace Iseller.Pos.Tests
         }
 
         [Fact]
+        public void La_cantidad_del_ticket_no_se_redondea()
+        {
+            var items = new List<ItemCarrito>
+            {
+                new ItemCarrito { Id = 9, Name = "Pollo", Qty = 1.856, Price = 2, PricePeso = 8000, PriceBolivar = 2000, Mayor = "0", CantidadPaca = 1 },
+                new ItemCarrito { Id = 10, Name = "Harina Pan", Qty = 3, Price = 1, PricePeso = 4000, PriceBolivar = 1000, Mayor = "0", CantidadPaca = 1 },
+            };
+            var venta = VentaDePrueba();
+            venta.ProductosJson = Newtonsoft.Json.JsonConvert.SerializeObject(items);
+
+            string texto = string.Join("\n", TicketEscPos.Componer(venta, "YOLA MARKET 1", new OpcionesImpresion { AnchoMm = 80 }).Select(l => l.Texto));
+
+            Assert.Contains("1x1.856 Pollo", texto);
+            Assert.Contains("x3 Harina Pan", texto);
+        }
+
+        [Fact]
         public void El_ancho_de_linea_depende_del_papel()
         {
             var lineas58 = TicketEscPos.Componer(VentaDePrueba(), "YOLA MARKET 1",

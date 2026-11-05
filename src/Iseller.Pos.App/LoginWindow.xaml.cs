@@ -85,6 +85,13 @@ namespace Iseller.Pos.App
                     resultado.Sesion.ClaveHash = hash;
                     resultado.Sesion.ClaveIteraciones = ClaveLocal.IteracionesPorDefecto;
 
+                    // El modo de venta elegido se conserva al volver a entrar con internet.
+                    var anterior = _credenciales.BuscarPorId(resultado.Sesion.UsuarioId);
+                    if (anterior != null)
+                    {
+                        resultado.Sesion.ModoMayor = anterior.ModoMayor;
+                    }
+
                     // Se guarda por usuario: en un mismo POS pueden entrar varios cajeros.
                     _credenciales.Guardar(resultado.Sesion);
                     Sesion = resultado.Sesion;
