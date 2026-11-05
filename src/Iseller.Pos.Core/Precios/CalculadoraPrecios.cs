@@ -27,7 +27,6 @@ namespace Iseller.Pos.Core.Precios
             if (producto == null) throw new ArgumentNullException(nameof(producto));
 
             double cantidadUnidad = producto.CantidadUnidades;
-            string origen = producto.Origen;
             double precioCompra = producto.PrecioCompra;
             double porcentaje = producto.Porcentaje;
             double cantidadPorPrecio = producto.Mayor == "1" ? 1 : cantidadUnidad;
@@ -35,6 +34,26 @@ namespace Iseller.Pos.Core.Precios
             // Precio en dolares por unidad (o por paca si es al mayor).
             double precioDolarCompra = precioCompra / cantidadPorPrecio;
             double precioDolarVenta = precioDolarCompra + (precioDolarCompra * porcentaje / 100);
+
+            var precios = CalcularDesdeDolarVenta(producto, precioDolarVenta);
+
+            if (!_parametros.PrecioDolarVisible)
+            {
+                precios.PrecioVentaDolar = Redondear2(precios.PrecioVentaBs / _parametros.Bcv);
+            }
+
+            return precios;
+        }
+
+        /// <summary>
+        /// Calcula pesos y bolivares partiendo de un precio de venta en dolares fijado
+        /// a mano (precio especial). El dolar se conserva tal cual se escribio.
+        /// </summary>
+        public PreciosCalculados CalcularDesdeDolarVenta(ProductoPrecio producto, double precioDolarVenta)
+        {
+            if (producto == null) throw new ArgumentNullException(nameof(producto));
+
+            string origen = producto.Origen;
 
             // Dolar -> pesos, con redondeo a centenas.
             double precioPesoVenta = FormatPeso(precioDolarVenta * _parametros.PesoDolar);
@@ -45,26 +64,25 @@ namespace Iseller.Pos.Core.Precios
             {
                 precioBsVenta = (precioPesoVenta / _parametros.PesoBolivar) / 1000;
             }
+            else if (origen == "m")
+            {
+                precioBsVenta = precioDolarVenta * _parametros.Bcv;
+            }
             else
             {
                 precioBsVenta = precioDolarVenta * _parametros.DolarBolivar;
             }
 
             double precioBolivarPeso = FormatPeso((precioBsVenta * _parametros.BolivarPeso) * 1000);
-            double precioBolivarDolar = precioBsVenta / _parametros.Bcv;
 
             // En PHP el || tiene menor precedencia que ?: y se evalua igual que aqui.
             double valorPesos = (_parametros.PrecioPesoVisible || origen == "c")
                 ? precioPesoVenta
                 : precioBolivarPeso;
 
-            double precioDolar = _parametros.PrecioDolarVisible
-                ? Redondear2(precioDolarVenta)
-                : Redondear2(precioBolivarDolar);
-
             return new PreciosCalculados
             {
-                PrecioVentaDolar = precioDolar,
+                PrecioVentaDolar = Redondear2(precioDolarVenta),
                 PrecioVentaBs = precioBsVenta,
                 PrecioVentaPeso = valorPesos
             };

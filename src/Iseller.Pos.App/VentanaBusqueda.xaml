@@ -31,6 +31,7 @@
             <Setter Property="TextAlignment" Value="Center" />
             <Setter Property="VerticalAlignment" Value="Center" />
         </Style>
+        <BooleanToVisibilityConverter x:Key="BoolAVisible" />
     </Window.Resources>
 
     <!-- Borde claro: el modal se abre sobre la ventana y así se distingue del fondo. -->
@@ -94,6 +95,17 @@
                                     <TextBlock Text="{Binding Nombre}" TextWrapping="Wrap"
                                                ToolTip="{Binding Nombre}" VerticalAlignment="Center"
                                                TextAlignment="Center" />
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                        <DataGridTemplateColumn Header="PRECIO" Width="82">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <Button Content="Precio" Style="{StaticResource MiniOutlineMuted}"
+                                            Padding="8,4" HorizontalAlignment="Center"
+                                            VerticalAlignment="Center" ToolTip="Modificar precio de venta"
+                                            Visibility="{Binding MostrarBotonPrecio, Converter={StaticResource BoolAVisible}}"
+                                            Click="PrecioEspecial_Click" />
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>
                         </DataGridTemplateColumn>

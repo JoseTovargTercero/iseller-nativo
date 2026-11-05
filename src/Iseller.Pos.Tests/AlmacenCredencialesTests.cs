@@ -49,7 +49,9 @@ namespace Iseller.Pos.Tests
             var ricardo = Sesion(15, "ricardo", "Ricardo");
             ricardo.ModoMayor = false;
             almacen.Guardar(ricardo);
-            almacen.Guardar(Sesion(24, "fely", "Fely"));
+            var fely = Sesion(24, "fely", "Fely");
+            fely.ModoMayor = true;
+            almacen.Guardar(fely);
 
             Assert.Equal(2, almacen.CargarTodas().Count);
             Assert.Equal(24, almacen.Buscar("FELY").UsuarioId);   // sin distinguir mayúsculas

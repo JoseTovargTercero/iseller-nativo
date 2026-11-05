@@ -93,6 +93,40 @@ namespace Iseller.Pos.Tests
         }
 
         [Fact]
+        public void Usa_el_precio_especial_y_lo_actualiza_si_ya_existe()
+        {
+            var carrito = new Carrito();
+            var producto = Producto(1, "Pollo", 27.4, 20, 5, "1");
+
+            var primero = new PreciosCalculados
+            {
+                PrecioVentaDolar = 30,
+                PrecioVentaBs = 30000,
+                PrecioVentaPeso = 120000,
+            };
+            var item = carrito.Agregar(producto, Calculadora(), 1, primero);
+
+            Assert.Equal(30, item.Price, 6);
+            Assert.Equal(30000, item.PriceBolivar, 6);
+            Assert.Equal(120000, item.PricePeso, 6);
+            // Al mayor el costo es el de la paca completa, igual que el POS web.
+            Assert.Equal(27.4, item.PriceC, 6);
+
+            var segundo = new PreciosCalculados
+            {
+                PrecioVentaDolar = 28,
+                PrecioVentaBs = 28000,
+                PrecioVentaPeso = 112000,
+            };
+            carrito.Agregar(producto, Calculadora(), 2, segundo);
+
+            Assert.Equal(3, item.Qty);
+            Assert.Equal(28, item.Price, 6);
+            Assert.Equal(28000, item.PriceBolivar, 6);
+            Assert.Equal(112000, item.PricePeso, 6);
+        }
+
+        [Fact]
         public void Los_pesos_se_redondean_por_linea_como_el_pos_web()
         {
             var carrito = new Carrito();

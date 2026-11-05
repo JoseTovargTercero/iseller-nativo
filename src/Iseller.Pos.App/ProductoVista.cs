@@ -16,19 +16,41 @@ namespace Iseller.Pos.App
 
         private ImageSource _imagen;
         private string _cantidadTexto;
+        private string _precioDolar;
+        private string _precioBs;
+        private string _precioPeso;
 
         public int Id { get; set; }
         public string Nombre { get; set; }
         public double Stock { get; set; }
         public bool EsCombo { get; set; }
 
+        /// <summary>El botón de precio especial solo existe en modo al mayor.</summary>
+        public bool MostrarBotonPrecio { get; set; }
+
         public string StockTexto
         {
             get { return "Stock: " + Stock.ToString("0.##", Formato); }
         }
-        public string PrecioDolar { get; set; }
-        public string PrecioBs { get; set; }
-        public string PrecioPeso { get; set; }
+
+        public string PrecioDolar
+        {
+            get { return _precioDolar; }
+            set { _precioDolar = value; Notificar("PrecioDolar"); }
+        }
+
+        public string PrecioBs
+        {
+            get { return _precioBs; }
+            set { _precioBs = value; Notificar("PrecioBs"); }
+        }
+
+        public string PrecioPeso
+        {
+            get { return _precioPeso; }
+            set { _precioPeso = value; Notificar("PrecioPeso"); }
+        }
+
         public string Foto { get; set; }
 
         /// <summary>Cantidad a agregar (texto del campo en la fila; por defecto 1).</summary>
@@ -124,6 +146,23 @@ namespace Iseller.Pos.App
             catch (Exception)
             {
                 // Imagen corrupta: se ignora.
+            }
+        }
+
+        /// <summary>Actualiza la fila cuando se aplica un precio especial.</summary>
+        public void AplicarPrecios(PreciosCalculados precios)
+        {
+            PrecioDolar = "$" + Numero(precios.PrecioVentaDolar);
+            PrecioBs = Numero(precios.PrecioVentaBs) + " Bs";
+            PrecioPeso = precios.PrecioVentaPeso.ToString("N0", Formato) + " Cop";
+        }
+
+        private void Notificar(string propiedad)
+        {
+            var handler = PropertyChanged;
+            if (handler != null)
+            {
+                handler(this, new PropertyChangedEventArgs(propiedad));
             }
         }
 

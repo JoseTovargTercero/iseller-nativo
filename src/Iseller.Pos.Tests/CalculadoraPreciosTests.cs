@@ -162,6 +162,32 @@ namespace Iseller.Pos.Tests
         }
 
         [Fact]
+        public void Precio_especial_en_dolares_recalcula_pesos_y_bolivares()
+        {
+            var calc = new CalculadoraPrecios(Tasas());
+            var r = calc.CalcularDesdeDolarVenta(Producto(1, "v", 10, 30, "0"), 3.8);
+
+            // Con precio_dolar_visible=false el dolar se conserva (es el precio escrito);
+            // los pesos derivan del bolivar y se redondean a la centena.
+            Iguales(new PreciosCalculados
+            {
+                PrecioVentaDolar = 3.8,
+                PrecioVentaBs = 152,
+                PrecioVentaPeso = 33400
+            }, r);
+        }
+
+        [Fact]
+        public void Precio_especial_usa_pesos_directos_si_estan_visibles()
+        {
+            var calc = new CalculadoraPrecios(Tasas(true, true));
+            var r = calc.CalcularDesdeDolarVenta(Producto(1, "v", 10, 30, "0"), 3.8);
+
+            Assert.Equal(3.8, r.PrecioVentaDolar, 6);
+            Assert.Equal(15200, r.PrecioVentaPeso, 6);
+        }
+
+        [Fact]
         public void Caso_real_harina_tradicional_sucursal_8()
         {
             // Datos reales del negocio 2 (api/pos_catalogo.php), validados contra el PHP:

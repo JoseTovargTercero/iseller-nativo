@@ -1,0 +1,53 @@
+<Window x:Class="Iseller.Pos.App.VentanaPrecioEspecial"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:app="clr-namespace:Iseller.Pos.App"
+        Title="Precio especial" Width="470" SizeToContent="Height"
+        ResizeMode="NoResize" WindowStartupLocation="CenterOwner"
+        Icon="Assets/logo1-inv-compact-128.png"
+        Style="{StaticResource PosWindow}">
+
+    <StackPanel Margin="24">
+        <TextBlock x:Name="TextoProducto" Style="{StaticResource SectionTitle}"
+                   TextWrapping="Wrap" />
+        <TextBlock x:Name="TextoCompra" Style="{StaticResource MutedText}" Margin="0,4,0,0" />
+        <TextBlock x:Name="TextoActual" Style="{StaticResource MutedText}" Margin="0,2,0,0" />
+
+        <TextBlock Text="Precio de venta en dólares" Style="{StaticResource SectionTitle}"
+                   Margin="0,16,0,6" />
+        <TextBox x:Name="CampoPrecio" Padding="12,10" FontSize="16"
+                 app:Numerico.Decimales="True"
+                 TextChanged="CampoPrecio_TextChanged"
+                 KeyDown="CampoPrecio_KeyDown" />
+
+        <TextBlock x:Name="TextoError" Foreground="{StaticResource DangerBrush}"
+                   Margin="0,8,0,0" TextWrapping="Wrap" />
+
+        <Border Style="{StaticResource Card}" Margin="0,12,0,0">
+            <StackPanel>
+                <StackPanel Orientation="Horizontal" Margin="0,4">
+                    <TextBlock Text="Dólares:" Width="95" Style="{StaticResource MutedText}" />
+                    <TextBlock x:Name="PreviewDolar" Foreground="{StaticResource MintBrush}"
+                               FontWeight="Bold" FontSize="15" />
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" Margin="0,4">
+                    <TextBlock Text="Pesos:" Width="95" Style="{StaticResource MutedText}" />
+                    <TextBlock x:Name="PreviewPeso" Foreground="{StaticResource InfoBrush}"
+                               FontWeight="Bold" FontSize="15" />
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" Margin="0,4">
+                    <TextBlock Text="Bolívares:" Width="95" Style="{StaticResource MutedText}" />
+                    <TextBlock x:Name="PreviewBs" Foreground="{StaticResource DangerBrush}"
+                               FontWeight="Bold" FontSize="15" />
+                </StackPanel>
+            </StackPanel>
+        </Border>
+
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,18,0,0">
+            <Button Content="Cancelar" Style="{StaticResource SecondaryButton}" Padding="16,9"
+                    Click="Cancelar_Click" />
+            <Button Content="APLICAR" Style="{StaticResource PrimaryButton}" Padding="16,9"
+                    Margin="10,0,0,0" Click="Aplicar_Click" />
+        </StackPanel>
+    </StackPanel>
+</Window>

@@ -85,6 +85,9 @@ namespace Iseller.Pos.App
 
             BotonCredito.Visibility = TienePermiso(11) ? Visibility.Visible : Visibility.Collapsed;
             BotonDescuento.Visibility = TienePermiso(12) ? Visibility.Visible : Visibility.Collapsed;
+            // Siempre se entra al detal: si quedara en "al mayor", el buscador solo
+            // mostraría esos productos y parecería que no hay resultados.
+            _sesion.ModoMayor = false;
             AplicarModoMayor();
 
             // El administrador ve y sincroniza lo de todos los cajeros; cada cajero solo lo suyo.
@@ -346,6 +349,11 @@ namespace Iseller.Pos.App
 
         private void Agregar(Producto producto, double cantidad)
         {
+            Agregar(producto, cantidad, null);
+        }
+
+        private void Agregar(Producto producto, double cantidad, PreciosCalculados? preciosEspeciales)
+        {
             if (producto == null || _calculadora == null)
             {
                 Aviso("Sincroniza el catálogo antes de vender.");
@@ -357,7 +365,7 @@ namespace Iseller.Pos.App
                 return;
             }
 
-            _carrito.Agregar(producto, _calculadora, cantidad);
+            _carrito.Agregar(producto, _calculadora, cantidad, preciosEspeciales);
             PersistirCarrito();
             RefrescarCarrito();
         }

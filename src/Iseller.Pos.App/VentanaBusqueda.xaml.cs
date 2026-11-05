@@ -28,10 +28,14 @@ namespace Iseller.Pos.App
         private readonly CatalogoRepositorio _catalogo;
         private readonly ImagenCache _imagenes;
         private readonly CalculadoraPrecios _calculadora;
-        private readonly Action<Producto, double> _alAgregar;
+        private readonly Action<Producto, double, PreciosCalculados?> _alAgregar;
         private readonly FiltroCatalogo _filtro;
         private readonly bool _cerrarAlAgregar;
         private readonly ObservableCollection<ProductoVista> _resultados = new ObservableCollection<ProductoVista>();
+
+        // Precio especial vigente solo hasta agregar o volver a buscar.
+        private readonly Dictionary<int, PreciosCalculados> _preciosEspeciales =
+            new Dictionary<int, PreciosCalculados>();
 
         // Antiduplicado del lector: tras un escaneo se ignora el mismo código durante 2 s.
         private readonly DispatcherTimer _relojEscaneo = new DispatcherTimer
@@ -43,7 +47,7 @@ namespace Iseller.Pos.App
         private DateTime _bloqueoEscaneo = DateTime.MinValue;
 
         public VentanaBusqueda(CatalogoRepositorio catalogo, ImagenCache imagenes,
-                               CalculadoraPrecios calculadora, Action<Producto, double> alAgregar,
+                               CalculadoraPrecios calculadora, Action<Producto, double, PreciosCalculados?> alAgregar,
                                FiltroCatalogo filtro = FiltroCatalogo.Todos, string codigoInicial = null)
         {
             InitializeComponent();
@@ -213,10 +217,20 @@ namespace Iseller.Pos.App
                 return;
             }
 
+            PreciosCalculados? preciosEspeciales = null;
+            PreciosCalculados precioEspecial;
+            if (_preciosEspeciales.TryGetValue(producto.Id, out precioEspecial))
+            {
+                preciosEspeciales = precioEspecial;
+            }
+
             if (_alAgregar != null)
             {
-                _alAgregar(producto, cantidad);
+                _alAgregar(producto, cantidad, preciosEspeciales);
             }
+
+            // El precio especial es temporal: se descarta al agregar o al buscar de nuevo.
+            _preciosEspeciales.Remove(producto.Id);
 
             if (_cerrarAlAgregar)
             {
@@ -229,6 +243,45 @@ namespace Iseller.Pos.App
             CampoBusqueda.Focus();
         }
 
+        private void PrecioEspecial_Click(object sender, RoutedEventArgs e)
+        {
+            var vista = (sender as FrameworkElement)?.DataContext as ProductoVista;
+            if (vista == null || vista.Modelo == null ||
+                _filtro != FiltroCatalogo.SoloMayor || !string.Equals(vista.Modelo.Mayor, "1", StringComparison.Ordinal))
+            {
+                return;
+            }
+
+            PreciosCalculados actual;
+            if (!_preciosEspeciales.TryGetValue(vista.Id, out actual))
+            {
+                actual = _calculadora.Calcular(ProductoPrecioDe(vista.Modelo));
+            }
+
+            var ventana = new VentanaPrecioEspecial(vista.Modelo, _calculadora, actual)
+            {
+                Owner = this,
+            };
+            if (ventana.ShowDialog() == true)
+            {
+                _preciosEspeciales[vista.Id] = ventana.Precios;
+                vista.AplicarPrecios(ventana.Precios);
+                TextoEstado.Text = "Precio especial aplicado. Se quita al agregar o buscar de nuevo.";
+            }
+        }
+
+        private static ProductoPrecio ProductoPrecioDe(Producto producto)
+        {
+            return new ProductoPrecio
+            {
+                CantidadUnidades = producto.CantidadUnidades,
+                Origen = producto.Origen,
+                PrecioCompra = producto.PrecioCompra,
+                Porcentaje = producto.Porcentaje,
+                Mayor = producto.Mayor,
+            };
+        }
+
         private void Buscar(string termino)
         {
             if (_calculadora == null)
@@ -239,6 +292,7 @@ namespace Iseller.Pos.App
             string limpio = (termino ?? "").Trim();
             if (limpio.Length < 2)
             {
+                _preciosEspeciales.Clear();
                 _resultados.Clear();
                 MensajeVacio.Visibility = Visibility.Visible;
                 TextoResultados.Text = "";
@@ -252,10 +306,15 @@ namespace Iseller.Pos.App
 
         private void Mostrar(IEnumerable<Producto> productos)
         {
+            // Al volver a buscar, cualquier precio especial vuelve al precio normal.
+            _preciosEspeciales.Clear();
             _resultados.Clear();
             foreach (var producto in productos)
             {
-                _resultados.Add(ProductoVista.Desde(producto, _calculadora));
+                var vista = ProductoVista.Desde(producto, _calculadora);
+                vista.MostrarBotonPrecio =
+                    _filtro == FiltroCatalogo.SoloMayor && string.Equals(producto.Mayor, "1", StringComparison.Ordinal);
+                _resultados.Add(vista);
             }
 
             MensajeVacio.Visibility = _resultados.Count == 0 ? Visibility.Visible : Visibility.Collapsed;

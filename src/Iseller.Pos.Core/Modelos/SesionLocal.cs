@@ -37,7 +37,7 @@ namespace Iseller.Pos.Core.Modelos
         {
             Permisos = new List<int>();
             Configuracion = new ConfiguracionNegocio();
-            ModoMayor = true;
+            ModoMayor = false;
             Nombre = "";
             Usuario = "";
             SucursalNombre = "";

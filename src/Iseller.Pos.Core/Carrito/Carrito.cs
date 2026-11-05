@@ -71,7 +71,8 @@ namespace Iseller.Pos.Core.Carrito
         }
 
         /// <summary>Agrega (o suma) un producto con sus precios calculados ahora.</summary>
-        public ItemCarrito Agregar(Producto producto, CalculadoraPrecios calculadora, double cantidad)
+        public ItemCarrito Agregar(Producto producto, CalculadoraPrecios calculadora, double cantidad,
+                                   PreciosCalculados? preciosPersonalizados = null)
         {
             if (producto == null)
             {
@@ -82,7 +83,7 @@ namespace Iseller.Pos.Core.Carrito
                 throw new ArgumentOutOfRangeException(nameof(cantidad), "La cantidad debe ser mayor a cero.");
             }
 
-            var precios = calculadora.Calcular(new ProductoPrecio
+            var precios = preciosPersonalizados ?? calculadora.Calcular(new ProductoPrecio
             {
                 CantidadUnidades = producto.CantidadUnidades,
                 Origen = producto.Origen,
@@ -91,14 +92,23 @@ namespace Iseller.Pos.Core.Carrito
                 Mayor = producto.Mayor,
             });
 
-            double valorUnidad = producto.CantidadUnidades > 0
-                ? producto.PrecioCompra / producto.CantidadUnidades
-                : producto.PrecioCompra;
+            // Al mayor se vende la paca completa: el costo es el del paquete, igual que el POS web.
+            double valorUnidad = producto.Mayor == "1"
+                ? producto.PrecioCompra
+                : (producto.CantidadUnidades > 0
+                    ? producto.PrecioCompra / producto.CantidadUnidades
+                    : producto.PrecioCompra);
 
             ItemCarrito existente;
             if (_items.TryGetValue(producto.Id, out existente))
             {
                 existente.Qty += cantidad;
+                if (preciosPersonalizados.HasValue)
+                {
+                    existente.Price = precios.PrecioVentaDolar;
+                    existente.PricePeso = precios.PrecioVentaPeso;
+                    existente.PriceBolivar = precios.PrecioVentaBs;
+                }
                 return existente;
             }
 
