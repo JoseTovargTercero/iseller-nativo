@@ -29,7 +29,7 @@ namespace Iseller.Pos.App
         private readonly ImagenCache _imagenes;
         private readonly CalculadoraPrecios _calculadora;
         private readonly Action<Producto, double> _alAgregar;
-        private readonly bool _puedeMayor;
+        private readonly FiltroCatalogo _filtro;
         private readonly bool _cerrarAlAgregar;
         private readonly ObservableCollection<ProductoVista> _resultados = new ObservableCollection<ProductoVista>();
 
@@ -44,7 +44,7 @@ namespace Iseller.Pos.App
 
         public VentanaBusqueda(CatalogoRepositorio catalogo, ImagenCache imagenes,
                                CalculadoraPrecios calculadora, Action<Producto, double> alAgregar,
-                               bool puedeMayor = true, string codigoInicial = null)
+                               FiltroCatalogo filtro = FiltroCatalogo.Todos, string codigoInicial = null)
         {
             InitializeComponent();
 
@@ -52,7 +52,7 @@ namespace Iseller.Pos.App
             _imagenes = imagenes;
             _calculadora = calculadora;
             _alAgregar = alAgregar;
-            _puedeMayor = puedeMayor;
+            _filtro = filtro;
             _cerrarAlAgregar = !string.IsNullOrWhiteSpace(codigoInicial);
 
             TablaResultados.ItemsSource = _resultados;
@@ -117,7 +117,7 @@ namespace Iseller.Pos.App
             string termino = CampoBusqueda.Text.Trim();
 
             // Enter = lectura de código de barras: si coincide exacto, entra al carrito.
-            var porCodigo = _catalogo.BuscarPorCodigo(termino, _puedeMayor);
+            var porCodigo = _catalogo.BuscarPorCodigo(termino, _filtro);
             if (porCodigo != null)
             {
                 // Doble disparo del lector: el mismo código dentro de los 2 s no suma otra unidad.
@@ -197,8 +197,8 @@ namespace Iseller.Pos.App
             }
 
             double actual = Core.Utilidades.Numero.ADouble(vista.CantidadTexto);
-            double nueva = Math.Max(1, Math.Round(actual, 2) + delta);
-            vista.CantidadTexto = nueva.ToString("0.##", CultureInfo.InvariantCulture);
+            double nueva = Math.Max(1, actual + delta);
+            vista.CantidadTexto = nueva.ToString("0.####", CultureInfo.InvariantCulture);
         }
 
         private void Agregar(Producto producto, double cantidad)
@@ -245,7 +245,7 @@ namespace Iseller.Pos.App
                 return;
             }
 
-            var productos = _catalogo.Buscar(limpio, Maximo, _puedeMayor);
+            var productos = _catalogo.Buscar(limpio, Maximo, _filtro);
             Mostrar(productos);
             TextoResultados.Text = productos.Count + " resultado(s)";
         }

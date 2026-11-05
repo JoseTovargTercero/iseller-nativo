@@ -16,6 +16,10 @@ namespace Iseller.Pos.Core.Modelos
         public string SucursalNombre { get; set; }
         public List<int> Permisos { get; set; }
         public bool PuedeVenderAlMayor { get; set; }
+
+        /// <summary>Modo del buscador: true = solo productos al mayor; false = solo al detal.</summary>
+        public bool ModoMayor { get; set; }
+
         public ConfiguracionNegocio Configuracion { get; set; }
 
         /// <summary>Vencimiento del token en el servidor (segundos que informó el login).</summary>
@@ -33,6 +37,7 @@ namespace Iseller.Pos.Core.Modelos
         {
             Permisos = new List<int>();
             Configuracion = new ConfiguracionNegocio();
+            ModoMayor = true;
             Nombre = "";
             Usuario = "";
             SucursalNombre = "";

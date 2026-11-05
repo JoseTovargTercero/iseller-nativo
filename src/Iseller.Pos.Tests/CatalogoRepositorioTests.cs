@@ -195,8 +195,12 @@ namespace Iseller.Pos.Tests
             Assert.Equal(2, repo.Productos(false).Count);
             Assert.Single(repo.Buscar("harina al mayor"));
             Assert.Empty(repo.Buscar("harina al mayor", 50, false));
+            Assert.Single(repo.Buscar("harina al mayor", 50, FiltroCatalogo.SoloMayor));
+            Assert.Empty(repo.Buscar("jabon", 50, FiltroCatalogo.SoloMayor));
             Assert.NotNull(repo.BuscarPorCodigo("7595550001111"));
             Assert.Null(repo.BuscarPorCodigo("7595550001111", false));
+            Assert.NotNull(repo.BuscarPorCodigo("7595550001111", FiltroCatalogo.SoloMayor));
+            Assert.Null(repo.BuscarPorCodigo("7591234567890", FiltroCatalogo.SoloMayor));
         }
     }
 }

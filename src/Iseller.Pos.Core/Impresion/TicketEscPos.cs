@@ -181,7 +181,7 @@ namespace Iseller.Pos.Core.Impresion
         {
             string cantidad = item.Qty == Math.Floor(item.Qty)
                 ? ((int)item.Qty).ToString(CultureInfo.InvariantCulture)
-                : item.Qty.ToString("0.##", CultureInfo.InvariantCulture);
+                : item.Qty.ToString("0.####", CultureInfo.InvariantCulture);
 
             string izquierda = numero + "x" + cantidad + " " + (item.Name ?? "");
             string derecha = (moneda == "USD" ? "$" : "") + Numero(monto, moneda);

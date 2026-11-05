@@ -23,6 +23,7 @@ namespace Iseller.Pos.App
 
         private DateTime _inicio;
         private DateTime _abiertoEn;
+        private DateTime _ultimoRafaga = DateTime.MinValue;
         private bool _agregado;
         private bool _cuentaActiva;
 
@@ -94,6 +95,26 @@ namespace Iseller.Pos.App
 
         private void Ventana_PreviewKeyDown(object sender, KeyEventArgs e)
         {
+            bool esDigito = (e.Key >= Key.D0 && e.Key <= Key.D9) || (e.Key >= Key.NumPad0 && e.Key <= Key.NumPad9);
+
+            // Los lectores baratos disparan dos veces: el segundo disparo llega acá como
+            // una ráfaga de dígitos. Se ignora durante los primeros 2 s (y su Enter),
+            // así no corta la cuenta ni agrega una unidad de más.
+            if (esDigito && Keyboard.FocusedElement != CampoCantidad
+                && (DateTime.Now - _abiertoEn).TotalSeconds < 2)
+            {
+                _ultimoRafaga = DateTime.Now;
+                e.Handled = true;
+                return;
+            }
+
+            if (e.Key == Key.Enter && (DateTime.Now - _ultimoRafaga).TotalMilliseconds < 800)
+            {
+                e.Handled = true;
+                _ultimoRafaga = DateTime.MinValue;
+                return;
+            }
+
             switch (e.Key)
             {
                 case Key.Enter:
@@ -130,8 +151,8 @@ namespace Iseller.Pos.App
         private void Cambiar(int delta)
         {
             double actual = Core.Utilidades.Numero.ADouble(_vista.CantidadTexto);
-            double nueva = Math.Max(1, Math.Round(actual, 2) + delta);
-            _vista.CantidadTexto = nueva.ToString("0.##", CultureInfo.InvariantCulture);
+            double nueva = Math.Max(1, actual + delta);
+            _vista.CantidadTexto = nueva.ToString("0.####", CultureInfo.InvariantCulture);
         }
 
         private void Cantidad_Menos(object sender, RoutedEventArgs e)

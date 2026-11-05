@@ -56,6 +56,10 @@ namespace Iseller.Pos.App
         private int? _filtroCajero;
         private EstadoCaja _estadoCaja;
 
+        // Antiduplicado del lector: el mismo código escaneado dos veces seguidas.
+        private string _ultimoCodigo;
+        private DateTime _bloqueoEscaneo = DateTime.MinValue;
+
         // Cada 30 s se comprueba internet: si acaba de llegar, se envían pendientes y se
         // sincroniza (y se busca actualización). Sin internet no molesta al cajero.
         private readonly DispatcherTimer _relojConexion = new DispatcherTimer
@@ -81,6 +85,7 @@ namespace Iseller.Pos.App
 
             BotonCredito.Visibility = TienePermiso(11) ? Visibility.Visible : Visibility.Collapsed;
             BotonDescuento.Visibility = TienePermiso(12) ? Visibility.Visible : Visibility.Collapsed;
+            AplicarModoMayor();
 
             // El administrador ve y sincroniza lo de todos los cajeros; cada cajero solo lo suyo.
             AccionesPendientes.Visibility = _sesion.Nivel == 1 ? Visibility.Visible : Visibility.Collapsed;
@@ -105,6 +110,35 @@ namespace Iseller.Pos.App
         private bool PuedeMayor
         {
             get { return _sesion.Nivel == 1 || _sesion.PuedeVenderAlMayor; }
+        }
+
+        /// <summary>El buscador solo muestra el modo activo; sin permiso siempre es detal.</summary>
+        private FiltroCatalogo FiltroBusqueda
+        {
+            get
+            {
+                return PuedeMayor && _sesion.ModoMayor
+                    ? FiltroCatalogo.SoloMayor
+                    : FiltroCatalogo.SoloDetal;
+            }
+        }
+
+        private void AplicarModoMayor()
+        {
+            bool mayor = PuedeMayor && _sesion.ModoMayor;
+            SuicheMayor.Visibility = PuedeMayor ? Visibility.Visible : Visibility.Collapsed;
+            SuicheMayor.IsChecked = mayor;
+            SuicheMayor.Content = mayor ? "VENTA AL MAYOR" : "VENTA AL DETAL";
+            SuicheMayor.ToolTip = mayor
+                ? "El buscador muestra solo productos al mayor"
+                : "El buscador muestra solo productos al detal";
+        }
+
+        private void SuicheMayor_Click(object sender, RoutedEventArgs e)
+        {
+            _sesion.ModoMayor = SuicheMayor.IsChecked == true;
+            _credenciales.Guardar(_sesion);
+            AplicarModoMayor();
         }
 
         private async void MainWindow_Loaded(object sender, RoutedEventArgs e)
@@ -346,7 +380,7 @@ namespace Iseller.Pos.App
                 return;
             }
 
-            var ventana = new VentanaBusqueda(_catalogo, _imagenes, _calculadora, Agregar, PuedeMayor, codigo)
+            var ventana = new VentanaBusqueda(_catalogo, _imagenes, _calculadora, Agregar, FiltroBusqueda, codigo)
             {
                 Owner = this,
             };
@@ -945,7 +979,15 @@ namespace Iseller.Pos.App
         /// <summary>Código de barras leído: muestra el producto y espera el Enter del cajero.</summary>
         private void CodigoLeido(string codigo)
         {
-            var producto = _catalogo.BuscarPorCodigo(codigo, PuedeMayor);
+            // Doble disparo del lector: el mismo código dentro de 2 s se ignora.
+            if (codigo == _ultimoCodigo && DateTime.Now < _bloqueoEscaneo)
+            {
+                return;
+            }
+            _ultimoCodigo = codigo;
+            _bloqueoEscaneo = DateTime.Now.AddSeconds(2);
+
+            var producto = _catalogo.BuscarPorCodigo(codigo, FiltroBusqueda);
             if (producto == null)
             {
                 Aviso("El producto con código " + codigo + " no está en el catálogo.");

@@ -38,6 +38,39 @@
             <Setter Property="TextAlignment" Value="Center" />
             <Setter Property="VerticalAlignment" Value="Center" />
         </Style>
+        <Style x:Key="ModoSwitch" TargetType="ToggleButton">
+            <Setter Property="Foreground" Value="{StaticResource MutedBrush}" />
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ToggleButton">
+                        <StackPanel Orientation="Horizontal" Background="Transparent">
+                            <Border x:Name="Pista" Width="36" Height="20" CornerRadius="10"
+                                    Background="{StaticResource BorderBrush}" VerticalAlignment="Center">
+                                <Ellipse x:Name="Bolita" Width="14" Height="14"
+                                         Fill="{StaticResource MutedBrush}"
+                                         HorizontalAlignment="Left" Margin="3,0,0,0" />
+                            </Border>
+                            <ContentPresenter Margin="8,0,0,0" VerticalAlignment="Center" />
+                        </StackPanel>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="Pista" Property="Background" Value="{StaticResource MintBrush}" />
+                                <Setter TargetName="Bolita" Property="Fill" Value="{StaticResource BgBrush}" />
+                                <Setter TargetName="Bolita" Property="HorizontalAlignment" Value="Right" />
+                                <Setter TargetName="Bolita" Property="Margin" Value="0,0,3,0" />
+                                <Setter Property="Foreground" Value="{StaticResource MintBrush}" />
+                            </Trigger>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Pista" Property="Opacity" Value="0.85" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
     </Window.Resources>
 
     <Grid>
@@ -411,6 +444,9 @@
             <!-- En la misma línea de las pestañas: primero cerrar caja, luego búsqueda. -->
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Top"
                         Margin="0,3,0,0">
+                <ToggleButton x:Name="SuicheMayor" Style="{StaticResource ModoSwitch}"
+                              Margin="0,3,12,3" Click="SuicheMayor_Click"
+                              AutomationProperties.Name="Modo de venta" />
                 <Button x:Name="BotonCerrarCaja" Content="CERRAR CAJA"
                         Style="{StaticResource DangerButton}" Padding="14,7"
                         Visibility="Collapsed" Click="CerrarCaja_Click" />

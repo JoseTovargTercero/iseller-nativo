@@ -246,6 +246,20 @@ namespace Iseller.Pos.Core.Datos
 
         /// <summary>Filtro para quien no puede vender al mayor (el servidor ya lo aplica al descargar).</summary>
         private const string SoloNoMayor = " AND COALESCE(p.mayor, '0') <> '1'";
+        private const string SoloMayor = " AND COALESCE(p.mayor, '0') = '1'";
+
+        private static string Filtro(FiltroCatalogo filtro)
+        {
+            switch (filtro)
+            {
+                case FiltroCatalogo.SoloMayor:
+                    return SoloMayor;
+                case FiltroCatalogo.SoloDetal:
+                    return SoloNoMayor;
+                default:
+                    return "";
+            }
+        }
 
         /// <summary>
         /// Búsqueda por nombre (sin acentos) o por código de barras.
@@ -253,6 +267,11 @@ namespace Iseller.Pos.Core.Datos
         /// nombre (antes, un dígito dentro del nombre arrastraba coincidencias de códigos).
         /// </summary>
         public List<Producto> Buscar(string termino, int limite = 50, bool incluirMayor = true)
+        {
+            return Buscar(termino, limite, incluirMayor ? FiltroCatalogo.Todos : FiltroCatalogo.SoloDetal);
+        }
+
+        public List<Producto> Buscar(string termino, int limite, FiltroCatalogo filtro)
         {
             string limpio = (termino ?? "").Trim();
             if (limpio.Length == 0)
@@ -262,7 +281,7 @@ namespace Iseller.Pos.Core.Datos
 
             string soloDigitos = new string(limpio.Where(char.IsDigit).ToArray());
             bool pareceCodigo = soloDigitos.Length >= 6 && limpio.All(char.IsDigit);
-            string filtro = incluirMayor ? "" : SoloNoMayor;
+            string filtroSql = Filtro(filtro);
 
             string columnas =
                 "SELECT p.id, p.nombre, p.codigo_barras, p.origen, p.precio_compra, p.cantidad_unidades, " +
@@ -272,7 +291,7 @@ namespace Iseller.Pos.Core.Datos
             if (pareceCodigo)
             {
                 return ConsultarProductos(
-                    columnas + "WHERE p.codigo_barras LIKE @codigo ESCAPE '\\'" + filtro +
+                    columnas + "WHERE p.codigo_barras LIKE @codigo ESCAPE '\\'" + filtroSql +
                     " ORDER BY p.nombre LIMIT " + limite.ToString(CultureInfo.InvariantCulture),
                     cmd => cmd.Parameters.AddWithValue("@codigo", "%" + Escapar(soloDigitos) + "%"));
             }
@@ -284,7 +303,7 @@ namespace Iseller.Pos.Core.Datos
             }
 
             return ConsultarProductos(
-                columnas + "WHERE p.nombre_busqueda LIKE @termino ESCAPE '\\'" + filtro +
+                columnas + "WHERE p.nombre_busqueda LIKE @termino ESCAPE '\\'" + filtroSql +
                 " ORDER BY CASE WHEN p.codigo_barras = @exacto THEN 0 ELSE 1 END, p.nombre " +
                 "LIMIT " + limite.ToString(CultureInfo.InvariantCulture),
                 cmd =>
@@ -296,6 +315,11 @@ namespace Iseller.Pos.Core.Datos
 
         public Producto BuscarPorCodigo(string codigo, bool incluirMayor = true)
         {
+            return BuscarPorCodigo(codigo, incluirMayor ? FiltroCatalogo.Todos : FiltroCatalogo.SoloDetal);
+        }
+
+        public Producto BuscarPorCodigo(string codigo, FiltroCatalogo filtro)
+        {
             string limpio = (codigo ?? "").Trim();
             if (limpio.Length == 0)
             {
@@ -305,7 +329,7 @@ namespace Iseller.Pos.Core.Datos
                 "SELECT p.id, p.nombre, p.codigo_barras, p.origen, p.precio_compra, p.cantidad_unidades, " +
                 "p.porcentaje, p.mayor, p.es_combo, p.foto, COALESCE(s.cantidad, 0) " +
                 "FROM productos p LEFT JOIN stock s ON s.producto_id = p.id " +
-                "WHERE p.codigo_barras = @codigo" + (incluirMayor ? "" : SoloNoMayor) + " LIMIT 1",
+                "WHERE p.codigo_barras = @codigo" + Filtro(filtro) + " LIMIT 1",
                 cmd => cmd.Parameters.AddWithValue("@codigo", limpio));
             return lista.FirstOrDefault();
         }
@@ -483,5 +507,13 @@ namespace Iseller.Pos.Core.Datos
                 ? (DateTimeOffset?)valor
                 : null;
         }
+    }
+
+    /// <summary>Productos que puede devolver el buscador segun el modo de venta.</summary>
+    public enum FiltroCatalogo
+    {
+        Todos,
+        SoloDetal,
+        SoloMayor,
     }
 }

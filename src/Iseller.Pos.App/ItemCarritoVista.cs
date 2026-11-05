@@ -14,9 +14,9 @@ namespace Iseller.Pos.App
         {
             get
             {
-                return Item.Qty == System.Math.Floor(Item.Qty)
-                    ? ((int)Item.Qty).ToString(Formato)
-                    : Item.Qty.ToString("0.##", Formato);
+                // Sin redondear: se venden cantidades con gramos (1,856) y redondear
+                // hacia abajo hace perder dinero.
+                return Item.Qty.ToString("0.####", Formato);
             }
         }
 
